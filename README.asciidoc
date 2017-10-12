@@ -1,0 +1,12 @@
+= Blockchain demo
+
+Aim is to create a naive blockchain implementation to make others understands what is going on with that thing.
+
+This program maintains a distributed database accross nodes.
+
+Traditionnal blockchain implemented concepts :
+
+- block chain (data is a list of blocks)
+- proof of work (proof of stake when i will myself understand the crux of it)
+
+The idea is that the database maintained by the nodes is a "data-registry" (more to be said on it later) ... Where one can store key-value pairs where value can be any JSON type (primitive, object or array).
