@@ -6,10 +6,11 @@ import * as NodeTransfer from './node-transfer'
 // data structure
 // node implementation
 // mining
-// -> node interaction
-// network connection (REST API + WebSocket)
+// node interaction
+// -> network connection (REST API + WebSocket)
 // extract and add data
 // implement a chat application
+// strict json data format (total order between payloads)
 
 console.log(`creating a node`)
 let node = new NodeImpl.NodeImpl('original')
