@@ -18,23 +18,30 @@ node.addEventListener('head', () => console.log(`event : node has new head (${no
 
 console.log(`current head: ${node.currentBlockChainHead()}`)
 
-let nbToMine = 5
-let previousBlockId = null
+let miner = mineBlocks(null)
 
+let nbToMine = 2
 while (nbToMine-- >= 0) {
-    console.log(`block creation`)
-    let block = Block.createBlock(previousBlockId, [{ nom: "arnaud" }])
-    console.log(`mining block`)
-    let minedBlock = Block.mineBlock(block, 1001)
-    console.log(`mined : ${JSON.stringify(minedBlock)}`)
+    let minedBlock = miner.next().value
 
     console.log(`adding block to node`)
     let metadata = node.registerBlock(minedBlock)
     console.log(`added block: ${JSON.stringify(metadata)}`)
+}
 
-    console.log(`current head: ${node.currentBlockChainHead()}`)
+function* mineBlocks(previousBlockId: string) {
+    while (true) {
+        console.log(`block creation`)
+        let block = Block.createBlock(previousBlockId, [{ nom: "arnaud" }])
 
-    previousBlockId = metadata.blockId
+        console.log(`mining block`)
+        let minedBlock = Block.mineBlock(block, 1001)
+        console.log(`mined : ${JSON.stringify(minedBlock)}`)
+
+        yield minedBlock
+
+        previousBlockId = Block.idOfBlock(minedBlock)
+    }
 }
 
 
@@ -51,28 +58,26 @@ for (let i = 0; i < 25; i++)
 
 // contexts constructions
 let nodeContexts: NodeTransfer.NodeTransfer[] = nodes
-    .map(node => new NodeTransfer.NodeTransfer(
+    /*.map(node => new NodeTransfer.NodeTransfer(
         node,
         nodes.filter(n => n != node)
+    ))*/
+    .map((node, index) => new NodeTransfer.NodeTransfer(
+        node,
+        [nodes[(index + 1) % nodes.length]]
     ))
 
 // contexts init
 nodeContexts.forEach(context => context.initialize())
 
-nbToMine = 30
+nbToMine = 1
 while (nbToMine-- >= 0) {
-    console.log(`block creation`)
-    let block = Block.createBlock(previousBlockId, [{ nom: "yop" }])
-    console.log(`mining block`)
-    let minedBlock = Block.mineBlock(block, 1001)
-    console.log(`mined : ${JSON.stringify(minedBlock)}`)
+    let minedBlock = miner.next().value
 
-    console.log(`adding block to node`)
     let index = Math.floor(Math.random() * nodes.length)
-    let metadata = nodes[index].registerBlock(minedBlock)
-    console.log(`added block: ${JSON.stringify(metadata)}`)
 
-    previousBlockId = metadata.blockId
+    console.log(`adding block to node ${index}`)
+    let metadata = nodes[index].registerBlock(minedBlock)
 }
 
 console.log(`finished`)
