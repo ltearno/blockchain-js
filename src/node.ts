@@ -7,6 +7,7 @@ export interface NodeEventListener {
 export interface NodeAPI {
     /**
      * Retrieves the blockchain head history at a certain depth
+     * at 0 is the most recent
      */
     blockChainHeadLog(depth: number): string[]
 

@@ -19,7 +19,7 @@ export class NodeImpl implements Node.NodeAPI {
     }
 
     blockChainHeadLog(depth: number): string[] {
-        return this.headLog.slice()
+        return this.headLog.reverse()
     }
 
     blockChainBlockIds(startBlockId: string, depth: number): string[] {
@@ -42,9 +42,10 @@ export class NodeImpl implements Node.NodeAPI {
         if (!metadata)
             throw "cannot build metadata for block"
 
+        console.log(`registered block ${metadata.blockId}`)
         this.knownBlocks.set(metadata.blockId, metadata)
 
-        if (this.compareBlockchains(metadata.blockId, this.currentBlockChainHead()) > 0)
+        if (metadata.isValid && this.compareBlockchains(metadata.blockId, this.currentBlockChainHead()) > 0)
             this.setHead(metadata.blockId)
 
         return metadata
@@ -52,6 +53,10 @@ export class NodeImpl implements Node.NodeAPI {
 
     addEventListener(type: 'head', eventListener: Node.NodeEventListener): void {
         this.listeners.push(eventListener)
+    }
+
+    knowsBlock(id: string): boolean {
+        return this.knownBlocks.has(id)
     }
 
     private compareBlockchains(block1Id: string, block2Id: string): number {
@@ -69,11 +74,27 @@ export class NodeImpl implements Node.NodeAPI {
             throw "error, not enough block history"
 
         // valid is biggest
+        if (!meta1.isValid)
+            return -1
+        if (!meta2.isValid)
+            return 1
+
         // longest chain is biggest
+        if (meta1.chainLength > meta2.chainLength)
+            return 1
+        if (meta1.chainLength < meta2.chainLength)
+            return -1
+
         // bigger id is biggest
+        return meta1.blockId.localeCompare(meta2.blockId)
     }
 
     private setHead(blockId: string) {
+        if (!blockId)
+            return
+
+        console.log(`new head : ${blockId}`)
+
         this.headLog.push(blockId)
         this.listeners.forEach(listener => listener())
     }
