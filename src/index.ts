@@ -1,6 +1,7 @@
 import * as Block from './block'
-import * as Node from './node'
+import * as NodeApi from './node-api'
 import * as NodeImpl from './node-impl'
+import * as NodeTransfer from './node-transfer'
 
 // data structure
 // node implementation
@@ -11,7 +12,7 @@ import * as NodeImpl from './node-impl'
 // implement a chat application
 
 console.log(`creating a node`)
-let node = new NodeImpl.NodeImpl()
+let node = new NodeImpl.NodeImpl('original')
 node.addEventListener('head', () => console.log(`event : node has new head (${node.currentBlockChainHead()})`))
 
 console.log(`current head: ${node.currentBlockChainHead()}`)
@@ -43,58 +44,21 @@ while (nbToMine-- >= 0) {
  * as node pumps data from other nodes, they refresh their head
  */
 
-let nodes = [node, new NodeImpl.NodeImpl()]
-
-let nodeContexts: {
-    node: Node.NodeAPI
-    knownNodes: Node.NodeAPI[]
-}[] = []
+let nodes = [node]
+for (let i = 0; i < 25; i++)
+    nodes.push(new NodeImpl.NodeImpl(`node ${i}`))
 
 // contexts constructions
-for (let node of nodes) {
-    nodeContexts.push({
+let nodeContexts: NodeTransfer.NodeTransfer[] = nodes
+    .map(node => new NodeTransfer.NodeTransfer(
         node,
-        knownNodes: nodes.filter(n => n != node)
-    })
-}
-
-function nodeHead(node: Node.NodeAPI) {
-    let log = node.blockChainHeadLog(1)
-    return log && log.length && log[0]
-}
-
-function refreshNodeFromNode(node: Node.NodeAPI, remoteNode: Node.NodeAPI) {
-    // TODO fuck that
-    let impl = node as NodeImpl.NodeImpl
-
-    // fetch the new head id
-    let newHead = nodeHead(remoteNode)
-
-    // fetch the missing parent blocks in node
-    let toAddBlocks = []
-    let toMaybeFetch = newHead
-    while (toMaybeFetch) {
-        if (impl.knowsBlock(toMaybeFetch))
-            break
-
-        let addedBlock = remoteNode.blockChainBlockData(toMaybeFetch, 1)[0]
-        toAddBlocks.push(addedBlock)
-        toMaybeFetch = addedBlock.previousBlockId
-    }
-
-    // add them to node
-    toAddBlocks.reverse().forEach(b => node.registerBlock(b))
-}
+        nodes.filter(n => n != node)
+    ))
 
 // contexts init
-for (let context of nodeContexts) {
-    context.knownNodes.forEach(remoteNode => {
-        remoteNode.addEventListener('head', () => refreshNodeFromNode(context.node, remoteNode))
-        refreshNodeFromNode(context.node, remoteNode)
-    })
-}
+nodeContexts.forEach(context => context.initialize())
 
-nbToMine = 3
+nbToMine = 30
 while (nbToMine-- >= 0) {
     console.log(`block creation`)
     let block = Block.createBlock(previousBlockId, [{ nom: "yop" }])
@@ -103,8 +67,11 @@ while (nbToMine-- >= 0) {
     console.log(`mined : ${JSON.stringify(minedBlock)}`)
 
     console.log(`adding block to node`)
-    let metadata = nodes[1].registerBlock(minedBlock)
+    let index = Math.floor(Math.random() * nodes.length)
+    let metadata = nodes[index].registerBlock(minedBlock)
     console.log(`added block: ${JSON.stringify(metadata)}`)
 
     previousBlockId = metadata.blockId
 }
+
+console.log(`finished`)

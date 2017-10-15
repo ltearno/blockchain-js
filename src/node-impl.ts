@@ -1,7 +1,7 @@
 import * as Block from './block'
-import * as Node from './node'
+import * as NodeApi from './node-api'
 
-export class NodeImpl implements Node.NodeAPI {
+export class NodeImpl implements NodeApi.NodeApi {
     // block together with their metadata which are known by the node
     private knownBlocks = new Map<string, Block.BlockMetadata>()
 
@@ -10,7 +10,9 @@ export class NodeImpl implements Node.NodeAPI {
     // at size-1 is the current
     private headLog: string[] = []
 
-    private listeners: Node.NodeEventListener[] = []
+    private listeners: NodeApi.NodeEventListener[] = []
+
+    constructor(private name: string) { }
 
     currentBlockChainHead() {
         if (this.headLog && this.headLog.length)
@@ -42,7 +44,7 @@ export class NodeImpl implements Node.NodeAPI {
         if (!metadata)
             throw "cannot build metadata for block"
 
-        console.log(`registered block ${metadata.blockId}`)
+        console.log(`[${this.name}] registered block ${metadata.blockId}`)
         this.knownBlocks.set(metadata.blockId, metadata)
 
         if (metadata.isValid && this.compareBlockchains(metadata.blockId, this.currentBlockChainHead()) > 0)
@@ -51,7 +53,7 @@ export class NodeImpl implements Node.NodeAPI {
         return metadata
     }
 
-    addEventListener(type: 'head', eventListener: Node.NodeEventListener): void {
+    addEventListener(type: 'head', eventListener: NodeApi.NodeEventListener): void {
         this.listeners.push(eventListener)
     }
 
@@ -93,7 +95,7 @@ export class NodeImpl implements Node.NodeAPI {
         if (!blockId)
             return
 
-        console.log(`new head : ${blockId}`)
+        console.log(`[${this.name}] new head : ${blockId}`)
 
         this.headLog.push(blockId)
         this.listeners.forEach(listener => listener())

@@ -4,7 +4,7 @@ export interface NodeEventListener {
     (): void
 }
 
-export interface NodeAPI {
+export interface NodeApi {
     /**
      * Retrieves the blockchain head history at a certain depth
      * at 0 is the most recent
