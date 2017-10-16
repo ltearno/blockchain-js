@@ -56,7 +56,7 @@ export function isBlockValid(block: Block, minimalDifficulty: number): boolean {
 }
 
 export function idOfBlock(block: Block) {
-    return HashTools.hashString(JSON.stringify(block))
+    return HashTools.hashString(serializeBlockData(block))
 }
 
 export function mineBlock(model: BlockSeed, difficulty: number): Block | null {
@@ -79,4 +79,39 @@ export function mineBlock(model: BlockSeed, difficulty: number): Block | null {
         if (padding == 0)
             return null
     }
+}
+
+/**
+ * Almost the same as JSON.stringify().
+ * Except that object dumps are totally ordered. No space between elements...
+ * 
+ * strict json data format (total order between payloads)
+ */
+export function serializeBlockData(data: any): string {
+    if (Array.isArray(data))
+        return `[${(data as any[]).map(item => serializeBlockData(item)).join(',')}]`
+
+    if (data && typeof data === 'object')
+        return `{${Object.getOwnPropertyNames(data)
+            .sort()
+            .filter(name => data[name] !== undefined)
+            .map(name => `"${name}":${serializeBlockData(data[name])}`)}}`
+
+    if (typeof data === 'string')
+        return JSON.stringify(data)
+
+    if (typeof data === 'number')
+        return JSON.stringify(data)
+
+    if (typeof data === 'boolean')
+        return JSON.stringify(data)
+
+    if (data === null)
+        return 'null'
+
+    throw `unknown data for serializtion ${JSON.stringify(data)}`
+}
+
+export function deserializeBlockData(representation: string) {
+    return JSON.parse(representation)
 }

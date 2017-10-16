@@ -10,7 +10,11 @@ import * as NodeTransfer from './node-transfer'
 // -> network connection (REST API + WebSocket)
 // extract and add data
 // implement a chat application
-// strict json data format (total order between payloads)
+
+
+let t1 = [false, null, { toto: 5, aa: 'titi' }, false, true, 5, 'toto', { 'none': false }]
+let t1ser = Block.serializeBlockData(t1)
+console.log(`${JSON.stringify(JSON.parse(t1ser))}`)
 
 console.log(`creating a node`)
 let node = new NodeImpl.NodeImpl('original')
@@ -36,11 +40,11 @@ function* mineBlocks(previousBlockId: string) {
 
         console.log(`mining block`)
         let minedBlock = Block.mineBlock(block, 1001)
-        console.log(`mined : ${JSON.stringify(minedBlock)}`)
-
-        yield minedBlock
 
         previousBlockId = Block.idOfBlock(minedBlock)
+
+        console.log(`mined block ${previousBlockId}`)
+        yield minedBlock
     }
 }
 
