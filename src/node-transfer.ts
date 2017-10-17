@@ -1,6 +1,5 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
-import * as NodeImpl from './node-impl'
 
 export class NodeTransfer {
     constructor(
@@ -21,9 +20,6 @@ export class NodeTransfer {
     }
 
     private refreshNodeFromNode(node: NodeApi.NodeApi, remoteNode: NodeApi.NodeApi) {
-        // TODO fuck that
-        let impl = node as NodeImpl.NodeImpl
-
         // fetch the new head id
         let newHead = this.nodeHead(remoteNode)
 
@@ -31,7 +27,7 @@ export class NodeTransfer {
         let toAddBlocks = []
         let toMaybeFetch = newHead
         while (toMaybeFetch) {
-            if (impl.knowsBlock(toMaybeFetch))
+            if (node.knowsBlock(toMaybeFetch))
                 break
 
             let addedBlock = remoteNode.blockChainBlockData(toMaybeFetch, 1)[0]

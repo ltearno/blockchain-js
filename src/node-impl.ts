@@ -21,7 +21,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     blockChainHeadLog(depth: number): string[] {
-        return this.headLog.reverse()
+        return this.headLog.reverse().slice(0, depth)
     }
 
     blockChainBlockIds(startBlockId: string, depth: number): string[] {

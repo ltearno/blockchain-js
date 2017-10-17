@@ -38,4 +38,9 @@ export interface NodeApi {
      * Registers an event handler that will be called when the blockchain head changes
      */
     addEventListener(type: 'head', eventListener: NodeEventListener): void
+
+    /**
+     * Asks if the node knows a block in memory
+     */
+    knowsBlock(blockId: string): boolean
 }
