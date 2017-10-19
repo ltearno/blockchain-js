@@ -14,7 +14,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
     constructor(public name: string) { }
 
-    async currentBlockChainHead() {
+    async blockChainHead() {
         if (this.headLog && this.headLog.length)
             return this.headLog[this.headLog.length - 1]
         return null
@@ -47,7 +47,7 @@ export class NodeImpl implements NodeApi.NodeApi {
         console.log(`[${this.name}] registered block ${metadata.blockId}`)
         this.knownBlocks.set(metadata.blockId, metadata)
 
-        if (metadata.isValid && this.compareBlockchains(metadata.blockId, await this.currentBlockChainHead()) > 0)
+        if (metadata.isValid && this.compareBlockchains(metadata.blockId, await this.blockChainHead()) > 0)
             this.setHead(metadata.blockId)
 
         return metadata

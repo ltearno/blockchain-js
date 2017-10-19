@@ -39,7 +39,7 @@ export class NodeTransfer {
         // add them to node
         toAddBlocks = toAddBlocks.reverse()
         for (let toAddBlock of toAddBlocks) {
-            console.log(`SEND BLOCK ${(node as NodeImpl.NodeImpl).name} to ${(remoteNode as NodeImpl.NodeImpl).name} ${await Block.idOfBlock(toAddBlock)}`)
+            //console.log(`SEND BLOCK ${(node as NodeImpl.NodeImpl).name} to ${(remoteNode as NodeImpl.NodeImpl).name} ${await Block.idOfBlock(toAddBlock)}`)
             await node.registerBlock(toAddBlock)
         }
     }

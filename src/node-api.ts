@@ -6,6 +6,11 @@ export interface NodeEventListener {
 
 export interface NodeApi {
     /**
+     * Retrieves the blockchain head block id
+     */
+    blockChainHead(): Promise<string>
+
+    /**
      * Retrieves the blockchain head history at a certain depth
      * at 0 is the most recent
      */
