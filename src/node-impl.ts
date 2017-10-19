@@ -12,42 +12,42 @@ export class NodeImpl implements NodeApi.NodeApi {
 
     private listeners: NodeApi.NodeEventListener[] = []
 
-    constructor(private name: string) { }
+    constructor(public name: string) { }
 
-    currentBlockChainHead() {
+    async currentBlockChainHead() {
         if (this.headLog && this.headLog.length)
             return this.headLog[this.headLog.length - 1]
         return null
     }
 
-    blockChainHeadLog(depth: number): string[] {
+    async blockChainHeadLog(depth: number): Promise<string[]> {
         return this.headLog.reverse().slice(0, depth)
     }
 
-    blockChainBlockIds(startBlockId: string, depth: number): string[] {
-        return Array.from(this.browseBlockchain(startBlockId, depth)).map(metadata => metadata.blockId)
+    async blockChainBlockIds(startBlockId: string, depth: number): Promise<string[]> {
+        return Array.from(await this.browseBlockchain(startBlockId, depth)).map(metadata => metadata.blockId)
     }
 
-    blockChainBlockMetadata(startBlockId: string, depth: number): Block.BlockMetadata[] {
-        return Array.from(this.browseBlockchain(startBlockId, depth))
+    async blockChainBlockMetadata(startBlockId: string, depth: number): Promise<Block.BlockMetadata[]> {
+        return Array.from(await this.browseBlockchain(startBlockId, depth))
     }
 
-    blockChainBlockData(startBlockId: string, depth: number): Block.Block[] {
-        return Array.from(this.browseBlockchain(startBlockId, depth)).map(metadata => metadata.target)
+    async blockChainBlockData(startBlockId: string, depth: number): Promise<Block.Block[]> {
+        return Array.from(await this.browseBlockchain(startBlockId, depth)).map(metadata => metadata.target)
     }
 
     // registers a new block in the collection
     // process block's metadata
     // update head if required (new block is valid and has the longest chain)
-    registerBlock(block: Block.Block): Block.BlockMetadata {
-        let metadata = this.processMetaData(block)
+    async registerBlock(block: Block.Block): Promise<Block.BlockMetadata> {
+        let metadata = await this.processMetaData(block)
         if (!metadata)
             throw "cannot build metadata for block"
 
         console.log(`[${this.name}] registered block ${metadata.blockId}`)
         this.knownBlocks.set(metadata.blockId, metadata)
 
-        if (metadata.isValid && this.compareBlockchains(metadata.blockId, this.currentBlockChainHead()) > 0)
+        if (metadata.isValid && this.compareBlockchains(metadata.blockId, await this.currentBlockChainHead()) > 0)
             this.setHead(metadata.blockId)
 
         return metadata
@@ -57,7 +57,7 @@ export class NodeImpl implements NodeApi.NodeApi {
         this.listeners.push(eventListener)
     }
 
-    knowsBlock(id: string): boolean {
+    async knowsBlock(id: string): Promise<boolean> {
         return this.knownBlocks.has(id)
     }
 
@@ -101,7 +101,7 @@ export class NodeImpl implements NodeApi.NodeApi {
         this.listeners.forEach(listener => listener())
     }
 
-    private processMetaData(block: Block.Block): Block.BlockMetadata {
+    private async processMetaData(block: Block.Block): Promise<Block.BlockMetadata> {
         let currentChainLength = 1
         let minimalDifficulty = 0
 
@@ -117,8 +117,8 @@ export class NodeImpl implements NodeApi.NodeApi {
         // TODO find the process through which difficulty is raised
 
         let metadata: Block.BlockMetadata = {
-            blockId: Block.idOfBlock(block),
-            isValid: Block.isBlockValid(block, minimalDifficulty),
+            blockId: await Block.idOfBlock(block),
+            isValid: await Block.isBlockValid(block, minimalDifficulty),
             target: block,
             chainLength: currentChainLength
         }

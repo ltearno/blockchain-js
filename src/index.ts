@@ -22,22 +22,22 @@ declare module "express" {
     }
 }
 
-function* mineBlocks(previousBlockId: string) {
-    while (true) {
+function createSimpleMiner(previousBlockId: string) {
+    return async function () {
         console.log(`block creation`)
         let block = Block.createBlock(previousBlockId, [{ nom: "arnaud" }])
 
         console.log(`mining block`)
-        let minedBlock = Block.mineBlock(block, 1001)
+        let minedBlock = await Block.mineBlock(block, 1001)
 
-        previousBlockId = Block.idOfBlock(minedBlock)
+        previousBlockId = await Block.idOfBlock(minedBlock)
 
         console.log(`mined block ${previousBlockId}`)
-        yield minedBlock
+        return minedBlock
     }
 }
 
-let miner = mineBlocks(null)
+let miner = createSimpleMiner(null)
 
 /**
  * - Optionnaly serves a REST + WebSocket API
@@ -64,20 +64,20 @@ export class NodeWebServer {
             })
         })
 
-        app.get('/mineSomething', (req, res) => this.node.registerBlock(miner.next().value))
+        app.get('/mineSomething', async (req, res) => this.node.registerBlock(await miner()))
 
-        app.get('/blockChainHeadLog/:depth', (req, res) => {
+        app.get('/blockChainHeadLog/:depth', async (req, res) => {
             let depth = 1 * (req.params.depth || 1)
 
-            let result = this.node.blockChainHeadLog(depth)
+            let result = await this.node.blockChainHeadLog(depth)
             res.send(JSON.stringify(result))
         })
 
-        app.get('/blockChainBlockIds/:startBlockId/:depth', (req, res) => {
+        app.get('/blockChainBlockIds/:startBlockId/:depth', async (req, res) => {
             let depth = 1 * (req.params.depth || 1)
             let startBlockId = req.params.startBlockId
 
-            let result = this.node.blockChainBlockIds(startBlockId, depth)
+            let result = await this.node.blockChainBlockIds(startBlockId, depth)
             res.send(JSON.stringify(result))
         })
 
@@ -104,27 +104,29 @@ export class NodeWebServer {
     }
 }
 
-let node = new NodeImpl.NodeImpl('original')
-let server = new NodeWebServer(9091, node)
-server.initialize()
+//let node = new NodeImpl.NodeImpl('original')
+//let server = new NodeWebServer(9091, node)
+//server.initialize()
 
-function otherTests() {
+otherTests()
+
+async function otherTests() {
     let t1 = [false, null, { toto: 5, aa: 'titi' }, false, true, 5, 'toto', { 'none': false }]
     let t1ser = Block.serializeBlockData(t1)
     console.log(`${JSON.stringify(JSON.parse(t1ser))}`)
 
     console.log(`creating a node`)
     let node = new NodeImpl.NodeImpl('original')
-    node.addEventListener('head', () => console.log(`event : node has new head (${node.currentBlockChainHead()})`))
+    node.addEventListener('head', async () => console.log(`event : node has new head (${await node.currentBlockChainHead()})`))
 
-    console.log(`current head: ${node.currentBlockChainHead()}`)
+    console.log(`current head: ${await node.currentBlockChainHead()}`)
 
     let nbToMine = 2
     while (nbToMine-- >= 0) {
-        let minedBlock = miner.next().value
+        let minedBlock = await miner()
 
         console.log(`adding block to node`)
-        let metadata = node.registerBlock(minedBlock)
+        let metadata = await node.registerBlock(minedBlock)
         console.log(`added block: ${JSON.stringify(metadata)}`)
     }
 
@@ -137,7 +139,7 @@ function otherTests() {
      */
 
     let nodes = [node]
-    for (let i = 0; i < 25; i++)
+    for (let i = 0; i < 200; i++)
         nodes.push(new NodeImpl.NodeImpl(`node ${i}`))
 
     // contexts constructions
@@ -154,15 +156,28 @@ function otherTests() {
     // contexts init
     nodeContexts.forEach(context => context.initialize())
 
-    nbToMine = 1
+    nbToMine = 100
     while (nbToMine-- >= 0) {
-        let minedBlock = miner.next().value
+        let minedBlock = await miner()
 
         let index = Math.floor(Math.random() * nodes.length)
 
+        let nodeToRegisterBlock = nodes[index]
+
+        while (!await nodeToRegisterBlock.knowsBlock(minedBlock.previousBlockId)) {
+            await wait(300)
+            console.log(`waiting for block availability on node ${nodeToRegisterBlock.name}`)
+        }
+
         console.log(`adding block to node ${index}`)
-        let metadata = nodes[index].registerBlock(minedBlock)
+        let metadata = await nodes[index].registerBlock(minedBlock)
     }
 }
 
 console.log(`finished`)
+
+function wait(duration: number) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => resolve(), duration)
+    })
+}

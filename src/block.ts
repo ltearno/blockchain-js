@@ -47,19 +47,19 @@ export function createBlock(previousBlockId: string, data: any[]): BlockSeed {
     return block
 }
 
-export function isBlockValid(block: Block, minimalDifficulty: number): boolean {
+export async function isBlockValid(block: Block, minimalDifficulty: number): Promise<boolean> {
     if (!block || !block.validityProof || block.validityProof.difficulty < minimalDifficulty)
         return false
 
-    let sha = idOfBlock(block)
+    let sha = await idOfBlock(block)
     return sha.endsWith("" + block.validityProof.difficulty)
 }
 
-export function idOfBlock(block: Block) {
-    return HashTools.hashString(serializeBlockData(block))
+export async function idOfBlock(block: Block) {
+    return await HashTools.hashString(serializeBlockData(block))
 }
 
-export function mineBlock(model: BlockSeed, difficulty: number): Block | null {
+export async function mineBlock(model: BlockSeed, difficulty: number): Promise<Block> {
     let block: Block = {
         previousBlockId: model.previousBlockId,
         data: model.data
@@ -72,7 +72,7 @@ export function mineBlock(model: BlockSeed, difficulty: number): Block | null {
             padding
         }
 
-        if (isBlockValid(block, difficulty))
+        if (await isBlockValid(block, difficulty))
             return block
 
         padding++

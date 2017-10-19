@@ -9,22 +9,22 @@ export interface NodeApi {
      * Retrieves the blockchain head history at a certain depth
      * at 0 is the most recent
      */
-    blockChainHeadLog(depth: number): string[]
+    blockChainHeadLog(depth: number): Promise<string[]>
 
     /**
      * Retrieves the ids of the blocks of a selected part of the blockchain
      */
-    blockChainBlockIds(startBlockId: string, depth: number): string[]
+    blockChainBlockIds(startBlockId: string, depth: number): Promise<string[]>
 
     /**
      * Retrieves the block metadata of the blocks of a selected part of the blockchain
      */
-    blockChainBlockMetadata(startBlockId: string, depth: number): Block.BlockMetadata[]
+    blockChainBlockMetadata(startBlockId: string, depth: number): Promise<Block.BlockMetadata[]>
 
     /**
      * Retrieves the data of the blocks of a selected part of the blockchain
      */
-    blockChainBlockData(startBlockId: string, depth: number): Block.Block[]
+    blockChainBlockData(startBlockId: string, depth: number): Promise<Block.Block[]>
 
     /**
      * Registers a mined block and update the blockchain head if necessary
@@ -32,7 +32,7 @@ export interface NodeApi {
      * - if valid, and all previous blocks are know, and the new block represents
      *   the longest valid chain, then head is updated
      */
-    registerBlock(minedBlock: Block.Block): Block.BlockMetadata
+    registerBlock(minedBlock: Block.Block): Promise<Block.BlockMetadata>
 
     /**
      * Registers an event handler that will be called when the blockchain head changes
@@ -42,5 +42,5 @@ export interface NodeApi {
     /**
      * Asks if the node knows a block in memory
      */
-    knowsBlock(blockId: string): boolean
+    knowsBlock(blockId: string): Promise<boolean>
 }
