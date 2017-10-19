@@ -1,7 +1,6 @@
 import * as Block from './block'
 import * as NodeImpl from './node-impl'
 import * as NodeTransfer from './node-transfer'
-import * as NodeWebServer from './node-web-server'
 import * as TestTools from './test-tools'
 
 async function testDataSerialization() {
@@ -102,17 +101,10 @@ async function testNodeTransfer() {
     }
 }
 
-async function testNodeWebServer() {
-    let node = new NodeImpl.NodeImpl('original')
-    let server = new NodeWebServer.NodeWebServer(9091, node)
-    server.initialize()
-}
-
 let testers = [
     testDataSerialization,
     testBasicMining,
-    testNodeTransfer,
-    //testNodeWebServer
+    testNodeTransfer
 ]
 
 export async function testAll() {

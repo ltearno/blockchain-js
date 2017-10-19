@@ -7,6 +7,8 @@ import * as Tests from './tests'
 // -> network connection (REST API + WebSocket)
 // extract and add data
 // implement a chat application
-// a bit of resilience and error checking (dont crash on shitty input!)
+// a bit of resilience and error checking (dont never crash on shitty input!)
+
+// executable : blockchain-demo-ws.js
 
 Tests.testAll()

@@ -30,7 +30,7 @@ export class NodeWebServer {
 
         app.use(bodyParser.json())
 
-        app.ws('/echo', (ws, req) => {
+        app.ws('/events', (ws, req) => {
             // TODO close the listener sometime
             ws.send({ type: 'hello' })
             this.node.addEventListener('head', async () => ws.send({ type: 'head', newHead: await this.node.blockChainHead() }))
@@ -42,7 +42,13 @@ export class NodeWebServer {
             let previousBlockId = await this.node.blockChainHead()
             let miner = TestTools.createSimpleMiner(previousBlockId, 10)
             let block = await miner()
-            this.node.registerBlock(block)
+            let metadata = await this.node.registerBlock(block)
+            res.send(JSON.stringify(metadata))
+        })
+
+        app.get('/blockChainHead', async (req, res) => {
+            let result = await this.node.blockChainHead()
+            res.send(JSON.stringify(result))
         })
 
         app.get('/blockChainHeadLog/:depth', async (req, res) => {
@@ -57,6 +63,35 @@ export class NodeWebServer {
             let startBlockId = req.params.startBlockId
 
             let result = await this.node.blockChainBlockIds(startBlockId, depth)
+            res.send(JSON.stringify(result))
+        })
+
+        app.get('/blockChainBlockMetadata/:startBlockId/:depth', async (req, res) => {
+            let depth = 1 * (req.params.depth || 1)
+            let startBlockId = req.params.startBlockId
+
+            let result = await this.node.blockChainBlockMetadata(startBlockId, depth)
+            res.send(JSON.stringify(result))
+        })
+
+        app.get('/blockChainBlockData/:startBlockId/:depth', async (req, res) => {
+            let depth = 1 * (req.params.depth || 1)
+            let startBlockId = req.params.startBlockId
+
+            let result = await this.node.blockChainBlockData(startBlockId, depth)
+            res.send(JSON.stringify(result))
+        })
+
+        app.post('/registerBlock', async (req, res) => {
+            // TODO check that input is a real block !
+            let metadata = await this.node.registerBlock(req.body.data as Block.Block)
+            res.send(JSON.stringify(metadata))
+        })
+
+        app.get('/knowsBlock/:blockId', async (req, res) => {
+            let blockId = req.params.blockId
+
+            let result = await this.node.knowsBlock(blockId)
             res.send(JSON.stringify(result))
         })
 
