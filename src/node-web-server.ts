@@ -31,6 +31,7 @@ export class NodeWebServer {
         app.use(bodyParser.json())
 
         app.ws('/echo', (ws, req) => {
+            // TODO close the listener sometime
             ws.send({ type: 'hello' })
             this.node.addEventListener('head', async () => ws.send({ type: 'head', newHead: await this.node.blockChainHead() }))
         })

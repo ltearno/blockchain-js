@@ -21,7 +21,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     async blockChainHeadLog(depth: number): Promise<string[]> {
-        return this.headLog.reverse().slice(0, depth)
+        return this.headLog.slice(this.headLog.length - depth, this.headLog.length).reverse()
     }
 
     async blockChainBlockIds(startBlockId: string, depth: number): Promise<string[]> {
@@ -44,7 +44,11 @@ export class NodeImpl implements NodeApi.NodeApi {
         if (!metadata)
             throw "cannot build metadata for block"
 
-        console.log(`[${this.name}] registered block ${metadata.blockId}`)
+        if (this.knownBlocks.has(metadata.blockId)) {
+            console.log(`[${this.name}] already registered block ${metadata.blockId.substring(0, 5)}`)
+            return
+        }
+
         this.knownBlocks.set(metadata.blockId, metadata)
 
         if (metadata.isValid && this.compareBlockchains(metadata.blockId, await this.blockChainHead()) > 0)
@@ -55,6 +59,10 @@ export class NodeImpl implements NodeApi.NodeApi {
 
     addEventListener(type: 'head', eventListener: NodeApi.NodeEventListener): void {
         this.listeners.push(eventListener)
+    }
+
+    removeEventListener(eventListener: NodeApi.NodeEventListener): void {
+        this.listeners = this.listeners.filter(el => el != eventListener)
     }
 
     async knowsBlock(id: string): Promise<boolean> {
@@ -95,9 +103,10 @@ export class NodeImpl implements NodeApi.NodeApi {
         if (!blockId)
             return
 
-        console.log(`[${this.name}] new head : ${blockId}`)
-
         this.headLog.push(blockId)
+
+        console.log(`[${this.name}] new head : ${blockId.substring(0, 5)}`)
+
         this.listeners.forEach(listener => listener())
     }
 

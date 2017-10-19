@@ -6,6 +6,11 @@ export interface NodeEventListener {
 
 export interface NodeApi {
     /**
+     * A sympathetic name to help debugging
+     */
+    name: string
+
+    /**
      * Retrieves the blockchain head block id
      */
     blockChainHead(): Promise<string>
@@ -43,6 +48,11 @@ export interface NodeApi {
      * Registers an event handler that will be called when the blockchain head changes
      */
     addEventListener(type: 'head', eventListener: NodeEventListener): void
+
+    /**
+     * Removes an event listener
+     */
+    removeEventListener(eventListener: NodeEventListener): void
 
     /**
      * Asks if the node knows a block in memory

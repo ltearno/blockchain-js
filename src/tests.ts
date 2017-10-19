@@ -29,13 +29,28 @@ async function testBasicMining() {
 }
 
 async function testNodeTransfer() {
+    const NB_NODES = 5
+
     let miner = TestTools.createSimpleMiner(null, 10)
 
     let nodes: NodeImpl.NodeImpl[] = []
-    for (let i = 0; i < 200; i++)
+    for (let i = 0; i < NB_NODES; i++)
         nodes.push(new NodeImpl.NodeImpl(`node ${i}`))
 
     let anyNode = () => nodes[Math.floor(Math.random() * nodes.length)]
+
+    let checkAll = async () => {
+        let ok = true
+        let head = await nodes[0].blockChainHead()
+        for (let i = 1; i < nodes.length; i++) {
+            if (head != await nodes[i].blockChainHead()) {
+                console.log(`node ${nodes[i].name} has head ${await nodes[i].blockChainHead()} instead of ${head}`)
+                ok = false
+            }
+        }
+        if (!ok)
+            console.log(`error in checking all blocks`)
+    }
 
     console.log(`mining initial blocks`)
     let initNode = anyNode()
@@ -43,37 +58,48 @@ async function testNodeTransfer() {
         await initNode.registerBlock(await miner())
     }
 
-    // contexts construction
-    let nodeContexts: NodeTransfer.NodeTransfer[] = nodes
-        /*.map(node => new NodeTransfer.NodeTransfer(
-            node,
-            nodes.filter(n => n != node)
-        ))*/
-        .map((node, index) => new NodeTransfer.NodeTransfer(
-            node,
-            [nodes[(index + 1) % nodes.length]]
-        ))
+    function fullyConnectedTopology(node, index) { return nodes.filter(n => n != node) }
+    function circleTopology(node, index) { return [nodes[(index + 1) % nodes.length]] }
 
-    // contexts init
-    nodeContexts.forEach(context => context.initialize())
+    let topologies = [
+        fullyConnectedTopology,
+        circleTopology
+    ]
 
-    // mine blocks and register them to any of the nodes
-    let nbToMine = 100
-    while (nbToMine-- >= 0) {
-        let minedBlock = await miner()
+    for (let topology of topologies) {
+        console.log(`switch to topology ${topology.name}\n`)
 
-        let nodeToRegisterBlock = anyNode()
+        // contexts construction
+        let nodeContexts: NodeTransfer.NodeTransfer[] = nodes
+            .map((node, index) => new NodeTransfer.NodeTransfer(
+                node,
+                topology(node, index)
+            ))
 
-        while (!await nodeToRegisterBlock.knowsBlock(minedBlock.previousBlockId)) {
-            console.log(`waiting for block ${minedBlock.previousBlockId} availability on node ${nodeToRegisterBlock.name}`)
-            await TestTools.wait(300)
+        // contexts init
+        nodeContexts.forEach(context => context.initialize())
+
+        // mine blocks and register them to any of the nodes
+        let nbToMine = 100
+        while (nbToMine-- >= 0) {
+            let minedBlock = await miner()
+
+            let nodeToRegisterBlock = anyNode()
+
+            while (!await nodeToRegisterBlock.knowsBlock(minedBlock.previousBlockId)) {
+                console.log(`waiting for block ${minedBlock.previousBlockId} availability on node ${nodeToRegisterBlock.name}`)
+                await TestTools.wait(300)
+            }
+
+            console.log(`adding block to node ${nodeToRegisterBlock.name}`)
+            let metadata = await nodeToRegisterBlock.registerBlock(minedBlock)
         }
 
-        console.log(`adding block to node ${nodeToRegisterBlock.name}`)
-        let metadata = await nodeToRegisterBlock.registerBlock(minedBlock)
-    }
+        await TestTools.wait(1000)
+        await checkAll()
 
-    // TODO check that all nodes are synchronized
+        nodeContexts.forEach(context => context.terminate())
+    }
 }
 
 async function testNodeWebServer() {
@@ -91,7 +117,7 @@ let testers = [
 
 export async function testAll() {
     for (let tester of testers) {
-        console.log(`execute ${tester.name}`)
+        console.log(`\n\n${tester.name}\n`)
         await tester()
     }
 

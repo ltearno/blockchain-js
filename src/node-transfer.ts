@@ -1,46 +1,58 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
-import * as NodeImpl from './node-impl'
 
 export class NodeTransfer {
+    private listeners: any[] = undefined
+
     constructor(
         private node: NodeApi.NodeApi,
         private knownNodes: NodeApi.NodeApi[]
     ) { }
 
     initialize() {
+        this.listeners = []
         this.knownNodes.forEach(remoteNode => {
-            remoteNode.addEventListener('head', () => this.refreshNodeFromNode(this.node, remoteNode))
-            this.refreshNodeFromNode(this.node, remoteNode)
+            let listener = () => this.fetchFromNode(remoteNode)
+
+            remoteNode.addEventListener('head', listener)
+
+            this.listeners.push(listener)
+
+            this.fetchFromNode(remoteNode)
         })
     }
 
-    private async nodeHead(node: NodeApi.NodeApi) {
-        let log = await node.blockChainHeadLog(1)
-        return log && log.length && log[0]
+    terminate() {
+        this.knownNodes.forEach((remoteNode, index) => remoteNode.removeEventListener(this.listeners[index]))
+        this.listeners = undefined
+        this.node = undefined
+        this.knownNodes = undefined
     }
 
-    private async refreshNodeFromNode(node: NodeApi.NodeApi, remoteNode: NodeApi.NodeApi) {
-        // fetch the new head id
-        let newHead = await this.nodeHead(remoteNode)
+    private async fetchFromNode(remoteNode: NodeApi.NodeApi) {
+        // TODO if we are already fetching from this node, cancel the current fetching before
+        // TODO in other words : do it another way (maintain incremental information about remote nodes)
+
+        let remoteHead = await remoteNode.blockChainHead()
 
         // fetch the missing parent blocks in node
         let toAddBlocks = []
-        let toMaybeFetch = newHead
+        let toMaybeFetch = remoteHead
         while (toMaybeFetch) {
-            if (await node.knowsBlock(toMaybeFetch))
+            if (await this.node.knowsBlock(toMaybeFetch))
                 break
 
             let addedBlock = (await remoteNode.blockChainBlockData(toMaybeFetch, 1))[0]
             toAddBlocks.push(addedBlock)
+
             toMaybeFetch = addedBlock.previousBlockId
         }
 
         // add them to node
         toAddBlocks = toAddBlocks.reverse()
         for (let toAddBlock of toAddBlocks) {
-            //console.log(`SEND BLOCK ${(node as NodeImpl.NodeImpl).name} to ${(remoteNode as NodeImpl.NodeImpl).name} ${await Block.idOfBlock(toAddBlock)}`)
-            await node.registerBlock(toAddBlock)
+            console.log(`transfer block ${(await Block.idOfBlock(toAddBlock)).substring(0, 5)} from ${remoteNode.name} to ${this.node.name}`)
+            await this.node.registerBlock(toAddBlock)
         }
     }
 }
