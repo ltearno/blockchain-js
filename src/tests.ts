@@ -173,30 +173,32 @@ async function testNodeProxy() {
 }
 
 async function firstTest() {
-    let app = express()
+    let node = new NodeImpl.NodeImpl('alone')
+    let list = new BCList(node, 'main')
+    list.initialise()
 
-    let expressWs = require('express-ws')(app)
+    list.addListener(items => console.log(`list: ${JSON.stringify(items)}`))
 
-    app.use(bodyParser.json())
+    let miner = TestTools.createSimpleMiner(null, 3)
+    for (let i = 0; i < 3; i++) {
+        let block = await miner()
+        await node.registerBlock(block)
+    }
 
-    app.ws('/events', (ws, req) => {
-        // TODO close the listener sometime
-        ws.on('message', data => {
-            console.log(`rcv: ${JSON.stringify(data)}`)
-        })
-        setTimeout(() => ws.send(JSON.stringify({ type: 'heartbeat' })), 1000)
-        ws.send(JSON.stringify({ type: 'hello' }))
-    })
-
-    app.listen(9000, () => console.log(`listening http on port 9000`))
+    for (let i = 0; i < 10; i++) {
+        await list.addToList('hello')
+        await TestTools.wait(10)
+        await list.addToList('world')
+        await list.addToList('funky pop !!!')
+    }
 }
 
 let testers = [
-    //firstTest,
+    firstTest,
     //testNodeProxy,
     //testDataSerialization,
     //testBasicMining,
-    testNodeTransfer
+    //testNodeTransfer
 ]
 
 export async function testAll() {
@@ -215,7 +217,7 @@ Tu veux put et get des data : une liste chainee
 */
 
 // those things are added into the blocks' data in the blockchain
-interface ListItemData {
+interface BCListItem {
     tag: 'DUMMY_LINKED_LIST'
     listName: string
     previousListItemData: string
@@ -225,38 +227,136 @@ interface ListItemData {
     // TODO improve : add signing and RW rights (root rights assigned to list creator ?)
 }
 
-export class ListOnBlockChain {
-    constructor(private node: NodeApi.NodeApi) { }
+export class BCList {
+    constructor(private node: NodeApi.NodeApi, private listName: string) { }
 
     private blocks = new Map<string, Block.BlockMetadata>()
+
+    private listItems: BCListItem[]
+    private dataList: any[]
+
+    private updating = false
+    private queueUpdate = false
+
+    private listeners: { (list): void }[] = []
 
     initialise() {
         this.node.addEventListener('head', () => this.updateFromNode())
         this.updateFromNode()
     }
 
-    // called when we have no task in progress
-    private step() {
-        // list can be ready to use or not (ie : fetched until root)
+    getList(): any[] {
+        return this.dataList
+    }
 
-        // need to fetch block
-        // need to check what to do with a fetched block : => back construct the list, forward/replace the list's items
+    addListener(listener: (list: any[]) => void) {
+        this.listeners.push(listener)
+    }
+
+    async addToList(data: any) {
+        let head = await this.node.blockChainHead()
+        let difficuly = 10
+        if (head) {
+            let metadata = (await this.node.blockChainBlockMetadata(head, 1))[0]
+            difficuly = metadata.target.validityProof.difficulty
+        }
+
+        let newItem: BCListItem = {
+            tag: 'DUMMY_LINKED_LIST',
+            listName: this.listName,
+            previousListItemData: await this.lastListItemId(this.listItems),
+            items: [data]
+        }
+
+        let preBlock = Block.createBlock(head, [newItem])
+        let block = await Block.mineBlock(preBlock, difficuly)
+
+        await this.node.registerBlock(block)
     }
 
     private async updateFromNode() {
-        let head = await this.node.blockChainHead()
-
-        if (this.blocks.has(head))
+        if (this.updating) {
+            this.queueUpdate = true
             return
+        }
 
-        let metadata = (await this.node.blockChainBlockMetadata(head, 1))[0]
+        this.updating = true
+
+        let previousLastListItemId = await this.lastListItemId(this.listItems)
+
+        try {
+            let head = await this.node.blockChainHead()
+            this.listItems = await this.fetchListItemsFromBlockchain(head)
+            this.dataList = []
+            for (let listItem of this.listItems)
+                this.dataList = this.dataList.concat(listItem.items)
+        }
+        catch (error) {
+            console.log(`update error : ${error}`)
+        }
+
+        this.updating = false
+
+        let currentLastListItemId = await this.lastListItemId(this.listItems)
+
+        if (previousLastListItemId != currentLastListItemId)
+            this.listeners.forEach(listener => listener(this.dataList))
+
+        if (this.queueUpdate) {
+            this.queueUpdate = false
+            this.updateFromNode()
+        }
+    }
+
+    private async fetchListItemsFromBlockchain(blockId: string): Promise<BCListItem[]> {
+        if (!blockId)
+            return []
+
+        let metadata = this.blocks.get(blockId)
         if (!metadata)
-            return
+            metadata = (await this.node.blockChainBlockMetadata(blockId, 1))[0]
+        if (!metadata)
+            throw `impossible to retrieve block`
 
-        this.blocks.set(metadata.blockId, metadata)
+        let firstPart = await this.fetchListItemsFromBlockchain(metadata.target.previousBlockId)
+        let lastDataId = await this.lastListItemId(firstPart)
 
-        // if we don't have the list from the root, parse the block's data for a previous list items, and update the list. if list still incomplete, load previous block; else list is ready
-        // if we have the list from the root 
+        let lastPart = await this.findListPartInBlock(metadata.target, lastDataId)
+        return firstPart.concat(lastPart)
+    }
+
+    private async lastListItemId(list: BCListItem[]) {
+        if (list && list.length)
+            return await Block.idOfData(list[list.length - 1])
+        return null
+    }
+
+    private async findListPartInBlock(block: Block.Block, lastItemData: string): Promise<BCListItem[]> {
+        let part: BCListItem[] = []
+
+        for (let dataItem of block.data) {
+            if (typeof dataItem !== 'object')
+                continue
+            if (!['tag', 'listName', 'previousListItemData', 'items'].every(field => field in dataItem))
+                continue
+
+            if (dataItem.tag != 'DUMMY_LINKED_LIST')
+                continue
+
+            if (dataItem.listName != this.listName)
+                continue
+
+            if (dataItem.previousListItemData != lastItemData)
+                continue
+
+            if (!Array.isArray(dataItem.items))
+                continue
+
+            part.push(dataItem)
+            lastItemData = await Block.idOfData(dataItem)
+        }
+
+        return part
     }
 
     // Phases : begins by Reading

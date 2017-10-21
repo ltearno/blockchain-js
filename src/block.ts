@@ -56,7 +56,11 @@ export async function isBlockValid(block: Block, minimalDifficulty: number): Pro
 }
 
 export async function idOfBlock(block: Block) {
-    return await HashTools.hashString(serializeBlockData(block))
+    return idOfData(block)
+}
+
+export async function idOfData(data: any) {
+    return await HashTools.hashString(serializeBlockData(data))
 }
 
 export async function mineBlock(model: BlockSeed, difficulty: number): Promise<Block> {
