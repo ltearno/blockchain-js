@@ -4,6 +4,7 @@ import * as NodeImpl from './node-impl'
 import * as NodeTransfer from './node-transfer'
 import * as NodeNetwork from './node-network'
 import * as TestTools from './test-tools'
+import * as Tools from './tools'
 
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
@@ -49,8 +50,9 @@ async function testNodeTransfer() {
 
         if (USE_NETWORK) {
             let port = NETWORK_BASE_PORT + i
-            let server = new NodeNetwork.NodeServer(port, node)
-            server.initialize()
+            let app = Tools.createExpressApp(port)
+            let server = new NodeNetwork.NodeServer(node)
+            server.initialize(app)
 
             let proxy = new NodeNetwork.NodeClient(`nodeproxy ${i}`, 'localhost', port)
             proxy.initialize()
@@ -93,15 +95,9 @@ async function testNodeTransfer() {
     for (let topology of topologies) {
         console.log(`switch to topology ${topology.name}\n`)
 
-        // contexts construction
-        let nodeContexts: NodeTransfer.NodeTransfer[] = nodes
-            .map((node, index) => new NodeTransfer.NodeTransfer(
-                node,
-                topology(node, index)
-            ))
-
-        // contexts init
-        nodeContexts.forEach(context => context.initialize())
+        // transfer contexts creation
+        let nodeContexts: NodeTransfer.NodeTransfer[] = nodes.map(node => new NodeTransfer.NodeTransfer(node))
+        nodeContexts.forEach((context, index) => context.initialize(topology(context.node, index)))
 
         // mine blocks and register them to any of the nodes
         let nbToMine = NB_MINED_BLOCKS_EACH_TOPOLOGY
@@ -127,7 +123,7 @@ async function testNodeTransfer() {
 }
 
 async function testNodeProxy() {
-    let server = new NodeNetwork.NodeServer(9000, {
+    let server = new NodeNetwork.NodeServer({
         name: 'debug',
         knowsBlock: (blockId) => {
             console.log(`knowsBlock( ${blockId}`)
@@ -162,7 +158,8 @@ async function testNodeProxy() {
             console.log(`removeListener`)
         }
     })
-    server.initialize()
+    let app = Tools.createExpressApp(9000)
+    server.initialize(app)
 
     let proxy = new NodeNetwork.NodeClient('debug-proxy', 'localhost', 9000)
     proxy.initialize()

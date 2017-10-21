@@ -135,23 +135,9 @@ export class NodeClient implements NodeApi.NodeApi {
 }
 
 export class NodeServer {
-    private peers = []
-    private toConnectPeers = []
+    constructor(private node: NodeApi.NodeApi) { }
 
-    constructor(private listeningPort: number,
-        private node: NodeApi.NodeApi) { }
-
-    initialize() {
-        this.initServer()
-    }
-
-    private initServer() {
-        let app = express()
-
-        let expressWs = require('express-ws')(app)
-
-        app.use(bodyParser.json())
-
+    initialize(app: express.Server) {
         app.ws('/events', (ws, req) => {
             // TODO close the listener sometime
             ws.on('message', message => console.log(`rcv: ${message}`))
@@ -217,7 +203,5 @@ export class NodeServer {
             let result = await this.node.knowsBlock(blockId)
             res.send(JSON.stringify(result))
         })
-
-        app.listen(this.listeningPort, () => console.log(`listening http on port ${this.listeningPort}`))
     }
 }

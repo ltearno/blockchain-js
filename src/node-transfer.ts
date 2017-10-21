@@ -3,26 +3,31 @@ import * as NodeApi from './node-api'
 
 export class NodeTransfer {
     private listeners: any[] = undefined
+    private knownNodes: NodeApi.NodeApi[] = undefined
 
     constructor(
-        private node: NodeApi.NodeApi,
-        private knownNodes: NodeApi.NodeApi[]
+        public node: NodeApi.NodeApi
     ) { }
 
-    initialize() {
+    initialize(knownNodes: NodeApi.NodeApi[]) {
         this.listeners = []
-        this.knownNodes.forEach(remoteNode => {
-            let listener = () => {
-                console.log(`[${this.node.name}] receive head change from ${remoteNode.name}`)
-                this.fetchFromNode(remoteNode)
-            }
+        this.knownNodes = []
 
-            remoteNode.addEventListener('head', listener)
+        knownNodes.forEach(node => this.initRemoteNode(node))
+    }
 
-            this.listeners.push(listener)
+    addRemoteNode(remoteNode: NodeApi.NodeApi) {
+        this.initRemoteNode(remoteNode)
+    }
 
-            this.fetchFromNode(remoteNode)
-        })
+    removeRemoteNode(remoteNode: NodeApi.NodeApi) {
+        let index = this.knownNodes.indexOf(remoteNode)
+        if (index < 0)
+            return
+
+        remoteNode.removeEventListener(this.listeners[index])
+        this.listeners.splice(index, 1)
+        this.knownNodes.splice(index, 1)
     }
 
     terminate() {
@@ -30,6 +35,21 @@ export class NodeTransfer {
         this.listeners = undefined
         this.node = undefined
         this.knownNodes = undefined
+    }
+
+    private initRemoteNode(remoteNode: NodeApi.NodeApi) {
+        this.knownNodes.push(remoteNode)
+
+        let listener = () => {
+            console.log(`[${this.node.name}] receive head change from ${remoteNode.name}`)
+            this.fetchFromNode(remoteNode)
+        }
+
+        remoteNode.addEventListener('head', listener)
+
+        this.listeners.push(listener)
+
+        this.fetchFromNode(remoteNode)
     }
 
     private async fetchFromNode(remoteNode: NodeApi.NodeApi) {
