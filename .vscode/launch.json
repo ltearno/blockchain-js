@@ -14,7 +14,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}\\target\\index.js",
+            "program": "${workspaceFolder}/target/index.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]
