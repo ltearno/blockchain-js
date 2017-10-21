@@ -226,7 +226,42 @@ interface ListItemData {
 }
 
 export class ListOnBlockChain {
-    constructor(node: NodeApi.NodeApi) { }
+    constructor(private node: NodeApi.NodeApi) { }
+
+    private blocks = new Map<string, Block.BlockMetadata>()
+
+    initialise() {
+        this.node.addEventListener('head', () => this.updateFromNode())
+        this.updateFromNode()
+    }
+
+    // called when we have no task in progress
+    private step() {
+        // list can be ready to use or not (ie : fetched until root)
+
+        // need to fetch block
+        // need to check what to do with a fetched block : => back construct the list, forward/replace the list's items
+    }
+
+    private async updateFromNode() {
+        let head = await this.node.blockChainHead()
+
+        if (this.blocks.has(head))
+            return
+
+        let metadata = (await this.node.blockChainBlockMetadata(head, 1))[0]
+        if (!metadata)
+            return
+
+        this.blocks.set(metadata.blockId, metadata)
+
+        // if we don't have the list from the root, parse the block's data for a previous list items, and update the list. if list still incomplete, load previous block; else list is ready
+        // if we have the list from the root 
+    }
+
+    // Phases : begins by Reading
+    // - Reading : read all blocks from node's head to construct the list from root
+    // - Updating : each time the head moves, read the blocks and update the list (take care of if some items where on a block that has dissapeared)
 
     // TODO : identify the write operation so that one can wait on it
     // we can know that a tx is accepted when a new confirmed block will contain the written record
