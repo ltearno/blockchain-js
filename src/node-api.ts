@@ -11,6 +11,11 @@ export interface NodeApi {
     name: string
 
     /**
+     * Asks if the node knows a block in memory
+     */
+    knowsBlock(blockId: string): Promise<boolean>
+
+    /**
      * Retrieves the blockchain head block id
      */
     blockChainHead(): Promise<string>
@@ -53,9 +58,4 @@ export interface NodeApi {
      * Removes an event listener
      */
     removeEventListener(eventListener: NodeEventListener): void
-
-    /**
-     * Asks if the node knows a block in memory
-     */
-    knowsBlock(blockId: string): Promise<boolean>
 }

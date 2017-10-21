@@ -12,7 +12,10 @@ export class NodeTransfer {
     initialize() {
         this.listeners = []
         this.knownNodes.forEach(remoteNode => {
-            let listener = () => this.fetchFromNode(remoteNode)
+            let listener = () => {
+                console.log(`[${this.node.name}] receive head change from ${remoteNode.name}`)
+                this.fetchFromNode(remoteNode)
+            }
 
             remoteNode.addEventListener('head', listener)
 

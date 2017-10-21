@@ -1,7 +1,13 @@
 import * as Block from './block'
+import * as NodeApi from './node-api'
 import * as NodeImpl from './node-impl'
 import * as NodeTransfer from './node-transfer'
+import * as NodeWebServer from './node-web-server'
 import * as TestTools from './test-tools'
+
+import * as express from 'express'
+import * as bodyParser from 'body-parser'
+import * as WebSocket from 'ws'
 
 async function testDataSerialization() {
     let t1 = [false, null, { toto: 5, aa: 'titi' }, false, true, 5, 'toto', { 'none': false }]
@@ -28,13 +34,32 @@ async function testBasicMining() {
 }
 
 async function testNodeTransfer() {
-    const NB_NODES = 5
+    const USE_NETWORK = false
+    const NETWORK_BASE_PORT = 10000
+    const NB_NODES = 20
+    const DIFFICULTY = 2
+    const NB_MINED_BLOCKS_INITIAL = 10
+    const NB_MINED_BLOCKS_EACH_TOPOLOGY = 10
 
-    let miner = TestTools.createSimpleMiner(null, 10)
+    let miner = TestTools.createSimpleMiner(null, DIFFICULTY)
 
-    let nodes: NodeImpl.NodeImpl[] = []
-    for (let i = 0; i < NB_NODES; i++)
-        nodes.push(new NodeImpl.NodeImpl(`node ${i}`))
+    let nodes: NodeApi.NodeApi[] = []
+    for (let i = 0; i < NB_NODES; i++) {
+        let node: NodeApi.NodeApi = new NodeImpl.NodeImpl(`node ${i}`)
+
+        if (USE_NETWORK) {
+            let port = NETWORK_BASE_PORT + i
+            let server = new NodeWebServer.NodeWebServer(port, node)
+            server.initialize()
+
+            let proxy = new NodeWebServer.RemoteNodeProxy(`nodeproxy ${i}`, 'localhost', port)
+            proxy.initialize()
+
+            node = proxy
+        }
+
+        nodes.push(node)
+    }
 
     let anyNode = () => nodes[Math.floor(Math.random() * nodes.length)]
 
@@ -53,7 +78,7 @@ async function testNodeTransfer() {
 
     console.log(`mining initial blocks`)
     let initNode = anyNode()
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < NB_MINED_BLOCKS_INITIAL; i++) {
         await initNode.registerBlock(await miner())
     }
 
@@ -79,7 +104,7 @@ async function testNodeTransfer() {
         nodeContexts.forEach(context => context.initialize())
 
         // mine blocks and register them to any of the nodes
-        let nbToMine = 100
+        let nbToMine = NB_MINED_BLOCKS_EACH_TOPOLOGY
         while (nbToMine-- >= 0) {
             let minedBlock = await miner()
 
@@ -101,9 +126,79 @@ async function testNodeTransfer() {
     }
 }
 
+async function testNodeProxy() {
+    let server = new NodeWebServer.NodeWebServer(9000, {
+        name: 'debug',
+        knowsBlock: (blockId) => {
+            console.log(`knowsBlock( ${blockId}`)
+            return Promise.resolve(false)
+        },
+        blockChainHead: () => {
+            console.log(`bch`)
+            return Promise.resolve(null)
+        },
+        blockChainHeadLog: (depth) => {
+            return Promise.resolve([])
+        },
+        blockChainBlockIds: (blockId, depth) => {
+            return Promise.resolve([])
+        },
+        blockChainBlockMetadata: (blockId, depth) => {
+            return Promise.resolve([])
+        },
+        blockChainBlockData: (blockId, depth) => {
+            return Promise.resolve([])
+        },
+        registerBlock: async block => {
+            console.log(`register block ${(await Block.idOfBlock(block)).substring(0, 5)} : ${JSON.stringify(block)}`)
+            console.log(`*** it should be the same as the created one ***`)
+            return null
+        },
+        addEventListener: (type, listener) => {
+            console.log(`addListener`)
+            setInterval(() => listener(), 1000)
+        },
+        removeEventListener: (listener) => {
+            console.log(`removeListener`)
+        }
+    })
+    server.initialize()
+
+    let proxy = new NodeWebServer.RemoteNodeProxy('debug-proxy', 'localhost', 9000)
+    proxy.initialize()
+
+    let miner = TestTools.createSimpleMiner(null, 3)
+    let block = await miner()
+    let id = await Block.idOfBlock(block)
+    console.log(`created ${id} : ${JSON.stringify(block)}`)
+    let metadata = await proxy.registerBlock(block)
+    proxy.addEventListener('head', () => console.log(`receive head change`))
+}
+
+async function firstTest() {
+    let app = express()
+
+    let expressWs = require('express-ws')(app)
+
+    app.use(bodyParser.json())
+
+    app.ws('/events', (ws, req) => {
+        // TODO close the listener sometime
+        ws.on('message', data => {
+            console.log(`rcv: ${JSON.stringify(data)}`)
+        })
+        setTimeout(() => ws.send(JSON.stringify({ type: 'heartbeat' })), 1000)
+        ws.send(JSON.stringify({ type: 'hello' }))
+    })
+
+    app.listen(9000, () => console.log(`listening http on port 9000`))
+}
+
 let testers = [
-    testDataSerialization,
-    testBasicMining,
+    //firstTest,
+    //testNodeProxy,
+    //testDataSerialization,
+    //testBasicMining,
     testNodeTransfer
 ]
 

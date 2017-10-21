@@ -40,6 +40,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     // process block's metadata
     // update head if required (new block is valid and has the longest chain)
     async registerBlock(block: Block.Block): Promise<Block.BlockMetadata> {
+        console.log(`[${this.name}] receive block ${(await Block.idOfBlock(block)).substring(0, 5)}`)
         let metadata = await this.processMetaData(block)
         if (!metadata)
             throw "cannot build metadata for block"
