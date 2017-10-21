@@ -207,3 +207,33 @@ export async function testAll() {
 
     console.log(`done with testing`)
 }
+
+/*
+Tu connais un NodeApi
+Tu veux put et get des data : une liste chainee
+=> liste chainee (nommée) de données, tout le monde peut lire/ecrire, chargement async depuis la blockchain
+*/
+
+// those things are added into the blocks' data in the blockchain
+interface ListItemData {
+    tag: 'DUMMY_LINKED_LIST'
+    listName: string
+    previousListItemData: string
+    items: any[]
+
+    // TODO optimise : memorize the id of the last block containing list data
+    // TODO improve : add signing and RW rights (root rights assigned to list creator ?)
+}
+
+export class ListOnBlockChain {
+    constructor(node: NodeApi.NodeApi) { }
+
+    // TODO : identify the write operation so that one can wait on it
+    // we can know that a tx is accepted when a new confirmed block will contain the written record
+    // we can know that a tx is not confirmed when a new confirmed block will contain new records on the list and not the written record
+
+    // READING :
+    // subscribe to the node => fetch latest data
+    // reverse browser the node's head and fetch blocks until root block
+    // browser blocks from root and filter list data, construct the chained list with that
+}

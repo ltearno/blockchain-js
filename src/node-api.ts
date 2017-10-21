@@ -17,6 +17,10 @@ export interface NodeApi {
 
     /**
      * Retrieves the blockchain head block id
+     * 
+     * TODO:
+     * For the moment this represents the 'master' branch shared through consensus accross nodes.
+     * We should support having multiple 'branches' with different level of validity and different sharing scopes.
      */
     blockChainHead(): Promise<string>
 
