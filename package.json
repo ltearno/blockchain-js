@@ -9,10 +9,13 @@
   "author": "Arnaud Tournier",
   "license": "ISC",
   "devDependencies": {
+    "@types/express": "^4.0.37",
+    "@types/node": "^8.0.46",
+    "@types/request": "^2.0.6",
+    "@types/ws": "^3.2.0",
     "typescript": "2.5.3"
   },
   "dependencies": {
-    "@types/node": "^8.0.34",
     "body-parser": "^1.15.2",
     "express": "~4.11.1",
     "express-ws": "^3.0.0",
