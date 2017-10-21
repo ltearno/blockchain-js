@@ -17,7 +17,7 @@ declare module "express" {
     }
 }
 
-export class RemoteNodeProxy implements NodeApi.NodeApi {
+export class NodeClient implements NodeApi.NodeApi {
     private ws: WebSocket
     private eventListeners: NodeApi.NodeEventListener[] = []
 
@@ -134,7 +134,7 @@ export class RemoteNodeProxy implements NodeApi.NodeApi {
     }
 }
 
-export class NodeWebServer {
+export class NodeServer {
     private peers = []
     private toConnectPeers = []
 

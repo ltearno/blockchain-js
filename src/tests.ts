@@ -2,7 +2,7 @@ import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as NodeImpl from './node-impl'
 import * as NodeTransfer from './node-transfer'
-import * as NodeWebServer from './node-web-server'
+import * as NodeNetwork from './node-network'
 import * as TestTools from './test-tools'
 
 import * as express from 'express'
@@ -49,10 +49,10 @@ async function testNodeTransfer() {
 
         if (USE_NETWORK) {
             let port = NETWORK_BASE_PORT + i
-            let server = new NodeWebServer.NodeWebServer(port, node)
+            let server = new NodeNetwork.NodeServer(port, node)
             server.initialize()
 
-            let proxy = new NodeWebServer.RemoteNodeProxy(`nodeproxy ${i}`, 'localhost', port)
+            let proxy = new NodeNetwork.NodeClient(`nodeproxy ${i}`, 'localhost', port)
             proxy.initialize()
 
             node = proxy
@@ -127,7 +127,7 @@ async function testNodeTransfer() {
 }
 
 async function testNodeProxy() {
-    let server = new NodeWebServer.NodeWebServer(9000, {
+    let server = new NodeNetwork.NodeServer(9000, {
         name: 'debug',
         knowsBlock: (blockId) => {
             console.log(`knowsBlock( ${blockId}`)
@@ -164,7 +164,7 @@ async function testNodeProxy() {
     })
     server.initialize()
 
-    let proxy = new NodeWebServer.RemoteNodeProxy('debug-proxy', 'localhost', 9000)
+    let proxy = new NodeNetwork.NodeClient('debug-proxy', 'localhost', 9000)
     proxy.initialize()
 
     let miner = TestTools.createSimpleMiner(null, 3)
