@@ -16,6 +16,10 @@ export class NodeTransfer {
         knownNodes.forEach(node => this.initRemoteNode(node))
     }
 
+    getKnownNodes() {
+        return this.knownNodes
+    }
+
     addRemoteNode(remoteNode: NodeApi.NodeApi) {
         this.initRemoteNode(remoteNode)
     }

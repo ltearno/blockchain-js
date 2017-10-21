@@ -7,8 +7,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "blockchain-demo-ws",
-            "program": "${workspaceFolder}/target/blockchain-demo-ws.js"
+            "name": "blockchain-ws",
+            "program": "${workspaceFolder}/target/blockchain-ws.js"
         },
         {
             "type": "node",

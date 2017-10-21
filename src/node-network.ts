@@ -147,14 +147,6 @@ export class NodeServer {
 
         app.get('/ping', (req, res) => res.send(JSON.stringify({ message: 'hello' })))
 
-        app.get('/mineSomething', async (req, res) => {
-            let previousBlockId = await this.node.blockChainHead()
-            let miner = TestTools.createSimpleMiner(previousBlockId, 10)
-            let block = await miner()
-            let metadata = await this.node.registerBlock(block)
-            res.send(JSON.stringify(metadata))
-        })
-
         app.get('/blockChainHead', async (req, res) => {
             let result = await this.node.blockChainHead()
             res.send(JSON.stringify(result))
