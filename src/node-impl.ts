@@ -5,23 +5,31 @@ export class NodeImpl implements NodeApi.NodeApi {
     // block together with their metadata which are known by the node
     private knownBlocks = new Map<string, Block.BlockMetadata>()
 
-    // history of the blockchain heads
+    // history of the blockchain heads by branch
     // at 0 is the oldest,
     // at size-1 is the current
-    private headLog: string[] = []
+    private headLog: Map<string, string[]> = new Map()
 
     private listeners: NodeApi.NodeEventListener[] = []
 
     constructor(public name: string) { }
 
-    async blockChainHead() {
-        if (this.headLog && this.headLog.length)
-            return this.headLog[this.headLog.length - 1]
+    private getBranchHead(branch: string) {
+        if (!this.headLog.has(branch))
+            this.headLog.set(branch, [])
+        return this.headLog.get(branch)
+    }
+
+    async blockChainHead(branch: string) {
+        let headLog = this.getBranchHead(branch)
+        if (headLog && headLog.length)
+            return headLog[headLog.length - 1]
         return null
     }
 
-    async blockChainHeadLog(depth: number): Promise<string[]> {
-        return this.headLog.slice(this.headLog.length - depth, this.headLog.length).reverse()
+    async blockChainHeadLog(branch: string, depth: number): Promise<string[]> {
+        let headLog = this.getBranchHead(branch)
+        return headLog.slice(headLog.length - depth, headLog.length).reverse()
     }
 
     async blockChainBlockIds(startBlockId: string, depth: number): Promise<string[]> {
@@ -52,8 +60,8 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         this.knownBlocks.set(metadata.blockId, metadata)
 
-        if (metadata.isValid && this.compareBlockchains(metadata.blockId, await this.blockChainHead()) > 0)
-            this.setHead(metadata.blockId)
+        if (metadata.isValid && this.compareBlockchains(metadata.blockId, await this.blockChainHead(block.branch)) > 0)
+            this.setHead(block.branch, metadata.blockId)
 
         return metadata
     }
@@ -100,11 +108,12 @@ export class NodeImpl implements NodeApi.NodeApi {
         return meta1.blockId.localeCompare(meta2.blockId)
     }
 
-    private setHead(blockId: string) {
-        if (!blockId)
+    private setHead(branch: string, blockId: string) {
+        if (!blockId || !branch)
             return
 
-        this.headLog.push(blockId)
+        let headLog = this.getBranchHead(branch)
+        headLog.push(blockId)
 
         console.log(`[${this.name}] new head : ${blockId.substring(0, 5)}`)
 

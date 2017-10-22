@@ -1,9 +1,14 @@
 import * as HashTools from './hash-tools'
 
+export const MASTER_BRANCH = 'master'
+
 /**
  * A block which has no validation data yet
  */
 export interface BlockSeed {
+    // blockchain branch name
+    branch: string
+
     // ID of the previous block
     previousBlockId: string
 
@@ -38,8 +43,9 @@ export interface BlockMetadata {
     chainLength: number
 }
 
-export function createBlock(previousBlockId: string, data: any[]): BlockSeed {
+export function createBlock(branch: string, previousBlockId: string, data: any[]): BlockSeed {
     let block: BlockSeed = {
+        branch,
         previousBlockId,
         data
     }

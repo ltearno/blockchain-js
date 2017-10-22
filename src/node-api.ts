@@ -22,13 +22,13 @@ export interface NodeApi {
      * For the moment this represents the 'master' branch shared through consensus accross nodes.
      * We should support having multiple 'branches' with different level of validity and different sharing scopes.
      */
-    blockChainHead(): Promise<string>
+    blockChainHead(branch: string): Promise<string>
 
     /**
      * Retrieves the blockchain head history at a certain depth
      * at 0 is the most recent
      */
-    blockChainHeadLog(depth: number): Promise<string[]>
+    blockChainHeadLog(branch: string, depth: number): Promise<string[]>
 
     /**
      * Retrieves the ids of the blocks of a selected part of the blockchain
@@ -55,6 +55,8 @@ export interface NodeApi {
 
     /**
      * Registers an event handler that will be called when the blockchain head changes
+     * 
+     * TODO register on a specific branch
      */
     addEventListener(type: 'head', eventListener: NodeEventListener): void
 

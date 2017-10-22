@@ -2,14 +2,20 @@ import * as Block from './block'
 import * as NodeApi from './node-api'
 
 export class MinerImpl {
-    private dataToMine = []
+    private dataToMineByBranch = new Map<string, any[]>()
     private scheduled = false
     private reschedule = false
 
     constructor(private node: NodeApi.NodeApi) { }
 
-    addData(data: any): void {
-        this.dataToMine.push(data)
+    private getToMineList(branch: string) {
+        if (!this.dataToMineByBranch.has(branch))
+            this.dataToMineByBranch.set(branch, [])
+        return this.dataToMineByBranch.get(branch)
+    }
+
+    addData(branch: string, data: any): void {
+        this.getToMineList(branch).push({ branch, data })
         this.schedule()
     }
 
@@ -34,27 +40,32 @@ export class MinerImpl {
     }
 
     async mineData() {
-        if (!this.dataToMine.length)
-            return
+        let dataToMineByBranch = this.dataToMineByBranch
+        this.dataToMineByBranch = new Map()
 
-        let head = await this.node.blockChainHead()
-        let difficuly = 1
-        if (head) {
-            let metadata = (await this.node.blockChainBlockMetadata(head, 1))[0]
-            if (!metadata)
-                throw `error, cannot fetch node's head metadata`
+        for (let entry of dataToMineByBranch.entries()) {
+            let branch = entry[0]
+            let dataToMine = entry[1]
 
-            difficuly = metadata.target.validityProof.difficulty
+            if (!dataToMine.length)
+                return
+
+            let head = await this.node.blockChainHead(branch)
+            let difficuly = 1
+            if (head) {
+                let metadata = (await this.node.blockChainBlockMetadata(head, 1))[0]
+                if (!metadata)
+                    throw `error, cannot fetch node's head metadata`
+
+                difficuly = metadata.target.validityProof.difficulty
+            }
+
+            let preBlock = Block.createBlock(branch, head, dataToMine)
+            let block = await Block.mineBlock(preBlock, difficuly)
+
+            let metadata = await this.node.registerBlock(block)
+
+            console.log(`mined block ${metadata.blockId.substring(0, 5)}`)
         }
-
-        let dataToMine = this.dataToMine
-        this.dataToMine = []
-
-        let preBlock = Block.createBlock(head, dataToMine)
-        let block = await Block.mineBlock(preBlock, difficuly)
-
-        let metadata = await this.node.registerBlock(block)
-
-        console.log(`mined block ${metadata.blockId.substring(0, 5)}`)
     }
 }

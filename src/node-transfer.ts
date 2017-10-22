@@ -60,7 +60,7 @@ export class NodeTransfer {
         // TODO if we are already fetching from this node, cancel the current fetching before
         // TODO in other words : do it another way (maintain incremental information about remote nodes)
 
-        let remoteHead = await remoteNode.blockChainHead()
+        let remoteHead = await remoteNode.blockChainHead(this.branch)
 
         // fetch the missing parent blocks in node
         let toAddBlocks = []

@@ -1,3 +1,4 @@
+import * as Block from './block'
 import * as NodeImpl from './node-impl'
 import * as NodeNetwork from './node-network'
 import * as NodeTransfer from './node-transfer'
@@ -21,9 +22,11 @@ let server = new NodeNetwork.NodeServer(node)
 server.initialize(app)
 
 // mining facility
-app.get('/mineSomething', async (req, res) => {
+app.get('/mineSomething/:branch', async (req, res) => {
+    let branch = req.params.branch
+
     let data = { content: 'some test data for you' }
-    miner.addData(data)
+    miner.addData(branch, data)
     res.send(JSON.stringify(data))
 })
 
@@ -75,17 +78,29 @@ app.delete('/peers/:id', async (req, res) => {
 })
 
 // list facility
-let listOnChain = new ListOnChain.ListOnChain(node, 'main', miner)
-listOnChain.initialise()
+let lists = new Map<string, ListOnChain.ListOnChain>()
 
-app.get('/list', (req, res) => {
-    res.send(JSON.stringify(listOnChain.getList()))
+function getListOnChain(branch: string) {
+    if (!lists.has(branch)) {
+        let list = new ListOnChain.ListOnChain(node, branch, 'main', miner)
+        list.initialise()
+        lists.set(branch, list)
+    }
+
+    return lists.get(branch)
+}
+
+app.get('/lists/:branch', (req, res) => {
+    let branch = req.params.branch
+
+    res.send(JSON.stringify(getListOnChain(branch).getList()))
 })
 
-app.get('/list/status/:tx', (req, res) => {
+app.get('/lists/:branch/status/:tx', (req, res) => {
+    let branch = req.params.branch
     let tx = req.params.tx
 
-    let confirmation = listOnChain.isItemConfirmed(tx)
+    let confirmation = getListOnChain(branch).isItemConfirmed(tx)
 
     let status = 'unconfirmed'
     if (confirmation === true)
@@ -96,8 +111,10 @@ app.get('/list/status/:tx', (req, res) => {
     res.send(JSON.stringify({ tx, status }))
 })
 
-app.post('/list', (req, res) => {
+app.post('/lists/:branch', (req, res) => {
+    let branch = req.params.branch
+
     let item = req.body
 
-    listOnChain.addToList([item]).then(tx => res.send(JSON.stringify({ tx })))
+    getListOnChain(branch).addToList([item]).then(tx => res.send(JSON.stringify({ tx })))
 })

@@ -21,10 +21,10 @@ async function testDataSerialization() {
 async function testBasicMining() {
     console.log(`creating a node`)
     let node = new NodeImpl.NodeImpl('original')
-    node.addEventListener('head', async () => console.log(`event : node has new head (${await node.blockChainHead()})`))
+    node.addEventListener('head', async () => console.log(`event : node has new head (${await node.blockChainHead(Block.MASTER_BRANCH)})`))
 
-    console.log(`current head: ${await node.blockChainHead()}`)
-    let miner = TestTools.createSimpleMiner(null, 10)
+    console.log(`current head: ${await node.blockChainHead(Block.MASTER_BRANCH)}`)
+    let miner = TestTools.createSimpleMiner(Block.MASTER_BRANCH, null, 10)
 
     let nbToMine = 2
     while (nbToMine-- >= 0) {
@@ -44,7 +44,7 @@ async function testNodeTransfer() {
     const NB_MINED_BLOCKS_INITIAL = 10
     const NB_MINED_BLOCKS_EACH_TOPOLOGY = 10
 
-    let miner = TestTools.createSimpleMiner(null, DIFFICULTY)
+    let miner = TestTools.createSimpleMiner(Block.MASTER_BRANCH, null, DIFFICULTY)
 
     let nodes: NodeApi.NodeApi[] = []
     for (let i = 0; i < NB_NODES; i++) {
@@ -69,10 +69,10 @@ async function testNodeTransfer() {
 
     let checkAll = async () => {
         let ok = true
-        let head = await nodes[0].blockChainHead()
+        let head = await nodes[0].blockChainHead(Block.MASTER_BRANCH)
         for (let i = 1; i < nodes.length; i++) {
-            if (head != await nodes[i].blockChainHead()) {
-                console.log(`node ${nodes[i].name} has head ${await nodes[i].blockChainHead()} instead of ${head}`)
+            if (head != await nodes[i].blockChainHead(Block.MASTER_BRANCH)) {
+                console.log(`node ${nodes[i].name} has head ${await nodes[i].blockChainHead(Block.MASTER_BRANCH)} instead of ${head}`)
                 ok = false
             }
         }
@@ -166,7 +166,7 @@ async function testNodeProxy() {
     let proxy = new NodeNetwork.NodeClient('debug-proxy', 'localhost', 9000)
     proxy.initialize()
 
-    let miner = TestTools.createSimpleMiner(null, 3)
+    let miner = TestTools.createSimpleMiner(Block.MASTER_BRANCH, null, 3)
     let block = await miner()
     let id = await Block.idOfBlock(block)
     console.log(`created ${id} : ${JSON.stringify(block)}`)
@@ -177,13 +177,13 @@ async function testNodeProxy() {
 async function testListOnBlockBasic() {
     let node = new NodeImpl.NodeImpl('alone')
     let miner = new MinerImpl.MinerImpl(node)
-    let list = new ListOnChain.ListOnChain(node, 'main', miner)
+    let list = new ListOnChain.ListOnChain(node, Block.MASTER_BRANCH, 'main', miner)
     list.initialise()
 
     list.addListener(items => console.log(`list: ${JSON.stringify(items)}`))
 
     for (let i = 0; i < 3; i++)
-        miner.addData(`Hello my friend ${i}`)
+        miner.addData(Block.MASTER_BRANCH, `Hello my friend ${i}`)
     await miner.mineData()
 
     for (let i = 0; i < 10; i++) {
@@ -208,7 +208,7 @@ async function testListOnBlockBasic() {
 async function testListOnBlockSpeed() {
     let node = new NodeImpl.NodeImpl('alone')
     let miner = new MinerImpl.MinerImpl(node)
-    let list = new ListOnChain.ListOnChain(node, 'main', miner)
+    let list = new ListOnChain.ListOnChain(node, Block.MASTER_BRANCH, 'main', miner)
     list.initialise()
 
     let waitedItems = new Map<string, string>()
@@ -227,7 +227,7 @@ async function testListOnBlockSpeed() {
     })
 
     for (let i = 0; i < 3; i++)
-        miner.addData(`initial-data-${i}`)
+        miner.addData(Block.MASTER_BRANCH, `initial-data-${i}`)
     await miner.mineData()
 
     console.log(`real beginning`)

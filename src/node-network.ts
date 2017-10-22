@@ -56,12 +56,12 @@ export class NodeClient implements NodeApi.NodeApi {
         return await this.get<boolean>(`knowsBlock/${blockId}`)
     }
 
-    async blockChainHead(): Promise<string> {
-        return await this.get<string>('blockChainHead')
+    async blockChainHead(branch: string): Promise<string> {
+        return await this.get<string>(`blockChainHead/${branch}`)
     }
 
-    async blockChainHeadLog(depth: number): Promise<string[]> {
-        return await this.get<string[]>(`blockChainHeadLog/${depth}`)
+    async blockChainHeadLog(branch: string, depth: number): Promise<string[]> {
+        return await this.get<string[]>(`blockChainHeadLog/${branch}/${depth}`)
     }
 
     async blockChainBlockIds(startBlockId: string, depth: number): Promise<string[]> {
@@ -142,20 +142,23 @@ export class NodeServer {
             // TODO close the listener sometime
             ws.on('message', message => console.log(`rcv: ${message}`))
             ws.send(JSON.stringify({ type: 'hello' }))
-            this.node.addEventListener('head', async () => ws.send(JSON.stringify({ type: 'head', newHead: await this.node.blockChainHead() })))
+            this.node.addEventListener('head', async () => ws.send(JSON.stringify({ type: 'head' })))
         })
 
         app.get('/ping', (req, res) => res.send(JSON.stringify({ message: 'hello' })))
 
-        app.get('/blockChainHead', async (req, res) => {
-            let result = await this.node.blockChainHead()
+        app.get('/blockChainHead/:branch', async (req, res) => {
+            let branch = req.params.branch
+
+            let result = await this.node.blockChainHead(branch)
             res.send(JSON.stringify(result))
         })
 
         app.get('/blockChainHeadLog/:depth', async (req, res) => {
+            let branch = req.params.branch
             let depth = 1 * (req.params.depth || 1)
 
-            let result = await this.node.blockChainHeadLog(depth)
+            let result = await this.node.blockChainHeadLog(branch, depth)
             res.send(JSON.stringify(result))
         })
 

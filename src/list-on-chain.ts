@@ -50,6 +50,7 @@ function infoFromItemId(itemId: string): { index: number, dataId: string } {
  */
 export class ListOnChain {
     constructor(private node: NodeApi.NodeApi,
+        private branch: string,
         private listName: string,
         private miner: MinerImpl.MinerImpl) { }
 
@@ -169,7 +170,7 @@ export class ListOnChain {
             items
         }
 
-        this.miner.addData(newItem)
+        this.miner.addData(this.branch, newItem)
 
         let actualLength = this.list.length
 
@@ -194,7 +195,7 @@ export class ListOnChain {
         let previousLastListItemId = await this.lastListItemId(this.items)
 
         try {
-            let head = await this.node.blockChainHead()
+            let head = await this.node.blockChainHead(this.branch)
             this.items = await this.fetchListItemsFromBlockchain(head)
             this.list = []
             this.itemsById = new Map()
