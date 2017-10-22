@@ -6,6 +6,7 @@ import * as NodeNetwork from './node-network'
 import * as TestTools from './test-tools'
 import * as Tools from './tools'
 import * as ListOnChain from './list-on-chain'
+import * as MinerImpl from './miner-impl'
 
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
@@ -175,16 +176,15 @@ async function testNodeProxy() {
 
 async function testListOnBlockBasic() {
     let node = new NodeImpl.NodeImpl('alone')
-    let list = new ListOnChain.ListOnChain(node, 'main')
+    let miner = new MinerImpl.MinerImpl(node)
+    let list = new ListOnChain.ListOnChain(node, 'main', miner)
     list.initialise()
 
     list.addListener(items => console.log(`list: ${JSON.stringify(items)}`))
 
-    let miner = TestTools.createSimpleMiner(null, 3)
-    for (let i = 0; i < 3; i++) {
-        let block = await miner()
-        await node.registerBlock(block)
-    }
+    for (let i = 0; i < 3; i++)
+        miner.addData(`Hello my friend ${i}`)
+    await miner.mineData()
 
     for (let i = 0; i < 10; i++) {
         let txs = await list.addToList(['hello'])
@@ -205,9 +205,10 @@ async function testListOnBlockBasic() {
     }
 }
 
-async function firstTest() {
+async function testListOnBlockSpeed() {
     let node = new NodeImpl.NodeImpl('alone')
-    let list = new ListOnChain.ListOnChain(node, 'main')
+    let miner = new MinerImpl.MinerImpl(node)
+    let list = new ListOnChain.ListOnChain(node, 'main', miner)
     list.initialise()
 
     let waitedItems = new Map<string, string>()
@@ -225,12 +226,11 @@ async function firstTest() {
         }
     })
 
-    let miner = TestTools.createSimpleMiner(null, 3)
-    for (let i = 0; i < 3; i++) {
-        let block = await miner()
-        await node.registerBlock(block)
-    }
+    for (let i = 0; i < 3; i++)
+        miner.addData(`initial-data-${i}`)
+    await miner.mineData()
 
+    console.log(`real beginning`)
 
     let insertIndex = 0
     for (let i = 0; i < 10; i++) {
@@ -238,11 +238,19 @@ async function firstTest() {
         for (let j = 0; j < 5; j++) {
             let itemName = `insert-${insertIndex++}`
             let iterTxs = await list.addToList([itemName])
-            if (waitedItems.has(iterTxs[0]))
-                console.log('errr')
-
             waitedItems.set(iterTxs[0], itemName)
             txs = txs.concat(iterTxs)
+
+            // wait some time
+            //await TestTools.wait(1000)
+
+            // wait for the miner to empty its data pool
+            // TODO in reality should be wait until miner sent a block with our last data...
+            //await miner.mineData()
+
+            // wait for a definite status on all items
+            //for (let iterTx of iterTxs)
+            //    await list.waitFor(iterTx)
         }
 
         for (let index = 0; index < txs.length; index++) {
@@ -252,16 +260,20 @@ async function firstTest() {
         }
     }
 
-    await TestTools.wait(2000)
+    await miner.mineData()
+}
+
+async function firstTest() {
 }
 
 let testers = [
-    firstTest,
+    //firstTest,
     //testNodeProxy,
     //testDataSerialization,
     //testBasicMining,
     //testNodeTransfer,
-    //testListOnBlockBasic
+    //testListOnBlockBasic,
+    testListOnBlockSpeed
 ]
 
 export async function testAll() {

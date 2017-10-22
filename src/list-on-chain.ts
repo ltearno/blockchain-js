@@ -1,5 +1,6 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
+import * as MinerImpl from './miner-impl'
 
 // TODO improve : add signing and RW rights (root rights assigned to list creator ?)
 interface ListItem {
@@ -48,7 +49,9 @@ function infoFromItemId(itemId: string): { index: number, dataId: string } {
  * - we know that an item has not been confirmed when a new version of the list contains an item with superior index
  */
 export class ListOnChain {
-    constructor(private node: NodeApi.NodeApi, private listName: string) { }
+    constructor(private node: NodeApi.NodeApi,
+        private listName: string,
+        private miner: MinerImpl.MinerImpl) { }
 
     private blocks = new Map<string, Block.BlockMetadata>()
 
@@ -114,7 +117,7 @@ export class ListOnChain {
         if (info && this.list.length > info.index)
             return false
 
-        return false
+        return undefined
     }
 
     addListener(listener: (list: any[]) => void) {
@@ -159,13 +162,6 @@ export class ListOnChain {
      * @returns a list of tokens that can be used to watch for list update
      */
     async addToList(items: any[]): Promise<string[]> {
-        let head = await this.node.blockChainHead()
-        let difficuly = 10
-        if (head) {
-            let metadata = (await this.node.blockChainBlockMetadata(head, 1))[0]
-            difficuly = metadata.target.validityProof.difficulty
-        }
-
         let newItem: ListItem = {
             tag: 'DUMMY_LINKED_LIST',
             listName: this.listName,
@@ -173,10 +169,7 @@ export class ListOnChain {
             items
         }
 
-        let preBlock = Block.createBlock(head, [newItem])
-        let block = await Block.mineBlock(preBlock, difficuly)
-
-        await this.node.registerBlock(block)
+        this.miner.addData(newItem)
 
         let actualLength = this.list.length
 
