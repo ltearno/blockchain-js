@@ -186,10 +186,21 @@ async function firstTest() {
     }
 
     for (let i = 0; i < 10; i++) {
-        await list.addToList('hello')
-        await TestTools.wait(10)
-        await list.addToList('world')
-        await list.addToList('funky pop !!!')
+        let txs = await list.addToList(['hello'])
+        while (list.indexOfItem(txs[0]) < 0)
+            await TestTools.wait(10)
+
+        txs = await list.addToList(['world'])
+        while (list.indexOfItem(txs[0]) < 0) {
+            console.log(`waiting for ${txs[0]}`)
+            await TestTools.wait(0)
+        }
+
+        txs = await list.addToList(['funky pop !!!'])
+        while (list.indexOfItem(txs[0]) < 0) {
+            console.log(`waiting for ${txs[0]}`)
+            await TestTools.wait(0)
+        }
     }
 }
 
@@ -234,6 +245,7 @@ export class BCList {
 
     private listItems: BCListItem[]
     private dataList: any[]
+    private itemsById: Map<string, number>
 
     private updating = false
     private queueUpdate = false
@@ -249,11 +261,28 @@ export class BCList {
         return this.dataList
     }
 
+    /**
+     * 
+     * @param itemId value returned by the addToList method
+     * @returns -1 of the item is unknown, the index otherwise
+     */
+    indexOfItem(itemId: string): number {
+        if (!this.itemsById || !this.itemsById.has(itemId))
+            return -1
+
+        return this.itemsById.get(itemId)
+    }
+
     addListener(listener: (list: any[]) => void) {
         this.listeners.push(listener)
     }
 
-    async addToList(data: any) {
+    /**
+     * 
+     * @param items items to be added to the list
+     * @returns a list of tokens that can be used to watch for list update
+     */
+    async addToList(items: any[]): Promise<string[]> {
         let head = await this.node.blockChainHead()
         let difficuly = 10
         if (head) {
@@ -265,13 +294,29 @@ export class BCList {
             tag: 'DUMMY_LINKED_LIST',
             listName: this.listName,
             previousListItemData: await this.lastListItemId(this.listItems),
-            items: [data]
+            items
         }
 
         let preBlock = Block.createBlock(head, [newItem])
         let block = await Block.mineBlock(preBlock, difficuly)
 
         await this.node.registerBlock(block)
+
+        let res = []
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i]
+
+            let actualLength = this.dataList.length
+            let predictedItemIndex = i + actualLength
+
+            let transactionId = await this.idOfItem(predictedItemIndex, item)
+            res.push(transactionId)
+        }
+        return res
+    }
+
+    private async idOfItem(index: number, item: any) {
+        return await Block.idOfData({ index, item })
     }
 
     private async updateFromNode() {
@@ -288,8 +333,17 @@ export class BCList {
             let head = await this.node.blockChainHead()
             this.listItems = await this.fetchListItemsFromBlockchain(head)
             this.dataList = []
-            for (let listItem of this.listItems)
+            this.itemsById = new Map()
+            let itemIndex = 0
+            for (let listItem of this.listItems) {
                 this.dataList = this.dataList.concat(listItem.items)
+
+                for (let item of listItem.items) {
+                    let itemId = await this.idOfItem(itemIndex, item)
+                    this.itemsById.set(itemId, itemIndex)
+                    itemIndex++
+                }
+            }
         }
         catch (error) {
             console.log(`update error : ${error}`)
