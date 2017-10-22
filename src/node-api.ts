@@ -1,7 +1,7 @@
 import * as Block from './block'
 
 export interface NodeEventListener {
-    (): void
+    (branch:string): void
 }
 
 export interface NodeApi {
@@ -14,6 +14,8 @@ export interface NodeApi {
      * Asks if the node knows a block in memory
      */
     knowsBlock(blockId: string): Promise<boolean>
+
+    branches(): Promise<string[]>
 
     /**
      * Retrieves the blockchain head block id

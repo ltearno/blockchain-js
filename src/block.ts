@@ -71,6 +71,7 @@ export async function idOfData(data: any) {
 
 export async function mineBlock(model: BlockSeed, difficulty: number): Promise<Block> {
     let block: Block = {
+        branch: model.branch,
         previousBlockId: model.previousBlockId,
         data: model.data
     } as Block

@@ -34,12 +34,14 @@ async function testBasicMining() {
         let metadata = await node.registerBlock(minedBlock)
         console.log(`added block: ${JSON.stringify(metadata)}`)
     }
+
+    console.log(`branches: ${await node.branches()}`)
 }
 
 async function testNodeTransfer() {
     const USE_NETWORK = false
     const NETWORK_BASE_PORT = 10000
-    const NB_NODES = 20
+    const NB_NODES = 2
     const DIFFICULTY = 2
     const NB_MINED_BLOCKS_INITIAL = 10
     const NB_MINED_BLOCKS_EACH_TOPOLOGY = 10
@@ -131,6 +133,10 @@ async function testNodeProxy() {
             console.log(`knowsBlock( ${blockId}`)
             return Promise.resolve(false)
         },
+        branches: () => {
+            console.log(`branches`)
+            return Promise.resolve([])
+        },
         blockChainHead: () => {
             console.log(`bch`)
             return Promise.resolve(null)
@@ -154,7 +160,7 @@ async function testNodeProxy() {
         },
         addEventListener: (type, listener) => {
             console.log(`addListener`)
-            setInterval(() => listener(), 1000)
+            setInterval(() => listener(Block.MASTER_BRANCH), 1000)
         },
         removeEventListener: (listener) => {
             console.log(`removeListener`)
@@ -185,6 +191,8 @@ async function testListOnBlockBasic() {
     for (let i = 0; i < 3; i++)
         miner.addData(Block.MASTER_BRANCH, `Hello my friend ${i}`)
     await miner.mineData()
+
+    console.log(`beginning`)
 
     for (let i = 0; i < 10; i++) {
         let txs = await list.addToList(['hello'])

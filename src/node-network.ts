@@ -34,8 +34,8 @@ export class NodeClient implements NodeApi.NodeApi {
             console.log(`[${this.name}] rx ws-msg ${message}`)
             try {
                 let data = JSON.parse(message)
-                if (data && data.type && data.type == 'head')
-                    this.eventListeners.forEach(listener => listener())
+                if (data && data.type && data.type == 'head' && data.branch)
+                    this.eventListeners.forEach(listener => listener(data.branch))
             }
             catch (err) {
                 console.log(`[${this.name}] error while processing ws message '${err}'`)
@@ -54,6 +54,10 @@ export class NodeClient implements NodeApi.NodeApi {
 
     async knowsBlock(blockId: string): Promise<boolean> {
         return await this.get<boolean>(`knowsBlock/${blockId}`)
+    }
+
+    async branches(): Promise<string[]> {
+        return await this.get<string[]>(`branches`)
     }
 
     async blockChainHead(branch: string): Promise<string> {
@@ -142,10 +146,12 @@ export class NodeServer {
             // TODO close the listener sometime
             ws.on('message', message => console.log(`rcv: ${message}`))
             ws.send(JSON.stringify({ type: 'hello' }))
-            this.node.addEventListener('head', async () => ws.send(JSON.stringify({ type: 'head' })))
+            this.node.addEventListener('head', async (branch) => ws.send(JSON.stringify({ type: 'head', branch })))
         })
 
         app.get('/ping', (req, res) => res.send(JSON.stringify({ message: 'hello' })))
+
+        app.get('/branches', async (req, res) => res.send(JSON.stringify(await this.node.branches())))
 
         app.get('/blockChainHead/:branch', async (req, res) => {
             let branch = req.params.branch

@@ -15,7 +15,7 @@ export class MinerImpl {
     }
 
     addData(branch: string, data: any): void {
-        this.getToMineList(branch).push({ branch, data })
+        this.getToMineList(branch).push(data)
         this.schedule()
     }
 

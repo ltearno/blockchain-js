@@ -44,23 +44,26 @@ export class NodeTransfer {
     private initRemoteNode(remoteNode: NodeApi.NodeApi) {
         this.knownNodes.push(remoteNode)
 
-        let listener = () => {
-            console.log(`[${this.node.name}] receive head change from ${remoteNode.name}`)
-            this.fetchFromNode(remoteNode)
+        let listener = (branch: string) => {
+            console.log(`[${this.node.name}] receive branch ${branch} change from ${remoteNode.name}`)
+            this.fetchFromNode(remoteNode, branch)
         }
 
         remoteNode.addEventListener('head', listener)
 
         this.listeners.push(listener)
 
-        this.fetchFromNode(remoteNode)
+        this.fetchAllBranchesFromNode(remoteNode)
     }
 
-    private async fetchFromNode(remoteNode: NodeApi.NodeApi) {
-        // TODO if we are already fetching from this node, cancel the current fetching before
-        // TODO in other words : do it another way (maintain incremental information about remote nodes)
+    private async fetchAllBranchesFromNode(remoteNode: NodeApi.NodeApi) {
+        let branches = await remoteNode.branches()
+        for (let branch of branches)
+            await this.fetchFromNode(remoteNode, branch)
+    }
 
-        let remoteHead = await remoteNode.blockChainHead(this.branch)
+    private async fetchFromNode(remoteNode: NodeApi.NodeApi, branch: string) {
+        let remoteHead = await remoteNode.blockChainHead(branch)
 
         // fetch the missing parent blocks in node
         let toAddBlocks = []

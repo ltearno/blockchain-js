@@ -15,9 +15,19 @@ export class NodeImpl implements NodeApi.NodeApi {
     constructor(public name: string) { }
 
     private getBranchHead(branch: string) {
+        if(!branch){
+            console.log(`fdksjhgk`)
+        }
         if (!this.headLog.has(branch))
             this.headLog.set(branch, [])
         return this.headLog.get(branch)
+    }
+
+    async branches(): Promise<string[]> {
+        let res = []
+        for (let branch of this.headLog.keys())
+            res.push(branch)
+        return res
     }
 
     async blockChainHead(branch: string) {
@@ -48,6 +58,8 @@ export class NodeImpl implements NodeApi.NodeApi {
     // process block's metadata
     // update head if required (new block is valid and has the longest chain)
     async registerBlock(block: Block.Block): Promise<Block.BlockMetadata> {
+        if(!block.branch)
+            console.log()
         console.log(`[${this.name}] receive block ${(await Block.idOfBlock(block)).substring(0, 5)}`)
         let metadata = await this.processMetaData(block)
         if (!metadata)
@@ -117,7 +129,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         console.log(`[${this.name}] new head : ${blockId.substring(0, 5)}`)
 
-        this.listeners.forEach(listener => listener())
+        this.listeners.forEach(listener => listener(branch))
     }
 
     private async processMetaData(block: Block.Block): Promise<Block.BlockMetadata> {
