@@ -5,6 +5,7 @@ import * as NodeTransfer from './node-transfer'
 import * as NodeNetwork from './node-network'
 import * as TestTools from './test-tools'
 import * as Tools from './tools'
+import * as ListOnChain from './list-on-chain'
 
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
@@ -172,9 +173,9 @@ async function testNodeProxy() {
     proxy.addEventListener('head', () => console.log(`receive head change`))
 }
 
-async function firstTest() {
+async function testListOnBlockBasic() {
     let node = new NodeImpl.NodeImpl('alone')
-    let list = new BCList(node, 'main')
+    let list = new ListOnChain.ListOnChain(node, 'main')
     list.initialise()
 
     list.addListener(items => console.log(`list: ${JSON.stringify(items)}`))
@@ -204,12 +205,63 @@ async function firstTest() {
     }
 }
 
+async function firstTest() {
+    let node = new NodeImpl.NodeImpl('alone')
+    let list = new ListOnChain.ListOnChain(node, 'main')
+    list.initialise()
+
+    let waitedItems = new Map<string, string>()
+    list.addListener(items => {
+        console.log(`\nSUMMARY`)
+
+        console.log(`list: ${JSON.stringify(list.getList())}`)
+
+        for (let waited of waitedItems) {
+            let id = waited[0]
+            let name = waited[1]
+
+            let confirmation = list.isItemConfirmed(id)
+            console.log(`[${name}] ${id.substring(0, 8)} : ${confirmation}`)
+        }
+    })
+
+    let miner = TestTools.createSimpleMiner(null, 3)
+    for (let i = 0; i < 3; i++) {
+        let block = await miner()
+        await node.registerBlock(block)
+    }
+
+
+    let insertIndex = 0
+    for (let i = 0; i < 10; i++) {
+        let txs = []
+        for (let j = 0; j < 5; j++) {
+            let itemName = `insert-${insertIndex++}`
+            let iterTxs = await list.addToList([itemName])
+            if (waitedItems.has(iterTxs[0]))
+                console.log('errr')
+
+            waitedItems.set(iterTxs[0], itemName)
+            txs = txs.concat(iterTxs)
+        }
+
+        for (let index = 0; index < txs.length; index++) {
+            let tx = txs[index]
+            let conf = await list.waitFor(tx)
+            console.log(`${index}:${conf}`)
+        }
+    }
+
+    await TestTools.wait(2000)
+}
+
 let testers = [
     firstTest,
     //testNodeProxy,
     //testDataSerialization,
     //testBasicMining,
-    //testNodeTransfer
+    //testNodeTransfer,
+    //testListOnBlockBasic
 ]
 
 export async function testAll() {
@@ -219,210 +271,4 @@ export async function testAll() {
     }
 
     console.log(`done with testing`)
-}
-
-/*
-Tu connais un NodeApi
-Tu veux put et get des data : une liste chainee
-=> liste chainee (nommée) de données, tout le monde peut lire/ecrire, chargement async depuis la blockchain
-*/
-
-// those things are added into the blocks' data in the blockchain
-interface BCListItem {
-    tag: 'DUMMY_LINKED_LIST'
-    listName: string
-    previousListItemData: string
-    items: any[]
-
-    // TODO optimise : memorize the id of the last block containing list data
-    // TODO improve : add signing and RW rights (root rights assigned to list creator ?)
-}
-
-export class BCList {
-    constructor(private node: NodeApi.NodeApi, private listName: string) { }
-
-    private blocks = new Map<string, Block.BlockMetadata>()
-
-    private listItems: BCListItem[]
-    private dataList: any[]
-    private itemsById: Map<string, number>
-
-    private updating = false
-    private queueUpdate = false
-
-    private listeners: { (list): void }[] = []
-
-    initialise() {
-        this.node.addEventListener('head', () => this.updateFromNode())
-        this.updateFromNode()
-    }
-
-    getList(): any[] {
-        return this.dataList
-    }
-
-    /**
-     * 
-     * @param itemId value returned by the addToList method
-     * @returns -1 of the item is unknown, the index otherwise
-     */
-    indexOfItem(itemId: string): number {
-        if (!this.itemsById || !this.itemsById.has(itemId))
-            return -1
-
-        return this.itemsById.get(itemId)
-    }
-
-    addListener(listener: (list: any[]) => void) {
-        this.listeners.push(listener)
-    }
-
-    /**
-     * 
-     * @param items items to be added to the list
-     * @returns a list of tokens that can be used to watch for list update
-     */
-    async addToList(items: any[]): Promise<string[]> {
-        let head = await this.node.blockChainHead()
-        let difficuly = 10
-        if (head) {
-            let metadata = (await this.node.blockChainBlockMetadata(head, 1))[0]
-            difficuly = metadata.target.validityProof.difficulty
-        }
-
-        let newItem: BCListItem = {
-            tag: 'DUMMY_LINKED_LIST',
-            listName: this.listName,
-            previousListItemData: await this.lastListItemId(this.listItems),
-            items
-        }
-
-        let preBlock = Block.createBlock(head, [newItem])
-        let block = await Block.mineBlock(preBlock, difficuly)
-
-        await this.node.registerBlock(block)
-
-        let res = []
-        for (let i = 0; i < items.length; i++) {
-            let item = items[i]
-
-            let actualLength = this.dataList.length
-            let predictedItemIndex = i + actualLength
-
-            let transactionId = await this.idOfItem(predictedItemIndex, item)
-            res.push(transactionId)
-        }
-        return res
-    }
-
-    private async idOfItem(index: number, item: any) {
-        return await Block.idOfData({ index, item })
-    }
-
-    private async updateFromNode() {
-        if (this.updating) {
-            this.queueUpdate = true
-            return
-        }
-
-        this.updating = true
-
-        let previousLastListItemId = await this.lastListItemId(this.listItems)
-
-        try {
-            let head = await this.node.blockChainHead()
-            this.listItems = await this.fetchListItemsFromBlockchain(head)
-            this.dataList = []
-            this.itemsById = new Map()
-            let itemIndex = 0
-            for (let listItem of this.listItems) {
-                this.dataList = this.dataList.concat(listItem.items)
-
-                for (let item of listItem.items) {
-                    let itemId = await this.idOfItem(itemIndex, item)
-                    this.itemsById.set(itemId, itemIndex)
-                    itemIndex++
-                }
-            }
-        }
-        catch (error) {
-            console.log(`update error : ${error}`)
-        }
-
-        this.updating = false
-
-        let currentLastListItemId = await this.lastListItemId(this.listItems)
-
-        if (previousLastListItemId != currentLastListItemId)
-            this.listeners.forEach(listener => listener(this.dataList))
-
-        if (this.queueUpdate) {
-            this.queueUpdate = false
-            this.updateFromNode()
-        }
-    }
-
-    private async fetchListItemsFromBlockchain(blockId: string): Promise<BCListItem[]> {
-        if (!blockId)
-            return []
-
-        let metadata = this.blocks.get(blockId)
-        if (!metadata)
-            metadata = (await this.node.blockChainBlockMetadata(blockId, 1))[0]
-        if (!metadata)
-            throw `impossible to retrieve block`
-
-        let firstPart = await this.fetchListItemsFromBlockchain(metadata.target.previousBlockId)
-        let lastDataId = await this.lastListItemId(firstPart)
-
-        let lastPart = await this.findListPartInBlock(metadata.target, lastDataId)
-        return firstPart.concat(lastPart)
-    }
-
-    private async lastListItemId(list: BCListItem[]) {
-        if (list && list.length)
-            return await Block.idOfData(list[list.length - 1])
-        return null
-    }
-
-    private async findListPartInBlock(block: Block.Block, lastItemData: string): Promise<BCListItem[]> {
-        let part: BCListItem[] = []
-
-        for (let dataItem of block.data) {
-            if (typeof dataItem !== 'object')
-                continue
-            if (!['tag', 'listName', 'previousListItemData', 'items'].every(field => field in dataItem))
-                continue
-
-            if (dataItem.tag != 'DUMMY_LINKED_LIST')
-                continue
-
-            if (dataItem.listName != this.listName)
-                continue
-
-            if (dataItem.previousListItemData != lastItemData)
-                continue
-
-            if (!Array.isArray(dataItem.items))
-                continue
-
-            part.push(dataItem)
-            lastItemData = await Block.idOfData(dataItem)
-        }
-
-        return part
-    }
-
-    // Phases : begins by Reading
-    // - Reading : read all blocks from node's head to construct the list from root
-    // - Updating : each time the head moves, read the blocks and update the list (take care of if some items where on a block that has dissapeared)
-
-    // TODO : identify the write operation so that one can wait on it
-    // we can know that a tx is accepted when a new confirmed block will contain the written record
-    // we can know that a tx is not confirmed when a new confirmed block will contain new records on the list and not the written record
-
-    // READING :
-    // subscribe to the node => fetch latest data
-    // reverse browser the node's head and fetch blocks until root block
-    // browser blocks from root and filter list data, construct the chained list with that
 }
