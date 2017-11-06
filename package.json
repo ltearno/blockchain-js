@@ -4,6 +4,8 @@
   "description": "= Blockchain demo",
   "main": "target/index.js",
   "scripts": {
+    "install": "tsc",
+    "start": "node target/blockchain-ws.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Arnaud Tournier",
