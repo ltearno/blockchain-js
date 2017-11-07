@@ -28,6 +28,7 @@ git clone https://github.com/ltearno/blockchain-js.git /opt/app
 # Install app dependencies
 cd /opt/app
 npm install
+./node_modules/.bin/tsc
 
 # Create a nodeapp user. The application will run as this user.
 useradd -m -d /home/nodeapp nodeapp
@@ -50,6 +51,4 @@ supervisorctl reread
 supervisorctl update
 
 # Application should now be running under supervisor
-cd /opt/app
-./node_modules/.bin/tsc
 node target/blockchain-ws.js
