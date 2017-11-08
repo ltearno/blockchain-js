@@ -111,10 +111,17 @@ app.get('/lists/:branch/status/:tx', (req, res) => {
     res.send(JSON.stringify({ tx, status }))
 })
 
-app.post('/lists/:branch', (req, res) => {
+app.post('/lists/:branch',async (req, res) => {
+    try{
     let branch = req.params.branch
 
     let item = req.body
 
-    getListOnChain(branch).addToList([item]).then(tx => res.send(JSON.stringify({ tx })))
+    let tx = await getListOnChain(branch).addToList([item])
+    
+    res.send(JSON.stringify({ tx }))
+    }
+    catch(error){
+        res.send(JSON.stringify(error))
+    }
 })

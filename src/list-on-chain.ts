@@ -70,6 +70,8 @@ export class ListOnChain {
     initialise() {
         this.node.addEventListener('head', this.nodeListener)
         this.updateFromNode()
+
+        this.list = []
     }
 
     terminate() {
