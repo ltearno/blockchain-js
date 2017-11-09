@@ -46,7 +46,7 @@ let peerInfos: {
 }[] = []
 
 app.get('/peers', (req, res) => {
-    let peers = peerInfos.map(info => ({ id: info.id, name: info.client.name }))
+    let peers = peerInfos.map(info => ({ id: info.id, name: info.client.name, status: info.client.status() }))
     res.send(JSON.stringify(peers))
 })
 
@@ -111,17 +111,17 @@ app.get('/lists/:branch/status/:tx', (req, res) => {
     res.send(JSON.stringify({ tx, status }))
 })
 
-app.post('/lists/:branch',async (req, res) => {
-    try{
-    let branch = req.params.branch
+app.post('/lists/:branch', async (req, res) => {
+    try {
+        let branch = req.params.branch
 
-    let item = req.body
+        let item = req.body
 
-    let tx = await getListOnChain(branch).addToList([item])
-    
-    res.send(JSON.stringify({ tx }))
+        let tx = await getListOnChain(branch).addToList([item])
+
+        res.send(JSON.stringify({ tx }))
     }
-    catch(error){
+    catch (error) {
         res.send(JSON.stringify(error))
     }
 })

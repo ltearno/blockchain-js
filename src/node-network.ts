@@ -19,7 +19,10 @@ declare module "express" {
 
 export class NodeClient implements NodeApi.NodeApi {
     private ws: WebSocket
+    private opened = false
+    private connectScheduled = false
     private eventListeners: NodeApi.NodeEventListener[] = []
+    private lastCallSuccess: boolean
 
     constructor(
         public name: string,
@@ -27,29 +30,103 @@ export class NodeClient implements NodeApi.NodeApi {
         private peerPort: number) {
     }
 
+    status() {
+        return `WS:${this.opened ? 'OK' : 'KO'} - last request:${this.lastCallSuccess ? 'OK' : 'KO'}`
+    }
+
     initialize() {
-        this.ws = new WebSocket(`ws://${this.peerAddress}:${this.peerPort}/events`)
+        try {
+            this.connect()
+        }
+        catch (err) {
+            console.log(`error on NodeClient init, will be retried later...`)
+        }
+    }
 
-        this.ws.on('message', (message) => {
-            console.log(`[${this.name}] rx ws-msg ${message}`)
-            try {
-                let data = JSON.parse(message)
-                if (data && data.type && data.type == 'head' && data.branch)
-                    this.eventListeners.forEach(listener => listener(data.branch))
-            }
-            catch (err) {
-                console.log(`[${this.name}] error while processing ws message '${err}'`)
-            }
-        })
+    connect() {
+        if (this.opened)
+            return
 
-        this.ws.on('open', () => {
-            console.log(`[${this.name}] web socket connected`)
-            this.ws.send(JSON.stringify({ type: 'hello' }))
-        })
+        if (this.ws) {
+            this.ws.close()
+            this.ws = null
+        }
 
-        this.ws.on('close', () => {
-            console.log('disconnected')
-        })
+        let clearConnectionAndReconnect = () => {
+            this.opened = false
+            this.ws && this.ws.close()
+            this.ws = null
+
+            this.maybeRescheduleConnect()
+        }
+
+        try {
+            this.ws = new WebSocket(`ws://${this.peerAddress}:${this.peerPort}/events`)
+
+            this.ws.on('message', (message) => {
+                console.log(`[${this.name}] rx ws-msg ${message}`)
+                try {
+                    let data = JSON.parse(message)
+                    if (data && data.type && data.type == 'head' && data.branch)
+                        this.eventListeners.forEach(listener => listener(data.branch))
+                }
+                catch (err) {
+                    console.log(`[${this.name}] error while processing ws message '${err}'`)
+                }
+            })
+
+            this.ws.on('open', () => {
+                this.opened = true
+
+                console.log(`[${this.name}] web socket connected`)
+                try {
+                    this.ws.send(JSON.stringify({ type: 'hello' }))
+                }
+                catch (err) {
+                    console.log(`error on ws : ${err}`)
+                }
+            })
+
+            this.ws.on('close', () => {
+                clearConnectionAndReconnect()
+
+                console.log('disconnected')
+            })
+
+            this.ws.on('error', (err) => {
+                clearConnectionAndReconnect()
+
+                console.log(`error on ws : ${err}`)
+            })
+        }
+        catch (err) {
+            console.log(`error on ws : ${err}`)
+        }
+    }
+
+    private maybeRescheduleConnect() {
+        if (this.connectScheduled)
+            return
+        this.connectScheduled = true
+
+        console.log(`scheduling reconnect in 5 seconds`)
+
+        setTimeout(() => {
+            this.connectScheduled = false
+            this.connect()
+        }, 5000)
+    }
+
+    private async checkRemoteCall<T>(callback: () => Promise<T>) {
+        try {
+            let result = await callback()
+            this.lastCallSuccess = true
+            return result
+        }
+        catch (err) {
+            this.lastCallSuccess = false
+            throw err
+        }
     }
 
     async knowsBlock(blockId: string): Promise<boolean> {
@@ -93,7 +170,7 @@ export class NodeClient implements NodeApi.NodeApi {
     }
 
     private get<T>(apiUrl: string): Promise<T> {
-        return new Promise((resolve, reject) => {
+        return this.checkRemoteCall(() => new Promise((resolve, reject) => {
             let url = `http://${this.peerAddress}:${this.peerPort}/${apiUrl}`
             //console.log(`GETting ${url}`)
             Request.get(url, (error, response, body) => {
@@ -109,11 +186,11 @@ export class NodeClient implements NodeApi.NodeApi {
                     reject(err)
                 }
             })
-        })
+        }))
     }
 
     private post<T>(apiUrl: string, data: any): Promise<T> {
-        return new Promise((resolve, reject) => {
+        return this.checkRemoteCall(() => new Promise((resolve, reject) => {
             let url = `http://${this.peerAddress}:${this.peerPort}/${apiUrl}`
             //console.log(`POSTing ${url}`)
             Request.post(
@@ -122,24 +199,19 @@ export class NodeClient implements NodeApi.NodeApi {
                     json: true,
                     body: data
                 }, (error, response, body) => {
-                    if (error) {
+                    if (error)
                         reject(error)
-                        return
-                    }
-
-                    try {
+                    else
                         resolve(body)
-                    }
-                    catch (err) {
-                        reject(err)
-                    }
                 })
-        })
+        }))
     }
 }
 
 export class NodeServer {
     constructor(private node: NodeApi.NodeApi) { }
+
+    // TODO check all input's validity !
 
     initialize(app: express.Server) {
         app.ws('/events', (ws, req) => {

@@ -46,7 +46,12 @@ export class NodeTransfer {
 
         let listener = (branch: string) => {
             console.log(`[${this.node.name}] receive branch ${branch} change from ${remoteNode.name}`)
-            this.fetchFromNode(remoteNode, branch)
+            try {
+                this.fetchFromNode(remoteNode, branch)
+            }
+            catch (err) {
+                console.log(`error when fetchAllBranchesFromNode for node ${remoteNode.name}: ${err}`)
+            }
         }
 
         remoteNode.addEventListener('head', listener)
@@ -57,9 +62,20 @@ export class NodeTransfer {
     }
 
     private async fetchAllBranchesFromNode(remoteNode: NodeApi.NodeApi) {
-        let branches = await remoteNode.branches()
-        for (let branch of branches)
-            await this.fetchFromNode(remoteNode, branch)
+        try {
+            let branches = await remoteNode.branches()
+            for (let branch of branches) {
+                try {
+                    await this.fetchFromNode(remoteNode, branch)
+                }
+                catch (err) {
+                    console.log(`error when fetchAllBranchesFromNode for node ${remoteNode.name}: ${err}`)
+                }
+            }
+        }
+        catch (err) {
+            console.log(`error when fetchAllBranchesFromNode for node ${remoteNode.name}: ${err}`)
+        }
     }
 
     private async fetchFromNode(remoteNode: NodeApi.NodeApi, branch: string) {
