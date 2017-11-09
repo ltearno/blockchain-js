@@ -19,3 +19,17 @@ gcloud compute instances delete "my-app-instance"
 
 # détruire la règle du firewall
 gcloud compute firewall-rules delete default-allow-http-9091
+
+
+
+# création d'une template de VM
+gcloud compute instance-templates create blockchain-ws-template \
+  --metadata-from-file startup-script=gce/startup-script.sh \
+  --tags http-server
+
+# instantiation du groupe de vm
+gcloud compute instance-groups managed \
+  create blockchain-ws-group \
+  --base-instance-name blockchain-ws-group \
+  --size 5 \
+  --template blockchain-ws-template
