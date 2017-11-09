@@ -1,0 +1,44 @@
+version: '3'
+services:
+  node-01:
+    build: .
+    ports:
+     - "9091:9091"
+    networks:
+      main:
+        aliases:
+          - node-01
+  node-02:
+    build: .
+    ports:
+     - "9092:9091"
+    networks:
+      main:
+        aliases:
+          - node-02
+  node-03:
+    build: .
+    ports:
+     - "9093:9091"
+    networks:
+      main:
+        aliases:
+          - node-03
+  node-04:
+    build: .
+    ports:
+     - "9094:9091"
+    networks:
+      main:
+        aliases:
+          - node-04
+  node-05:
+    build: .
+    ports:
+     - "9095:9091"
+    networks:
+      main:
+        aliases:
+          - node-05
+networks: 
+  main:
