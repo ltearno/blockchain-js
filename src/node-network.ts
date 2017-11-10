@@ -80,7 +80,7 @@ export class NodeClient implements NodeApi.NodeApi {
 
                 console.log(`[${this.name}] web socket connected`)
                 try {
-                    this.ws.send(JSON.stringify({ type: 'hello' }))
+                    this.ws.send(JSON.stringify({ type: 'ping' }))
                 }
                 catch (err) {
                     console.log(`error on ws : ${err}`)
@@ -215,10 +215,22 @@ export class NodeServer {
 
     initialize(app: express.Server) {
         app.ws('/events', (ws, req) => {
-            // TODO close the listener sometime
+            let listener = async (branch) => ws.send(JSON.stringify({ type: 'head', branch }))
+            ws.on('error', err => {
+                console.log(`error on ws ${err}`)
+                ws.close()
+            })
+
+            ws.on('close', () => {
+                console.log(`closed ws`)
+                this.node.removeEventListener(listener)
+            })
+
             ws.on('message', message => console.log(`rcv: ${message}`))
+
             ws.send(JSON.stringify({ type: 'hello' }))
-            this.node.addEventListener('head', async (branch) => ws.send(JSON.stringify({ type: 'head', branch })))
+
+            this.node.addEventListener('head', listener)
         })
 
         app.get('/ping', (req, res) => res.send(JSON.stringify({ message: 'hello' })))

@@ -15,7 +15,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     constructor(public name: string) { }
 
     private getBranchHead(branch: string) {
-        if(!branch){
+        if (!branch) {
             console.log(`fdksjhgk`)
         }
         if (!this.headLog.has(branch))
@@ -58,7 +58,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     // process block's metadata
     // update head if required (new block is valid and has the longest chain)
     async registerBlock(block: Block.Block): Promise<Block.BlockMetadata> {
-        if(!block.branch)
+        if (!block.branch)
             console.log()
         console.log(`[${this.name}] receive block ${(await Block.idOfBlock(block)).substring(0, 5)}`)
         let metadata = await this.processMetaData(block)
@@ -80,6 +80,9 @@ export class NodeImpl implements NodeApi.NodeApi {
 
     addEventListener(type: 'head', eventListener: NodeApi.NodeEventListener): void {
         this.listeners.push(eventListener)
+
+        for (let branch of this.headLog.keys())
+            eventListener(branch)
     }
 
     removeEventListener(eventListener: NodeApi.NodeEventListener): void {
