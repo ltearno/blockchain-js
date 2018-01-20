@@ -1,0 +1,67 @@
+import * as Block from './block'
+import * as FullNode from './full-node'
+import * as NetworkClientBrowserImpl from './network-client-browser-impl'
+
+const NETWORK_CLIENT_API = new NetworkClientBrowserImpl.NetworkClientBrowserImpl()
+
+console.log(`WELCOME TO BLOCKCHAIN-JS ON THE BROWSER !`)
+
+async function run() {
+    console.log(`initializing full node`)
+    let fullNode = new FullNode.FullNode(NETWORK_CLIENT_API)
+
+    fullNode.node.addEventListener('head', async () => console.log(`event : node has new head (${await fullNode.node.blockChainHead(Block.MASTER_BRANCH)})`))
+
+    console.log(`mine a hello world data`)
+    fullNode.miner.addData(Block.MASTER_BRANCH, "Hello my friend !")
+    let mineResult = await fullNode.miner.mineData()
+    console.log(`mining result : ${JSON.stringify(mineResult)}`)
+
+    console.log(`current head: ${await fullNode.node.blockChainHead(Block.MASTER_BRANCH)}`)
+
+    let miner = createSimpleMiner(Block.MASTER_BRANCH, null, 10)
+    let nbToMine = 20
+    while (nbToMine-- >= 0) {
+        let minedBlock = await miner()
+
+        console.log(`adding block to node`)
+        let metadata = await fullNode.node.registerBlock(minedBlock)
+        console.log(`added block: ${JSON.stringify(metadata)}`)
+    }
+
+    console.log(`branches: ${await fullNode.node.branches()}`)
+
+    console.log(`DUMPING BLOCKCHAIN STATE`)
+    for (let branch of await fullNode.node.branches()) {
+        console.log(`branch ${branch}`)
+
+        let toFetch = await fullNode.node.blockChainHead(Block.MASTER_BRANCH)
+        while (toFetch) {
+            console.log(`fetching block ${toFetch}`)
+            let blockMetadatas = await fullNode.node.blockChainBlockMetadata(toFetch, 1)
+            let blockMetadata = blockMetadatas && blockMetadatas[0]
+            let blockDatas = await fullNode.node.blockChainBlockData(toFetch, 1)
+            let blockData = blockDatas && blockDatas[0]
+
+            console.log(`block metadata : ${JSON.stringify(blockMetadata)}`)
+            console.log(`block data : ${JSON.stringify(blockData)}`)
+
+            toFetch = blockData && blockData.previousBlockId
+        }
+    }
+}
+
+run().then(() => console.log(`end !`))
+
+function createSimpleMiner(branch: string, previousBlockId: string, difficulty: number) {
+    return async function () {
+        let block = Block.createBlock(branch, previousBlockId, [{ nom: "arnaud" }])
+
+        let minedBlock = await Block.mineBlock(block, difficulty)
+
+        previousBlockId = await Block.idOfBlock(minedBlock)
+
+        console.log(`mined block ${previousBlockId.substring(0, 5)}`)
+        return minedBlock
+    }
+}

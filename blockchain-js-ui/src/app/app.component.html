@@ -1,0 +1,36 @@
+<div>
+  {{title}}
+  <div>Node : {{fullNode.node.name}}</div>
+  <div>History:
+    <ul>
+      <li *ngFor="let head of headHistory;">{{head}}</li>
+    </ul>
+  </div>
+  <div>Branches
+    <ul>
+      <li *ngFor="let branchInfo of state">
+        Branch: {{branchInfo.branch}} at {{branchInfo.head}}
+        <br/> Blocks:
+        <br/>
+        <ul>
+          <li *ngFor="let block of branchInfo.blocks">
+            Metadata: {{block.blockMetadata | json}}
+            <br/> Data: {{block.blockData | json}}
+            <br/>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <div>Logs
+    <div *ngFor="let log of logs;">{{log}}</div>
+  </div>
+  <div>Mining
+    <button (click)='mine()'>Mine hello world</button>
+  </div>
+  <div>Peers
+    <input type="text" #peerHost value="localhost">
+    <input type="text" #peerPort value="9091">
+    <button (click)='addPeer(peerHost.value, peerPort.value)'>Add peer</button>
+  </div>
+</div>
