@@ -28,13 +28,13 @@ Concepts not in Bitcoin (as far as I know)
 
 Do a `npm install`, followed by `tsc`.
 
-To run the REST web server : `node target/blockchain-ws.js`
+To run the REST web server : `node target/blockchain-node.js`
 
 To run the tests : `node target/index.js`
 
 == Documentation
 
-Look first at the `index.ts`, `test.ts` and `blockchain-ws.ts`. Those are the _executable_ files.
+Look first at the `index.ts`, `test.ts` and `blockchain-node.ts`. Those are the _executable_ files.
 
 The main data structure is in `block.ts`.
 

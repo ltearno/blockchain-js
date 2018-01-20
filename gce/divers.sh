@@ -23,13 +23,13 @@ gcloud compute firewall-rules delete default-allow-http-9091
 
 
 # création d'une template de VM
-gcloud compute instance-templates create blockchain-ws-template \
+gcloud compute instance-templates create blockchain-node-template \
   --metadata-from-file startup-script=gce/startup-script.sh \
   --tags http-server
 
 # instantiation du groupe de vm
 gcloud compute instance-groups managed \
-  create blockchain-ws-group \
-  --base-instance-name blockchain-ws-group \
+  create blockchain-node-group \
+  --base-instance-name blockchain-node-group \
   --size 5 \
-  --template blockchain-ws-template
+  --template blockchain-node-template

@@ -51,4 +51,4 @@ supervisorctl reread
 supervisorctl update
 
 # Application should now be running under supervisor
-node target/blockchain-ws.js
+node target/blockchain-node.js

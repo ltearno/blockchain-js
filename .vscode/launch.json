@@ -7,8 +7,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "blockchain-ws",
-            "program": "${workspaceFolder}/target/blockchain-ws.js",
+            "name": "blockchain-node",
+            "program": "${workspaceFolder}/target/blockchain-node.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]
