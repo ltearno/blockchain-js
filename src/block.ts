@@ -21,6 +21,8 @@ export interface BlockSeed {
  */
 export interface Block extends BlockSeed {
     validityProof: {
+        // TODO : add validation strategy id
+        // TODO : the other fields are then specific to each strategy
         difficulty: number
         padding: number
     }
@@ -54,6 +56,7 @@ export function createBlock(branch: string, previousBlockId: string, data: any[]
 }
 
 export async function isBlockValid(block: Block, minimalDifficulty: number): Promise<boolean> {
+    // TODO : delegate to specific strategy specified by the block itself
     if (!block || !block.validityProof || block.validityProof.difficulty < minimalDifficulty)
         return false
 
