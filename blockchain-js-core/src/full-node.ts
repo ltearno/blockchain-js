@@ -1,10 +1,10 @@
+import * as NodeApi from './node-api'
 import * as NodeImpl from './node-impl'
 import * as NodeNetworkClient from './node-network-client'
 import * as NodeTransfer from './node-transfer'
 import * as MinerImpl from './miner-impl'
 import * as ListOnChain from './list-on-chain'
-import { NodeApi } from './node-api'
-import { NetworkClientApi } from './network-client-api';
+import * as NetworkApi from './network-api'
 
 export interface Peer {
     address: string
@@ -13,7 +13,7 @@ export interface Peer {
 
 export interface PeerInfo {
     id: number
-    client: NodeNetworkClient.NodeClient
+    client: NodeApi.NodeApi
 }
 
 /**
@@ -33,7 +33,7 @@ export class FullNode {
 
     private nextPeerId = 1
 
-    constructor(private networkClientApi: NetworkClientApi) {
+    constructor(private networkClientApi: NetworkApi.NetworkApi) {
         // node creation
         this.node = new NodeImpl.NodeImpl('original')
 
@@ -48,13 +48,12 @@ export class FullNode {
         this.lists = new Map<string, ListOnChain.ListOnChain>()
     }
 
-    addPeer(peer: Peer) {
+    addPeer(peer: NodeApi.NodeApi) {
         let info: PeerInfo = {
             id: this.nextPeerId++,
-            client: new NodeNetworkClient.NodeClient(`remote-node-${peer.address}-${peer.port}`, peer.address, peer.port, this.networkClientApi)
+            client: peer
         }
 
-        info.client.initialize()
         this.transfer.addRemoteNode(info.client)
         this.peerInfos.push(info)
 

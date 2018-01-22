@@ -1,10 +1,10 @@
-import * as NetworkClientApi from './network-client-api'
+import * as NetworkApi from './network-api'
 
-export class NetworkClientBrowserImpl implements NetworkClientApi.NetworkClientApi {
-    createClientWebSocket(endpoint: string): NetworkClientApi.WebSocket {
+export class NetworkClientBrowserImpl implements NetworkApi.NetworkApi {
+    createClientWebSocket(endpoint: string): NetworkApi.WebSocket {
         let socket = new WebSocket(endpoint)
 
-        let result: NetworkClientApi.WebSocket = {
+        let result: NetworkApi.WebSocket = {
             close: () => socket.close(),
             on: (eventType: string, listener: (data: any) => any) => {
                 if (eventType === 'message')

@@ -1,6 +1,12 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
 
+/**
+ * Interaction between a node and a set of remote nodes
+ * 
+ * remote nodes can be added with the addRemoteNode function
+ * they can be removed with the removeRemoteNode function
+ */
 export class NodeTransfer {
     private listeners: any[] = undefined
     private knownNodes: NodeApi.NodeApi[] = undefined
@@ -8,16 +14,6 @@ export class NodeTransfer {
     constructor(
         public node: NodeApi.NodeApi
     ) {
-        node.addEventListener('head', async (branch) => {
-            let head = await node.blockChainHead(branch)
-            let blocks = await node.blockChainBlockData(head, 1)
-            let block = blocks && blocks.length && blocks[0]
-            if (!block)
-                return
-            for (let knownNode of this.knownNodes) {
-                knownNode.registerBlock(block)
-            }
-        })
     }
 
     initialize(knownNodes: NodeApi.NodeApi[]) {
@@ -32,6 +28,7 @@ export class NodeTransfer {
     }
 
     addRemoteNode(remoteNode: NodeApi.NodeApi) {
+        console.log(`addRemoteNode ${remoteNode.name}`)
         this.initRemoteNode(remoteNode)
     }
 
@@ -39,6 +36,8 @@ export class NodeTransfer {
         let index = this.knownNodes.indexOf(remoteNode)
         if (index < 0)
             return
+
+        console.log(`removeRemoteNode ${remoteNode.name}`)
 
         remoteNode.removeEventListener(this.listeners[index])
         this.listeners.splice(index, 1)
@@ -53,8 +52,6 @@ export class NodeTransfer {
     }
 
     private initRemoteNode(remoteNode: NodeApi.NodeApi) {
-        // TODO : fetch remote node's head and register blocks we have but he does not
-
         this.knownNodes.push(remoteNode)
 
         let listener = (branch: string) => {
@@ -77,6 +74,10 @@ export class NodeTransfer {
     private async fetchAllBranchesFromNode(remoteNode: NodeApi.NodeApi) {
         try {
             let branches = await remoteNode.branches()
+            if (!branches) {
+                console.log(`empty branch set, nothing to do...`)
+                return
+            }
             for (let branch of branches) {
                 try {
                     await this.fetchFromNode(remoteNode, branch)

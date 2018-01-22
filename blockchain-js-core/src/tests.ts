@@ -8,13 +8,13 @@ import * as TestTools from './test-tools'
 import * as Tools from './tools'
 import * as ListOnChain from './list-on-chain'
 import * as MinerImpl from './miner-impl'
-import * as NetworkClientNodeImpl from './network-client-node-impl'
+import * as NetworkApiNodeImpl from './network-api-node-impl'
 
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
 import * as WebSocket from 'ws'
 
-const NETWORK_CLIENT_API = new NetworkClientNodeImpl.NetworkClientNodeImpl()
+const NETWORK_CLIENT_API = new NetworkApiNodeImpl.NetworkApiNodeImpl()
 
 async function testDataSerialization() {
     let t1 = [false, null, { toto: 5, aa: 'titi' }, false, true, 5, 'toto', { 'none': false }]
@@ -59,13 +59,13 @@ async function testNodeTransfer() {
         if (USE_NETWORK) {
             let port = NETWORK_BASE_PORT + i
             let app = Tools.createExpressApp(port)
-            let server = new NodeNetworkServer.NodeServer(node)
+            let server = new NodeNetworkServer.NodeServer(node, newPeer => { }, closedPeer => { })
             server.initialize(app)
 
-            let proxy = new NodeNetworkClient.NodeClient(`nodeproxy ${i}`, 'localhost', port, NETWORK_CLIENT_API)
+            let proxy = new NodeNetworkClient.NodeClient(node, 'localhost', port, () => { }, NETWORK_CLIENT_API)
             proxy.initialize()
 
-            node = proxy
+            node = proxy.remoteFacade()
         }
 
         nodes.push(node)
@@ -169,19 +169,24 @@ async function testNodeProxy() {
         removeEventListener: (listener) => {
             console.log(`removeListener`)
         }
+    }, newPeer => {
+        console.log(`new peer : ${newPeer}`)
+    }, closedPeer => {
+        console.log(`closed peer : ${closedPeer}`)
     })
     let app = Tools.createExpressApp(9000)
     server.initialize(app)
 
-    let proxy = new NodeNetworkClient.NodeClient('debug-proxy', 'localhost', 9000, NETWORK_CLIENT_API)
+    let proxy = new NodeNetworkClient.NodeClient(null, 'localhost', 9000, () => { }, NETWORK_CLIENT_API)
     proxy.initialize()
 
     let miner = TestTools.createSimpleMiner(Block.MASTER_BRANCH, null, 3)
     let block = await miner()
     let id = await Block.idOfBlock(block)
     console.log(`created ${id} : ${JSON.stringify(block)}`)
-    let metadata = await proxy.registerBlock(block)
-    proxy.addEventListener('head', () => console.log(`receive head change`))
+    let remoteNode = proxy.remoteFacade()
+    let metadata = await remoteNode.registerBlock(block)
+    remoteNode.addEventListener('head', () => console.log(`receive head change`))
 }
 
 async function testListOnBlockBasic() {

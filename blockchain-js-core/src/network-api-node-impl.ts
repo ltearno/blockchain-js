@@ -1,9 +1,9 @@
-import * as NetworkClientApi from './network-client-api'
+import * as NetworkApi from './network-api'
 import * as WebSocket from 'ws'
 import * as Request from 'request'
 
-export class NetworkClientNodeImpl implements NetworkClientApi.NetworkClientApi {
-    createClientWebSocket(endpoint: string): NetworkClientApi.WebSocket {
+export class NetworkApiNodeImpl implements NetworkApi.NetworkApi {
+    createClientWebSocket(endpoint: string): NetworkApi.WebSocket {
         return new WebSocket(endpoint)
     }
 

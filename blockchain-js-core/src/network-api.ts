@@ -4,9 +4,6 @@ export interface WebSocket {
     close()
 }
 
-export interface NetworkClientApi {
+export interface NetworkApi {
     createClientWebSocket(endpoint: string): WebSocket
-
-    get<T>(url: string): Promise<T>
-    post<T>(url: string, data: any): Promise<T>
 }

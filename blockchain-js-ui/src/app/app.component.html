@@ -1,10 +1,9 @@
 <div>
   {{title}}
   <div>Node : {{fullNode.node.name}}</div>
-  <div>History:
-    <ul>
-      <li *ngFor="let head of headHistory;">{{head}}</li>
-    </ul>
+  <div>Mining Message :
+    <input #minedData type="text" value='Some data to mine...'>
+    <button (click)='mine(minedData.value)'>Mine hello world</button>
   </div>
   <div>Branches
     <ul>
@@ -14,23 +13,27 @@
         <br/>
         <ul>
           <li *ngFor="let block of branchInfo.blocks">
-            Metadata: {{block.blockMetadata | json}}
-            <br/> Data: {{block.blockData | json}}
-            <br/>
+            {{block.blockData.data | json}}
+            <span style='font-size:.7em;'>metadata: {{block.blockMetadata | json}}</span>
           </li>
         </ul>
       </li>
     </ul>
   </div>
   <div>Logs
-    <div *ngFor="let log of logs;">{{log}}</div>
-  </div>
-  <div>Mining
-    <button (click)='mine()'>Mine hello world</button>
+    <div *ngFor="let log of logs">{{log}}</div>
   </div>
   <div>Peers
     <input type="text" #peerHost value="localhost">
     <input type="text" #peerPort value="9091">
     <button (click)='addPeer(peerHost.value, peerPort.value)'>Add peer</button>
+    <ul>
+      <li [style.background-color]='peer.connected ? "green":"red"' *ngFor='let peer of peers'>{{peer.host}}:{{peer.port}}</li>
+    </ul>
+  </div>
+  <div>History:
+    <ul>
+      <li *ngFor="let head of headHistory;">{{head}}</li>
+    </ul>
   </div>
 </div>

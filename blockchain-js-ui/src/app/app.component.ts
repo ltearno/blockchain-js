@@ -4,6 +4,8 @@ import * as Blockchain from 'blockchain-js-core'
 import * as FullNode from 'blockchain-js-core/target/full-node'
 import * as NetworkClientBrowserImpl from 'blockchain-js-core/target/network-client-browser-impl'*/
 
+const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -15,21 +17,27 @@ export class AppComponent {
   headHistory: string[] = []
   logs: string[] = []
   state = []
+  peers: {
+    host: string,
+    port: number,
+    connected: boolean
+  }[] = []
 
   constructor() {
-    let networkClientBrowserImpl = new Blockchain.NetworkClientBrowserImpl()
-    this.fullNode = new Blockchain.FullNode(networkClientBrowserImpl)
+    this.fullNode = new Blockchain.FullNode(NETWORK_CLIENT_IMPL)
     console.log(`full node created : ${this.fullNode.node.name}`)
 
-    this.fullNode.node.addEventListener('head', async () => {
-      this.headHistory.unshift(await this.fullNode.node.blockChainHead(Blockchain.MASTER_BRANCH))
+    this.fullNode.node.addEventListener('head', async branch => {
+      this.headHistory.unshift(`new head on branch ${branch} : ${await this.fullNode.node.blockChainHead(branch)}`)
 
       let state = []
 
       for (let branch of await this.fullNode.node.branches()) {
         console.log(`branch ${branch}`)
 
-        let toFetch = await this.fullNode.node.blockChainHead(Blockchain.MASTER_BRANCH)
+        let toFetch = await this.fullNode.node.blockChainHead(branch)
+
+        console.log(` head ${toFetch}`)
 
         let branchState = {
           branch: branch,
@@ -59,9 +67,9 @@ export class AppComponent {
     })
   }
 
-  async mine() {
+  async mine(minedData) {
     try {
-      this.fullNode.miner.addData(Blockchain.MASTER_BRANCH, "Hello my friend !")
+      this.fullNode.miner.addData(Blockchain.MASTER_BRANCH, minedData)
       let mineResult = await this.fullNode.miner.mineData()
       this.logs.push(`mine result: ${JSON.stringify(mineResult)}`)
     }
@@ -74,9 +82,52 @@ export class AppComponent {
   async addPeer(peerHost, peerPort) {
     console.log(`add peer ${peerHost}:${peerPort}`)
 
-    this.fullNode.addPeer({
-      address: peerHost,
-      port: peerPort
+    let existingPeer = this.peers.find(p => p.host == peerHost && p.port == peerPort)
+    if (existingPeer && existingPeer.connected) {
+      console.log(`already connected`)
+      return
+    }
+
+    if (!existingPeer) {
+      existingPeer = {
+        host: peerHost,
+        port: peerPort,
+        connected: true
+      }
+
+      this.peers.push(existingPeer)
+    }
+
+    let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`ws://${peerHost}:${peerPort}/events`)
+
+    let peerInfo = null
+
+    let connector = null
+    ws.on('open', () => {
+      console.log(`web socket connected ${peerHost} ${peerPort}`)
+
+      connector = new Blockchain.WebSocketConnector(this.fullNode.node, ws)
+
+      peerInfo = this.fullNode.addPeer(connector)
+
+      existingPeer.connected = true
+    })
+
+    ws.on('error', (err) => {
+      console.log(`error on ws : ${err}`)
+      ws.close()
+
+      existingPeer.connected = false
+    })
+
+    ws.on('close', () => {
+      connector && connector.terminate()
+      connector = null
+      this.fullNode.removePeer(peerInfo.id)
+
+      console.log('closed')
+
+      existingPeer.connected = false
     })
   }
 }

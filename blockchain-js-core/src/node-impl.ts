@@ -15,11 +15,8 @@ export class NodeImpl implements NodeApi.NodeApi {
     constructor(public name: string) { }
 
     private getBranchHead(branch: string) {
-        if (!branch) {
-            console.log(`fdksjhgk`)
-        }
-        if (!this.headLog.has(branch))
-            this.headLog.set(branch, [])
+        if (!branch || !this.headLog.has(branch))
+            return null
         return this.headLog.get(branch)
     }
 
@@ -39,7 +36,9 @@ export class NodeImpl implements NodeApi.NodeApi {
 
     async blockChainHeadLog(branch: string, depth: number): Promise<string[]> {
         let headLog = this.getBranchHead(branch)
-        return headLog.slice(headLog.length - depth, headLog.length).reverse()
+        if (headLog)
+            return headLog.slice(headLog.length - depth, headLog.length).reverse()
+        return null
     }
 
     async blockChainBlockIds(startBlockId: string, depth: number): Promise<string[]> {
@@ -58,22 +57,31 @@ export class NodeImpl implements NodeApi.NodeApi {
     // process block's metadata
     // update head if required (new block is valid and has the longest chain)
     async registerBlock(block: Block.Block): Promise<Block.BlockMetadata> {
-        if (!block.branch)
-            console.log()
         console.log(`[${this.name}] receive block ${(await Block.idOfBlock(block)).substring(0, 5)}`)
+
+        if (!block.branch) {
+            console.log(`invalid block ! Aborting registration`)
+            return
+        }
+
         let metadata = await this.processMetaData(block)
-        if (!metadata)
-            throw "cannot build metadata for block"
+        if (!metadata) {
+            console.log("cannot build metadata for block")
+            return
+        }
 
         if (this.knownBlocks.has(metadata.blockId)) {
             console.log(`[${this.name}] already registered block ${metadata.blockId.substring(0, 5)}`)
             return
         }
 
+        console.log(`new block accepted`)
         this.knownBlocks.set(metadata.blockId, metadata)
 
-        if (metadata.isValid && this.compareBlockchains(metadata.blockId, await this.blockChainHead(block.branch)) > 0)
+        if (metadata.isValid && this.compareBlockchains(metadata.blockId, await this.blockChainHead(block.branch)) > 0) {
+            console.log(`new block ${metadata.blockId} is the new head of branch ${block.branch}`)
             this.setHead(block.branch, metadata.blockId)
+        }
 
         return metadata
     }
@@ -114,6 +122,8 @@ export class NodeImpl implements NodeApi.NodeApi {
         if (!meta2.isValid)
             return 1
 
+        // TODO : use parametrized algorithm for validation and trusting
+
         // longest chain is biggest
         if (meta1.chainLength > meta2.chainLength)
             return 1
@@ -129,9 +139,14 @@ export class NodeImpl implements NodeApi.NodeApi {
             return
 
         let headLog = this.getBranchHead(branch)
+        if (!headLog) {
+            headLog = []
+            this.headLog.set(branch, headLog)
+        }
+        
         headLog.push(blockId)
 
-        console.log(`[${this.name}] new head : ${blockId.substring(0, 5)}`)
+        console.log(`[${this.name}] new head on branch ${branch} : ${blockId.substring(0, 5)}`)
 
         this.listeners.forEach(listener => listener(branch))
     }

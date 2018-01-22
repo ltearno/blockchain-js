@@ -1,12 +1,12 @@
 import * as Block from './block'
 
 export interface NodeEventListener {
-    (branch:string): void
+    (branch: string): void
 }
 
 export interface NodeApi {
     /**
-     * A sympathetic name to help debugging
+     * A sympathetic name useful for debugging
      */
     name: string
 

@@ -3,7 +3,8 @@ import * as NodeApi from './node-api'
 import * as NodeImpl from './node-impl'
 import * as NodeTransfer from './node-transfer'
 import * as TestTools from './test-tools'
-
+import * as NetworkApi from './network-api'
+import * as WebSocketConnector from './websocket-connector'
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
 import * as WebSocket from 'ws'
@@ -18,13 +19,18 @@ declare module "express" {
 }
 
 export class NodeServer {
-    constructor(private node: NodeApi.NodeApi) { }
+    constructor(
+        private node: NodeApi.NodeApi,
+        private newPeersReceiver: (peer: NodeApi.NodeApi) => void,
+        private closedPeersReceiver: (peer: NodeApi.NodeApi) => void) { }
 
     // TODO check all input's validity !
 
     initialize(app: express.Server) {
         app.ws('/events', (ws, req) => {
-            let listener = async (branch) => ws.send(JSON.stringify({ type: 'head', branch }))
+            let connector = new WebSocketConnector.WebSocketConnector(this.node, ws)
+            this.newPeersReceiver(connector)
+
             ws.on('error', err => {
                 console.log(`error on ws ${err}`)
                 ws.close()
@@ -32,14 +38,9 @@ export class NodeServer {
 
             ws.on('close', () => {
                 console.log(`closed ws`)
-                this.node.removeEventListener(listener)
+                connector.terminate()
+                this.closedPeersReceiver(connector)
             })
-
-            ws.on('message', message => console.log(`rcv: ${message}`))
-
-            ws.send(JSON.stringify({ type: 'hello' }))
-
-            this.node.addEventListener('head', listener)
         })
 
         app.get('/ping', (req, res) => res.send(JSON.stringify({ message: 'hello' })))
