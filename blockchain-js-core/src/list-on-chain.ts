@@ -239,7 +239,8 @@ export class ListOnChain {
         if (!metadata)
             throw `impossible to retrieve block`
 
-        let firstPart = await this.fetchListItemsFromBlockchain(metadata.target.previousBlockId)
+        // TODO should be able to manage multiple parents
+        let firstPart = await this.fetchListItemsFromBlockchain(metadata.target.previousBlockIds && metadata.target.previousBlockIds[0])
         let lastDataId = await this.lastListItemId(firstPart)
 
         let lastPart = await this.findListPartInBlock(metadata.target, lastDataId)

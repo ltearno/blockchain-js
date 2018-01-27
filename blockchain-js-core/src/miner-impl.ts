@@ -41,6 +41,8 @@ export class MinerImpl {
 
     /**
      * returns the number of mined blocks and errors occured
+     * 
+     * TODO should be able to create a merge block
      */
     async mineData(): Promise<{ nbMinedBlocks: number, errors: any[] }> {
         let dataToMineByBranch = this.dataToMineByBranch
@@ -57,7 +59,7 @@ export class MinerImpl {
                 continue
 
             let head = await this.node.blockChainHead(branch)
-            let difficuly = 1
+            let difficuly = 100
             if (head) {
                 let metadata = (await this.node.blockChainBlockMetadata(head, 1))[0]
                 if (!metadata) {
@@ -67,10 +69,10 @@ export class MinerImpl {
                     continue
                 }
 
-                difficuly = metadata.target.validityProof.difficulty
+                difficuly = Math.max(difficuly, metadata.target.validityProof.difficulty)
             }
 
-            let preBlock = Block.createBlock(branch, head, dataToMine)
+            let preBlock = Block.createBlock(branch, [head], dataToMine)
             let block = await Block.mineBlock(preBlock, difficuly)
 
             let metadata = await this.node.registerBlock(block)

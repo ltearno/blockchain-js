@@ -2,7 +2,7 @@ import * as Block from './block'
 
 export function createSimpleMiner(branch: string, previousBlockId: string, difficulty: number) {
     return async function () {
-        let block = Block.createBlock(branch, previousBlockId, [{ nom: "arnaud" }])
+        let block = Block.createBlock(branch, [previousBlockId], [{ nom: "arnaud" }])
 
         let minedBlock = await Block.mineBlock(block, difficulty)
 

@@ -45,11 +45,14 @@ export class AppComponent {
           blocks: []
         }
 
-        while (toFetch) {
-          console.log(`fetching block ${toFetch}`)
-          let blockMetadatas = await this.fullNode.node.blockChainBlockMetadata(toFetch, 1)
+        let toFetchs = [toFetch]
+        while (toFetchs.length) {
+          let fetching = toFetchs.shift()
+
+          console.log(`fetching block ${fetching}`)
+          let blockMetadatas = await this.fullNode.node.blockChainBlockMetadata(fetching, 1)
           let blockMetadata = blockMetadatas && blockMetadatas[0]
-          let blockDatas = await this.fullNode.node.blockChainBlockData(toFetch, 1)
+          let blockDatas = await this.fullNode.node.blockChainBlockData(fetching, 1)
           let blockData = blockDatas && blockDatas[0]
 
           console.log(`block metadata : ${JSON.stringify(blockMetadata)}`)
@@ -57,7 +60,7 @@ export class AppComponent {
 
           branchState.blocks.push({ blockMetadata, blockData })
 
-          toFetch = blockData && blockData.previousBlockId
+          blockData && blockData.previousBlockIds && blockData.previousBlockIds.forEach(b => !toFetchs.some(bid => bid == b) && toFetchs.push(b))
         }
 
         state.push(branchState)

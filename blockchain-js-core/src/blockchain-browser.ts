@@ -35,8 +35,10 @@ async function run() {
     for (let branch of await fullNode.node.branches()) {
         console.log(`branch ${branch}`)
 
-        let toFetch = await fullNode.node.blockChainHead(Block.MASTER_BRANCH)
-        while (toFetch) {
+        let fetchList = [await fullNode.node.blockChainHead(Block.MASTER_BRANCH)]
+        while (fetchList.length) {
+            let toFetch = fetchList.shift()
+
             console.log(`fetching block ${toFetch}`)
             let blockMetadatas = await fullNode.node.blockChainBlockMetadata(toFetch, 1)
             let blockMetadata = blockMetadatas && blockMetadatas[0]
@@ -46,7 +48,7 @@ async function run() {
             console.log(`block metadata : ${JSON.stringify(blockMetadata)}`)
             console.log(`block data : ${JSON.stringify(blockData)}`)
 
-            toFetch = blockData && blockData.previousBlockId
+            blockData && blockData.previousBlockIds && blockData.previousBlockIds.forEach(p => fetchList.push(p))
         }
     }
 }
@@ -55,7 +57,7 @@ run().then(() => console.log(`end !`))
 
 function createSimpleMiner(branch: string, previousBlockId: string, difficulty: number) {
     return async function () {
-        let block = Block.createBlock(branch, previousBlockId, [{ nom: "arnaud" }])
+        let block = Block.createBlock(branch, [previousBlockId], [{ nom: "arnaud" }])
 
         let minedBlock = await Block.mineBlock(block, difficulty)
 

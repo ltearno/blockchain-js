@@ -114,9 +114,11 @@ async function testNodeTransfer() {
 
             let nodeToRegisterBlock = anyNode()
 
-            while (!await nodeToRegisterBlock.knowsBlock(minedBlock.previousBlockId)) {
-                console.log(`waiting for block ${minedBlock.previousBlockId} availability on node ${nodeToRegisterBlock.name}`)
-                await TestTools.wait(300)
+            for (let previousBlockId of minedBlock.previousBlockIds) {
+                while (!await nodeToRegisterBlock.knowsBlock(previousBlockId)) {
+                    console.log(`waiting for block ${previousBlockId} availability on node ${nodeToRegisterBlock.name}`)
+                    await TestTools.wait(300)
+                }
             }
 
             console.log(`adding block to node ${nodeToRegisterBlock.name}`)

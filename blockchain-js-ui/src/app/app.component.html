@@ -13,8 +13,17 @@
         <br/>
         <ul>
           <li *ngFor="let block of branchInfo.blocks">
-            {{block.blockData.data | json}}
-            <span style='font-size:.7em;'>metadata: {{block.blockMetadata | json}}</span>
+            {{block.blockData.data | json}}<br/>
+            <!--<span style='font-size:.7em;'>metadata: {{block.blockMetadata | json}}</span>-->
+            <!--  ], "validityProof": { "difficulty": 1, "padding": 3 } }, "chainLength": 45 }-->
+            <div style='font-size:.7em;'>
+                id: {{block.blockMetadata.blockId}}<br/>
+                valid: {{block.blockMetadata.isValid}}<br/>
+                branch: {{block.blockMetadata.target?.branch}}<br/>
+                previous blocks: {{block.blockMetadata.target?.previousBlockIds | json}}<br/>
+                chain length: {{block.blockMetadata.chainLength}}<br/>
+                validityProof: {{block.blockMetadata.target?.validityProof | json}}<br/>
+            </div>
           </li>
         </ul>
       </li>

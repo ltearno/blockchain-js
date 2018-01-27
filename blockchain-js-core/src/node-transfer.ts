@@ -96,23 +96,28 @@ export class NodeTransfer {
         let remoteHead = await remoteNode.blockChainHead(branch)
 
         // fetch the missing parent blocks in node
-        let toAddBlocks = []
-        let toMaybeFetch = remoteHead
-        while (toMaybeFetch) {
+        let toAddBlocks: { id: string, block: Block.Block }[] = []
+        let fetchList = [remoteHead]
+        while (fetchList.length) {
+            let toMaybeFetch = fetchList.shift()
+
             if (await this.node.knowsBlock(toMaybeFetch))
                 break
 
             let addedBlock = (await remoteNode.blockChainBlockData(toMaybeFetch, 1))[0]
-            toAddBlocks.push(addedBlock)
+            let addedBlockId = await Block.idOfBlock(addedBlock)
 
-            toMaybeFetch = addedBlock.previousBlockId
+            if (!toAddBlocks.find(b => b.id == addedBlockId))
+                toAddBlocks.push({ id: addedBlockId, block: addedBlock })
+
+            addedBlock.previousBlockIds && addedBlock.previousBlockIds.forEach(previousBlockId => fetchList.push(previousBlockId))
         }
 
         // add them to node
         toAddBlocks = toAddBlocks.reverse()
         for (let toAddBlock of toAddBlocks) {
-            console.log(`transfer block ${(await Block.idOfBlock(toAddBlock)).substring(0, 5)} from ${remoteNode.name} to ${this.node.name}`)
-            await this.node.registerBlock(toAddBlock)
+            console.log(`transfer block ${toAddBlock.id.substring(0, 5)} from ${remoteNode.name} to ${this.node.name}`)
+            await this.node.registerBlock(toAddBlock.block)
         }
     }
 }

@@ -78,12 +78,42 @@ export class NodeImpl implements NodeApi.NodeApi {
         console.log(`new block accepted`)
         this.knownBlocks.set(metadata.blockId, metadata)
 
-        if (metadata.isValid && this.compareBlockchains(metadata.blockId, await this.blockChainHead(block.branch)) > 0) {
+        let oldHead = await this.blockChainHead(block.branch)
+        if (metadata.isValid && this.compareBlockchains(metadata.blockId, oldHead) > 0) {
             console.log(`new block ${metadata.blockId} is the new head of branch ${block.branch}`)
+
             this.setHead(block.branch, metadata.blockId)
+
+            // if new head is not a parent of new head (non fast-forward), create a merge block
+            if (!this.isAncestorOf(oldHead, metadata.blockId)) {
+                // create a merge block
+                let pre = Block.createBlock(block.branch, [metadata.blockId, oldHead], ["AUTO MERGE BLOCK"])
+                let oldHeadBlock = (await this.blockChainBlockData(oldHead, 1))[0]
+                let minedBlock = Block.mineBlock(pre, Math.max(oldHeadBlock.validityProof.difficulty, block.validityProof.difficulty))
+            }
         }
 
         return metadata
+    }
+
+    private isAncestorOf(ancestorId: string, ofId: string): boolean {
+        // from ofId browsing parents, if we encounter ancestorId return true
+        // otherwise return false
+        let visiteds = new Set<string>()
+        let toVisit: string[] = [ofId]
+        while (toVisit.length) {
+            let visited = toVisit.shift()
+            visiteds.add(visited)
+
+            if (visited == ancestorId)
+                return true
+
+            let metadata = this.knownBlocks.get(visited)
+
+            metadata && metadata.target && metadata.target.previousBlockIds && metadata.target.previousBlockIds.forEach(p => toVisit.push(p))
+        }
+
+        return false
     }
 
     addEventListener(type: 'head', eventListener: NodeApi.NodeEventListener): void {
@@ -143,7 +173,7 @@ export class NodeImpl implements NodeApi.NodeApi {
             headLog = []
             this.headLog.set(branch, headLog)
         }
-        
+
         headLog.push(blockId)
 
         console.log(`[${this.name}] new head on branch ${branch} : ${blockId.substring(0, 5)}`)
@@ -152,16 +182,22 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     private async processMetaData(block: Block.Block): Promise<Block.BlockMetadata> {
-        let currentChainLength = 1
+        let chainLength = 0
         let minimalDifficulty = 0
 
-        if (block.previousBlockId) {
-            let previousBlockMetadata = this.knownBlocks.get(block.previousBlockId)
-            if (!previousBlockMetadata)
-                throw "cannot find the parent block in database, so cannot processMetadata"
+        if (block.previousBlockIds) {
+            for (let previousBlockId of block.previousBlockIds) {
+                let previousBlockMetadata = this.knownBlocks.get(previousBlockId)
+                if (!previousBlockMetadata) {
+                    console.log("cannot find the parent block in database, so cannot processMetadata")
+                    return null
+                }
 
-            currentChainLength += previousBlockMetadata.chainLength
-            minimalDifficulty = previousBlockMetadata.target.validityProof.difficulty
+                chainLength = Math.max(chainLength, previousBlockMetadata.chainLength)
+
+                // TODO this should be done in specialized mining0 confidence provider
+                minimalDifficulty = previousBlockMetadata.target.validityProof.difficulty
+            }
         }
 
         // TODO find the process through which difficulty is raised
@@ -170,7 +206,7 @@ export class NodeImpl implements NodeApi.NodeApi {
             blockId: await Block.idOfBlock(block),
             isValid: await Block.isBlockValid(block, minimalDifficulty),
             target: block,
-            chainLength: currentChainLength
+            chainLength: chainLength + 1
         }
 
         return metadata
@@ -184,7 +220,8 @@ export class NodeImpl implements NodeApi.NodeApi {
 
             yield metadata
 
-            startBlockId = metadata.target.previousBlockId
+            // TODO this only browse first parent, it should browser the entire tree !
+            startBlockId = metadata.target.previousBlockIds && metadata.target.previousBlockIds.length && metadata.target.previousBlockIds[0]
         }
     }
 }

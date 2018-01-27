@@ -13,7 +13,7 @@ export interface BlockSeed {
 
     // TODO : should be an ordered list of parents, to allow fot DAG
     // ID of the previous block
-    previousBlockId: string
+    previousBlockIds: string[]
 
     // a list of data appended to the block. Those are the data users required to be published on the blockchain
     data: any[]
@@ -45,13 +45,14 @@ export interface BlockMetadata {
     isValid: boolean
 
     // number of blocks in the chain, including the target block
+    // TODO replace chain length by confidence
     chainLength: number
 }
 
-export function createBlock(branch: string, previousBlockId: string, data: any[]): BlockSeed {
+export function createBlock(branch: string, previousBlockIds: string[], data: any[]): BlockSeed {
     let block: BlockSeed = {
         branch,
-        previousBlockId,
+        previousBlockIds: previousBlockIds && Array.isArray(previousBlockIds) && previousBlockIds.filter(id => id != null),
         data
     }
 
@@ -78,7 +79,7 @@ export async function idOfData(data: any) {
 export async function mineBlock(model: BlockSeed, difficulty: number): Promise<Block> {
     let block: Block = {
         branch: model.branch,
-        previousBlockId: model.previousBlockId,
+        previousBlockIds: model.previousBlockIds,
         data: model.data
     } as Block
 
