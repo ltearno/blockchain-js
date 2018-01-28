@@ -27,7 +27,7 @@ export class NodeServer {
     // TODO check all input's validity !
 
     initialize(app: express.Server) {
-        app.ws('/events', (ws, req) => {
+        app.ws('/api', (ws, req) => {
             let connector = new WebSocketConnector.WebSocketConnector(this.node, ws)
             this.newPeersReceiver(connector)
 

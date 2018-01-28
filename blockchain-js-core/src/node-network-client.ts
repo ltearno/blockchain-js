@@ -51,12 +51,12 @@ export class NodeClient {
             }
 
             try {
-                this.ws = this.networkApi.createClientWebSocket(`ws://${this.peerAddress}:${this.peerPort}/events`)
+                this.ws = this.networkApi.createClientWebSocket(`ws://${this.peerAddress}:${this.peerPort}/api`)
 
                 this.ws.on('open', () => {
                     this.opened = true
 
-                    console.log(`web socket connected to ws://${this.peerAddress}:${this.peerPort}/events, instantiating`)
+                    console.log(`web socket connected to ws://${this.peerAddress}:${this.peerPort}/api, instantiating`)
                     this.connector = new WebSocketConnector.WebSocketConnector(this.localNode, this.ws)
 
                     resolve()
