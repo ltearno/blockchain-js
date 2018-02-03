@@ -89,7 +89,7 @@ export class NodeImpl implements NodeApi.NodeApi {
                 // create a merge block
                 let pre = Block.createBlock(block.branch, [metadata.blockId, oldHead], ["AUTO MERGE BLOCK"])
                 let oldHeadBlock = (await this.blockChainBlockData(oldHead, 1))[0]
-                let minedBlock = Block.mineBlock(pre, Math.max(oldHeadBlock.validityProof.difficulty, block.validityProof.difficulty))
+                let minedBlock = Block.mineBlock(pre, oldHeadBlock ? Math.max(oldHeadBlock.validityProof.difficulty, block.validityProof.difficulty) : block.validityProof.difficulty)
             }
         }
 

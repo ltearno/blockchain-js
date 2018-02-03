@@ -1,6 +1,7 @@
 <div>
   {{title}}
   <div>Node : {{fullNode.node.name}}</div>
+  <div>P2P : <button (click)='offerP2PChannel()'>offer channel</button></div>
   <div>Mining Message :
     <input #minedData type="text" value='Some data to mine...'>
     <button (click)='mine(minedData.value)'>Mine hello world</button>

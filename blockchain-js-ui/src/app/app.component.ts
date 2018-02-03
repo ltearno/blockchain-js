@@ -1,5 +1,6 @@
 import { Component } from '@angular/core'
 import * as Blockchain from 'blockchain-js-core'
+import * as PeerToPeer from 'blockchain-js-webrtc-simu'
 /*import * as Block from 'blockchain-js-core/target/block'
 import * as FullNode from 'blockchain-js-core/target/full-node'
 import * as NetworkClientBrowserImpl from 'blockchain-js-core/target/network-client-browser-impl'*/
@@ -18,12 +19,20 @@ export class AppComponent {
   logs: string[] = []
   state = []
   peers: {
-    host: string,
-    port: number,
-    connected: boolean
+    host?: string,
+    port?: number,
+    connected?: boolean
   }[] = []
+  p2pBroker: PeerToPeer.PeerToPeerBrokering
 
   constructor() {
+    this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`, (description, channel) => {
+      let desc = { host: `channel ${description.offerId}`, port: 0, connected: true }
+      this.peers.push(desc)
+      this.addPeerBySocket(desc, channel)
+    })
+    this.p2pBroker.createSignalingSocket()
+
     this.fullNode = new Blockchain.FullNode(NETWORK_CLIENT_IMPL)
     console.log(`full node created : ${this.fullNode.node.name}`)
 
@@ -70,6 +79,10 @@ export class AppComponent {
     })
   }
 
+  offerP2PChannel() {
+    this.p2pBroker.offerChannel('any channel')
+  }
+
   async mine(minedData) {
     try {
       this.fullNode.miner.addData(Blockchain.MASTER_BRANCH, minedData)
@@ -103,11 +116,15 @@ export class AppComponent {
 
     let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`ws://${peerHost}:${peerPort}/events`)
 
+    this.addPeerBySocket(existingPeer, ws)
+  }
+
+  private async addPeerBySocket(existingPeer, ws) {
     let peerInfo = null
 
     let connector = null
     ws.on('open', () => {
-      console.log(`web socket connected ${peerHost} ${peerPort}`)
+      console.log(`web socket connected`)
 
       connector = new Blockchain.WebSocketConnector(this.fullNode.node, ws)
 
