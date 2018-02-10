@@ -59,13 +59,14 @@ export function createBlock(branch: string, previousBlockIds: string[], data: an
     return block
 }
 
-export async function isBlockValid(block: Block, minimalDifficulty: number): Promise<boolean> {
+export async function isBlockValid(block: Block): Promise<boolean> {
     // TODO : delegate to specific strategy specified by the block itself
-    if (!block || !block.validityProof || block.validityProof.difficulty < minimalDifficulty)
+
+    if (!block || !block.validityProof || block.validityProof.difficulty < 0)
         return false
 
     let sha = await idOfBlock(block)
-    return sha.endsWith("" + block.validityProof.difficulty)
+    return sha.startsWith("" + block.validityProof.difficulty)
 }
 
 export async function idOfBlock(block: Block) {
@@ -76,7 +77,7 @@ export async function idOfData(data: any) {
     return await HashTools.hashString(serializeBlockData(data))
 }
 
-export async function mineBlock(model: BlockSeed, difficulty: number): Promise<Block> {
+export async function mineBlock(model: BlockSeed, difficulty: number, batchSize: number = -1): Promise<Block> {
     let block: Block = {
         branch: model.branch,
         previousBlockIds: model.previousBlockIds,
@@ -90,12 +91,17 @@ export async function mineBlock(model: BlockSeed, difficulty: number): Promise<B
             padding
         }
 
-        if (await isBlockValid(block, difficulty))
+        if (await isBlockValid(block))
             return block
 
         padding++
+
+        // have we gone through all the integers ?
         if (padding == 0)
             return null
+
+        if (batchSize > 0 && padding % batchSize == 0)
+            await wait(0)
     }
 }
 
@@ -132,4 +138,8 @@ export function serializeBlockData(data: any): string {
 
 export function deserializeBlockData(representation: string) {
     return JSON.parse(representation)
+}
+
+function wait(duration: number) {
+    return new Promise((resolve, reject) => setTimeout(() => resolve(), duration))
 }

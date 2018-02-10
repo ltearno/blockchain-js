@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "blockchain-js-core"
+		},
+		{
+			"path": "blockchain-js-webrtc"
+		},
+		{
+			"path": "blockchain-js-webrtc-simu"
+		},
+		{
+			"path": "blockchain-js-ui"
+		}
+	]
+}

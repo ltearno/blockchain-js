@@ -183,7 +183,6 @@ export class NodeImpl implements NodeApi.NodeApi {
 
     private async processMetaData(block: Block.Block): Promise<Block.BlockMetadata> {
         let chainLength = 0
-        let minimalDifficulty = 0
 
         if (block.previousBlockIds) {
             for (let previousBlockId of block.previousBlockIds) {
@@ -194,9 +193,6 @@ export class NodeImpl implements NodeApi.NodeApi {
                 }
 
                 chainLength = Math.max(chainLength, previousBlockMetadata.chainLength)
-
-                // TODO this should be done in specialized mining0 confidence provider
-                minimalDifficulty = previousBlockMetadata.target.validityProof.difficulty
             }
         }
 
@@ -204,7 +200,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         let metadata: Block.BlockMetadata = {
             blockId: await Block.idOfBlock(block),
-            isValid: await Block.isBlockValid(block, minimalDifficulty),
+            isValid: await Block.isBlockValid(block),
             target: block,
             chainLength: chainLength + 1
         }

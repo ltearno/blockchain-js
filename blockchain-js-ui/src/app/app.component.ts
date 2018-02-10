@@ -24,6 +24,7 @@ export class AppComponent {
     connected?: boolean
   }[] = []
   p2pBroker: PeerToPeer.PeerToPeerBrokering
+  isMining = false
 
   constructor() {
     this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`, (description, channel) => {
@@ -83,15 +84,23 @@ export class AppComponent {
     this.p2pBroker.offerChannel('any channel')
   }
 
-  async mine(minedData) {
+  async mine(minedData, miningDifficulty) {
+    if (this.isMining && minedData == '' || miningDifficulty <= 0)
+      return
+
+    this.isMining = true
+
     try {
       this.fullNode.miner.addData(Blockchain.MASTER_BRANCH, minedData)
-      let mineResult = await this.fullNode.miner.mineData()
+      let mineResult = await this.fullNode.miner.mineData(miningDifficulty, 30)
       this.logs.push(`mine result: ${JSON.stringify(mineResult)}`)
     }
     catch (error) {
       this.logs.push(`error mining: ${JSON.stringify(error)}`)
       throw error
+    }
+    finally {
+      this.isMining = false
     }
   }
 
