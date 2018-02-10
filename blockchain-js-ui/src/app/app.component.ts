@@ -15,7 +15,6 @@ const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
 export class AppComponent {
   title = 'app'
   fullNode: Blockchain.FullNode = null
-  headHistory: string[] = []
   logs: string[] = []
   state = []
   peers: {
@@ -38,7 +37,7 @@ export class AppComponent {
     console.log(`full node created : ${this.fullNode.node.name}`)
 
     this.fullNode.node.addEventListener('head', async branch => {
-      this.headHistory.unshift(`new head on branch ${branch} : ${await this.fullNode.node.blockChainHead(branch)}`)
+      this.logs.unshift(`new head on branch ${branch} : ${await this.fullNode.node.blockChainHead(branch)}`)
 
       let state = []
 
@@ -93,10 +92,10 @@ export class AppComponent {
     try {
       this.fullNode.miner.addData(Blockchain.MASTER_BRANCH, minedData)
       let mineResult = await this.fullNode.miner.mineData(miningDifficulty, 30)
-      this.logs.push(`mine result: ${JSON.stringify(mineResult)}`)
+      this.logs.unshift(`mine result: ${JSON.stringify(mineResult)}`)
     }
     catch (error) {
-      this.logs.push(`error mining: ${JSON.stringify(error)}`)
+      this.logs.unshift(`error mining: ${JSON.stringify(error)}`)
       throw error
     }
     finally {

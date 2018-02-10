@@ -154,13 +154,19 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         // TODO : use parametrized algorithm for validation and trusting
 
-        // longest chain is biggest
-        if (meta1.chainLength > meta2.chainLength)
+        // greatest confidence
+        if (meta1.confidence > meta2.confidence)
             return 1
-        if (meta1.chainLength < meta2.chainLength)
+        if (meta1.confidence < meta2.confidence)
             return -1
 
-        // bigger id is biggest
+        // greatest number of blocks (maximum diversity)
+        if (meta1.blockCount > meta2.blockCount)
+            return 1
+        if (meta1.blockCount < meta2.blockCount)
+            return -1
+
+        // biggest id
         return meta1.blockId.localeCompare(meta2.blockId)
     }
 
@@ -182,7 +188,8 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     private async processMetaData(block: Block.Block): Promise<Block.BlockMetadata> {
-        let chainLength = 0
+        let blockCount = 1
+        let confidence = 1 * block.validityProof.difficulty
 
         if (block.previousBlockIds) {
             for (let previousBlockId of block.previousBlockIds) {
@@ -192,7 +199,8 @@ export class NodeImpl implements NodeApi.NodeApi {
                     return null
                 }
 
-                chainLength = Math.max(chainLength, previousBlockMetadata.chainLength)
+                blockCount += 1 * previousBlockMetadata.blockCount
+                confidence += 1 * previousBlockMetadata.confidence
             }
         }
 
@@ -202,7 +210,8 @@ export class NodeImpl implements NodeApi.NodeApi {
             blockId: await Block.idOfBlock(block),
             isValid: await Block.isBlockValid(block),
             target: block,
-            chainLength: chainLength + 1
+            blockCount,
+            confidence
         }
 
         return metadata

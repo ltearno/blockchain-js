@@ -41,12 +41,14 @@ export interface BlockMetadata {
     // ID of the block (which is sha(stringify(block)))
     blockId: string
 
-    // sha(stringify(block)) == block.validityProof && block.validityProof >= block.previousBlock.difficulty
+    // sha(stringify(block)) == block.validityProof
     isValid: boolean
 
     // number of blocks in the chain, including the target block
-    // TODO replace chain length by confidence
-    chainLength: number
+    blockCount: number
+
+    // sum of all the blocks and sub blocks confidence (given by pow for the moment)
+    confidence: number
 }
 
 export function createBlock(branch: string, previousBlockIds: string[], data: any[]): BlockSeed {
