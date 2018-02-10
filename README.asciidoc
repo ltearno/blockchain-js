@@ -4,6 +4,10 @@ A simple typescript implementation of a Bitcoin-like distributed blockchain cons
 
 The aim is to have a base work to make experiments with it.
 
+It has a node with many of the bitcoin concepts implemented, and some more (branches, merches, and so on).
+
+The code woks both on server (NodeJS) and client (browser) environments so it is fit for doing demoes.
+
 == Introduction
 
 This is perfect for showing simple code on how the bitcoin works, so this can be used as a support for demoes.
@@ -24,17 +28,60 @@ Concepts not in Bitcoin (as far as I know)
  called `master`, then any branch can be built on it !
 - block data is in Ordered-JSON.
 
-== Build
+== Build and run the demo application
 
-Go to the blockchain-js-core directory and build with `npm install`, followed by `tsc`.
+Those instructions will allow you to launch the demo application which is a **chat application storing its data on a shared blockchain**.
+This is a web application where _every connected browser is a full blockchain node_.
+All nodes have _their own version_ of the blockchain data and update it when they _receive new blocks they consider valid_.
+They connect each other by relying on a _meeting server_ (included in the project, but separated from it) and have no a priori confidence 
+at all in any of the connected peers. It is also possible to connect to other nodes by specifying a Http WebSocket endpoint.
+The UI allows to create a node, connect to the meeting server, receive blockchain notifications and see blocks data and update the blockchain
+by mining new blocks with adjustable difficulty.
 
-Go to the blockchain-js-ui directory and build with `ng build`.
+First you need to link projects together. Since the script does `npm link` internally, you need to sudo it. You have to do it **only once**.
 
-== Run
+        ./install.sh
 
-On node : go to the blockchain-js-core directory and run with `node dist/blockchain-node.js`. This launches a blockchain node on NodeJs. It listens by default on the 9091 TCP port.
+Then to build the three projects (blockchain-js-core, rencontres and blockchain-js-ui), simply call :
 
-To run the browser implementation, go to the blockchain-js-ui directory and run with `ng serve`. You can open as many browser tabs you need on the url `http://localhost:4200`.
+        ./build.sh
+
+To run the demo projects, you will have to two in two separate terminal :
+
+        # this will launch the peer to peer connectivity server (no blockchain here)
+        cd rencontres
+        node dist/index.js
+
+In another terminal :
+
+        cd blockchain-js-ui/dist
+        # if you had not installed http-server before :
+        npm install -g http-server
+        http-server -p 8080 ./
+
+You can then go with several browsers to `http://localhost:8080/` and you should see the demo application, which is a blockchain distributed
+amongst all connected nodes in which the client add messages by mining some blocks and transmitting them to peer nodes.
+
+=== Development mode
+
+        cd rencontres
+        node dist/index.js
+
+And in another terminal
+
+        cd blockchain-js-ui
+        ng serve
+
+Then open some browsers on `http://localhost:4200`
+
+=== Run a NodeJS blockchain node
+
+To run a blockchain node on NodeJS, go to the blockchain-js-core directory and 
+run `node dist/blockchain-node.js`. This launches a blockchain node on NodeJs. It listens by default on the 9091 TCP port.
+
+Most of the API goes through the web socket at `http://localhost:9091/api`.
+
+There are also some available REST calls you can find in the `blockchain-node.ts` file.
 
 === Connection between nodes
 

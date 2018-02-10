@@ -7,10 +7,10 @@
 			"path": "blockchain-js-webrtc"
 		},
 		{
-			"path": "blockchain-js-webrtc-simu"
+			"path": "blockchain-js-ui"
 		},
 		{
-			"path": "blockchain-js-ui"
+			"path": "rencontres"
 		}
 	]
 }

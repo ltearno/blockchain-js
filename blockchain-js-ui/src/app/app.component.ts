@@ -1,6 +1,6 @@
 import { Component } from '@angular/core'
 import * as Blockchain from 'blockchain-js-core'
-import * as PeerToPeer from 'blockchain-js-webrtc-simu'
+import * as PeerToPeer from 'rencontres'
 
 const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
 
@@ -25,8 +25,8 @@ export class AppComponent {
 
   desiredNbPeers = 3
 
-  private acceptingOffers = new Map<string, string>()
-  private knownAcceptedMessages = new Set<string>()
+  acceptingOffers = new Map<string, string>()
+  knownAcceptedMessages = new Set<string>()
 
   constructor() {
     this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`, (offerId, offerMessage) => {
