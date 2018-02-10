@@ -4,6 +4,7 @@ import * as NodeApi from './node-api'
 export class NodeImpl implements NodeApi.NodeApi {
     // block together with their metadata which are known by the node
     private knownBlocks = new Map<string, Block.BlockMetadata>()
+    private knownBlocksData = new Map<string, Block.Block>()
 
     // history of the blockchain heads by branch
     // at 0 is the oldest,
@@ -42,15 +43,15 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     async blockChainBlockIds(startBlockId: string, depth: number): Promise<string[]> {
-        return Array.from(await this.browseBlockchain(startBlockId, depth)).map(metadata => metadata.blockId)
+        return Array.from(await this.browseBlockchain(startBlockId, depth)).map(item => item.metadata.blockId)
     }
 
     async blockChainBlockMetadata(startBlockId: string, depth: number): Promise<Block.BlockMetadata[]> {
-        return Array.from(await this.browseBlockchain(startBlockId, depth))
+        return Array.from(await this.browseBlockchain(startBlockId, depth)).map(item => item.metadata)
     }
 
     async blockChainBlockData(startBlockId: string, depth: number): Promise<Block.Block[]> {
-        return Array.from(await this.browseBlockchain(startBlockId, depth)).map(metadata => metadata.target)
+        return Array.from(await this.browseBlockchain(startBlockId, depth)).map(item => item.block)
     }
 
     // registers a new block in the collection
@@ -77,6 +78,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         console.log(`new block accepted`)
         this.knownBlocks.set(metadata.blockId, metadata)
+        this.knownBlocksData.set(metadata.blockId, block)
 
         let oldHead = await this.blockChainHead(block.branch)
         if (metadata.isValid && this.compareBlockchains(metadata.blockId, oldHead) > 0) {
@@ -108,9 +110,9 @@ export class NodeImpl implements NodeApi.NodeApi {
             if (visited == ancestorId)
                 return true
 
-            let metadata = this.knownBlocks.get(visited)
+            let block = this.knownBlocksData.get(visited)
 
-            metadata && metadata.target && metadata.target.previousBlockIds && metadata.target.previousBlockIds.forEach(p => toVisit.push(p))
+            block && block.previousBlockIds && block.previousBlockIds.forEach(p => toVisit.push(p))
         }
 
         return false
@@ -209,7 +211,6 @@ export class NodeImpl implements NodeApi.NodeApi {
         let metadata: Block.BlockMetadata = {
             blockId: await Block.idOfBlock(block),
             isValid: await Block.isBlockValid(block),
-            target: block,
             blockCount,
             confidence
         }
@@ -220,13 +221,15 @@ export class NodeImpl implements NodeApi.NodeApi {
     private *browseBlockchain(startBlockId: string, depth: number) {
         while (startBlockId && depth-- > 0) {
             let metadata = this.knownBlocks.get(startBlockId)
-            if (!metadata)
+            let block = this.knownBlocksData.get(startBlockId)
+
+            if (!metadata || !block)
                 throw "unknown block"
 
-            yield metadata
+            yield { metadata, block }
 
             // TODO this only browse first parent, it should browser the entire tree !
-            startBlockId = metadata.target.previousBlockIds && metadata.target.previousBlockIds.length && metadata.target.previousBlockIds[0]
+            startBlockId = block.previousBlockIds && block.previousBlockIds.length && block.previousBlockIds[0]
         }
     }
 }

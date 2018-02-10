@@ -25,12 +25,11 @@
             <div style='font-size:.7em;'>
               id: {{block.blockMetadata.blockId}}
               <br/> valid: {{block.blockMetadata.isValid}}
-              <br/> branch: {{block.blockMetadata.target?.branch}}
-              <br/> previous blocks: {{block.blockMetadata.target?.previousBlockIds | json}}
+              <br/> branch: {{block.blockData?.branch}}
+              <br/> previous blocks: {{block.blockData?.previousBlockIds | json}}
               <br/> confidence: {{block.blockMetadata.confidence}}
               <br/> blockCount: {{block.blockMetadata.blockCount}}
-              <br/> validityProof: {{block.blockMetadata.target?.validityProof | json}}
-              <br/>
+              <br/> validityProof: {{block.blockData?.validityProof | json}}
             </div>
           </li>
         </ul>

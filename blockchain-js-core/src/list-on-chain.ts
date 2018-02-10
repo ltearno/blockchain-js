@@ -54,7 +54,7 @@ export class ListOnChain {
         private listName: string,
         private miner: MinerImpl.MinerImpl) { }
 
-    private blocks = new Map<string, Block.BlockMetadata>()
+    private blocks = new Map<string, Block.Block>()
 
     private items: ListItem[]
     private list: any[]
@@ -233,17 +233,19 @@ export class ListOnChain {
         if (!blockId)
             return []
 
-        let metadata = this.blocks.get(blockId)
-        if (!metadata)
-            metadata = (await this.node.blockChainBlockMetadata(blockId, 1))[0]
-        if (!metadata)
+        let block = this.blocks.get(blockId)
+        if (!block)
+            block = (await this.node.blockChainBlockData(blockId, 1))[0]
+        if (!block)
             throw `impossible to retrieve block`
 
+        // TODO : should check that idOfBlock == blockId and that metadata.blockId==blockId
+
         // TODO should be able to manage multiple parents
-        let firstPart = await this.fetchListItemsFromBlockchain(metadata.target.previousBlockIds && metadata.target.previousBlockIds[0])
+        let firstPart = await this.fetchListItemsFromBlockchain(block.previousBlockIds && block.previousBlockIds[0])
         let lastDataId = await this.lastListItemId(firstPart)
 
-        let lastPart = await this.findListPartInBlock(metadata.target, lastDataId)
+        let lastPart = await this.findListPartInBlock(block, lastDataId)
         return firstPart.concat(lastPart)
     }
 

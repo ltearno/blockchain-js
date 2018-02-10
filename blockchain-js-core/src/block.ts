@@ -35,9 +35,6 @@ export interface Block extends BlockSeed {
  * Information about a block
  */
 export interface BlockMetadata {
-    // target block information
-    target: Block
-
     // ID of the block (which is sha(stringify(block)))
     blockId: string
 
