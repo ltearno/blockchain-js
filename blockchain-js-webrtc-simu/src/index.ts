@@ -66,7 +66,7 @@ function createExpressApp(port: number) {
                     offers.push(offer)
                     console.log(`offered channel, ${offers.length} left`)
 
-                    let signalingPayload = JSON.stringify({ type: 'offer', data: { offerId: offer.id, message: offer.offererMessage } })
+                    let signalingPayload = JSON.stringify({ type: 'offer', data: { offerId: offer.id, offerMessage: offer.offererMessage } })
                     wss.forEach((info, peer) => peer != ws && send(peer, signalingPayload))
                 } break
 

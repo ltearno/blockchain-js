@@ -1,7 +1,8 @@
 <div>
-  {{title}}
-  <div>Node : {{fullNode.node.name}}</div>
+  <input [(ngModel)]='title'>
+  <div>Node : {{fullNode.node?.name}}</div>
   <div>P2P :
+    <div *ngFor='let m of knownAcceptedMessages'>MESSAGE {{m | json}}</div>
     <div *ngIf='p2pBroker.ready'>P2P broker ready</div>
     <div *ngIf='!p2pBroker.ready' style='color:red;'>P2P broker NOT READY</div>
     <button (click)='offerP2PChannel()'>offer channel</button>

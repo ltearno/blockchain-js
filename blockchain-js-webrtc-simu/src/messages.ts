@@ -9,6 +9,7 @@ export interface OfferDto {
 
 export interface AnswerDto {
     offerId: string
+    // TODO add answerMessage
 }
 
 export interface ConfirmationDto {

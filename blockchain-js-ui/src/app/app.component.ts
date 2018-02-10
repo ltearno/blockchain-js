@@ -10,13 +10,14 @@ const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'app'
+  title = guid()
   fullNode: Blockchain.FullNode = null
   logs: string[] = []
   state = []
   peers: {
     host?: string,
     port?: number,
+
     connected?: boolean
   }[] = []
   p2pBroker: PeerToPeer.PeerToPeerBrokering
@@ -24,9 +25,25 @@ export class AppComponent {
 
   desiredNbPeers = 3
 
+  private acceptingOffers = new Map<string, string>()
+  private knownAcceptedMessages = new Set<string>()
+
   constructor() {
-    this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`, (description, channel) => {
-      let desc = { host: `channel ${description.offerId}`, port: 0, connected: true }
+    this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`, (offerId, offerMessage) => {
+      if (this.knownAcceptedMessages.has(offerMessage))
+        return false
+
+      console.log(`OFFER ${offerId}, ${offerMessage}`)
+
+      this.acceptingOffers.set(offerId, offerMessage)
+      return true
+    }, (description, channel) => {
+      let offerMessage = this.acceptingOffers.get(description.offerId)
+      this.acceptingOffers.delete(description.offerId)
+      this.knownAcceptedMessages.add(offerMessage)
+      channel.on('close', () => this.knownAcceptedMessages.delete(offerMessage))
+
+      let desc = { host: `channel ${description.offerId.substr(0, 5)} message ${offerMessage}`, port: 0, connected: true }
       this.peers.push(desc)
       this.addPeerBySocket(desc, channel)
     })
@@ -86,8 +103,9 @@ export class AppComponent {
     }
   }
 
-  offerP2PChannel() {
-    this.p2pBroker.offerChannel('any channel')
+  async offerP2PChannel() {
+    let offerId = await this.p2pBroker.offerChannel(this.title)
+    this.acceptingOffers.set(offerId, `(mine) ${this.title}`)
   }
 
   async mine(minedData, miningDifficulty) {
@@ -169,4 +187,11 @@ export class AppComponent {
       this.maybeOfferP2PChannel()
     })
   }
+}
+
+function guid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
 }

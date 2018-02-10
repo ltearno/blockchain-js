@@ -4,7 +4,7 @@ async function run() {
     window.onload = async () => {
         let nbChannels = 0
 
-        let broker = new Client.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`, (channelDescription, channel) => {
+        let broker = new Client.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`, () => true, (channelDescription, channel) => {
             console.log(`NEW CHANNEL ${JSON.stringify(channelDescription)}`)
             nbChannels++
 
