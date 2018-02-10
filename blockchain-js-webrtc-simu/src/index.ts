@@ -79,6 +79,8 @@ function createExpressApp(port: number) {
                         break
                     }
 
+                    // TODO give the offerer the possibility to decline the offer
+
                     offer.answererSocket = ws
 
                     send(offer.offererSocket, JSON.stringify({ type: 'answer', data: { offerId } }))

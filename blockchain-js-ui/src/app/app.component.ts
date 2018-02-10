@@ -1,10 +1,6 @@
 import { Component } from '@angular/core'
 import * as Blockchain from 'blockchain-js-core'
 import * as PeerToPeer from 'blockchain-js-webrtc-simu'
-import { setTimeout } from 'timers';
-/*import * as Block from 'blockchain-js-core/target/block'
-import * as FullNode from 'blockchain-js-core/target/full-node'
-import * as NetworkClientBrowserImpl from 'blockchain-js-core/target/network-client-browser-impl'*/
 
 const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
 
