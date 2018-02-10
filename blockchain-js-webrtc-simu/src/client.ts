@@ -42,7 +42,7 @@ class FakeWebSocket implements SocketAPI {
 
 export class PeerToPeerBrokering {
     private signalingSocket: WebSocket
-    private ready: boolean = false
+    ready: boolean = false
 
     private fakeSockets = new Map<string, FakeWebSocket>()
 

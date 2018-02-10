@@ -1,6 +1,7 @@
 import { Component } from '@angular/core'
 import * as Blockchain from 'blockchain-js-core'
 import * as PeerToPeer from 'blockchain-js-webrtc-simu'
+import { setTimeout } from 'timers';
 /*import * as Block from 'blockchain-js-core/target/block'
 import * as FullNode from 'blockchain-js-core/target/full-node'
 import * as NetworkClientBrowserImpl from 'blockchain-js-core/target/network-client-browser-impl'*/
@@ -24,6 +25,8 @@ export class AppComponent {
   }[] = []
   p2pBroker: PeerToPeer.PeerToPeerBrokering
   isMining = false
+
+  desiredNbPeers = 3
 
   constructor() {
     this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`, (description, channel) => {
@@ -77,6 +80,14 @@ export class AppComponent {
 
       this.state = state
     })
+
+    setTimeout(() => this.maybeOfferP2PChannel(), 1000)
+  }
+
+  maybeOfferP2PChannel() {
+    if (this.p2pBroker.ready && this.peers.filter(p => p.connected).length < this.desiredNbPeers) {
+      this.offerP2PChannel()
+    }
   }
 
   offerP2PChannel() {
@@ -139,6 +150,8 @@ export class AppComponent {
       peerInfo = this.fullNode.addPeer(connector)
 
       existingPeer.connected = true
+
+      this.maybeOfferP2PChannel()
     })
 
     ws.on('error', (err) => {
@@ -156,6 +169,8 @@ export class AppComponent {
       console.log('closed')
 
       existingPeer.connected = false
+
+      this.maybeOfferP2PChannel()
     })
   }
 }
