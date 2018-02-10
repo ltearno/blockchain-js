@@ -52,6 +52,8 @@ export class PeerToPeerBrokering {
         if (this.signalingSocket)
             return
 
+        console.log(`connecting peer to peer broker`)
+
         this.ready = false
         this.signalingSocket = new WebSocket(this.url)
 
@@ -106,6 +108,8 @@ export class PeerToPeerBrokering {
             for (let s of this.fakeSockets.values())
                 s.close()
             this.signalingSocket = null
+
+            setTimeout(() => this.createSignalingSocket(), 30)
         })
     }
 
