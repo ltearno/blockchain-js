@@ -126,6 +126,26 @@ export class AppComponent {
     }
   }
 
+  autoMining = false
+
+  toggleAutomine(minedData, miningDifficulty, automineTimer) {
+    if (this.autoMining) {
+      this.autoMining = false
+      return
+    }
+    else {
+      this.autoMining = true
+
+      let iteration = 1
+      let action = async () => {
+        this.autoMining && await this.mine(`${minedData} - ${iteration++}`, miningDifficulty)
+        if (this.autoMining)
+          setTimeout(action, automineTimer)
+      }
+      action()
+    }
+  }
+
   async addPeer(peerHost, peerPort) {
     console.log(`add peer ${peerHost}:${peerPort}`)
 

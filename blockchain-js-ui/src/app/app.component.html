@@ -11,7 +11,10 @@
     Mining Message :
     <input #minedData type="text" value='Some data to mine...'> Difficulty :
     <input #miningDifficulty type="number" value='100'>
-    <button (click)='mine(minedData.value, miningDifficulty.value)' [disabled]='isMining'>Mine hello world</button>
+    <button (click)='mine(minedData.value, miningDifficulty.value)' [disabled]='isMining'>Mine</button>
+    <br>
+    timer : <input #automineTimer type="number" value='2000'>
+    <button (click)='toggleAutomine(minedData.value, miningDifficulty.value, automineTimer.value)'>toggle auto-mine (is {{autoMining}})</button>
   </div>
   <div>Branches
     <ul>
