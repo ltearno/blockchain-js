@@ -25,29 +25,27 @@ export class AppComponent {
 
   desiredNbPeers = 3
 
-  acceptingOffers = new Map<string, string>()
   knownAcceptedMessages = new Set<string>()
 
   constructor() {
     this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`, (offerId, offerMessage) => {
       if (this.knownAcceptedMessages.has(offerMessage))
-        return false
+        return { accepted: false, message: `i know you` }
 
       console.log(`OFFER ${offerId}, ${offerMessage}`)
 
-      this.acceptingOffers.set(offerId, offerMessage)
-      return true
+      return { accepted: true, message: this.title }
     }, (description, channel) => {
-      let offerMessage = this.acceptingOffers.get(description.offerId)
-      this.acceptingOffers.delete(description.offerId)
-      this.knownAcceptedMessages.add(offerMessage)
-      channel.on('close', () => this.knownAcceptedMessages.delete(offerMessage))
+      let counterPartyMessage = description.counterPartyMessage
+      this.knownAcceptedMessages.add(counterPartyMessage)
+      channel.on('close', () => this.knownAcceptedMessages.delete(counterPartyMessage))
 
-      let desc = { host: `channel ${description.offerId.substr(0, 5)} message ${offerMessage}`, port: 0, connected: true }
+      let desc = { host: `channel ${description.offerId.substr(0, 5)} message ${counterPartyMessage} (as '${this.title}')`, port: 0, connected: true }
       this.peers.push(desc)
       this.addPeerBySocket(desc, channel)
     })
     this.p2pBroker.createSignalingSocket()
+    setInterval(() => this.maybeOfferP2PChannel(), 1000)
 
     this.fullNode = new Blockchain.FullNode(NETWORK_CLIENT_IMPL)
     console.log(`full node created : ${this.fullNode.node.name}`)
@@ -93,19 +91,19 @@ export class AppComponent {
 
       this.state = state
     })
-
-    setTimeout(() => this.maybeOfferP2PChannel(), 1000)
   }
 
   maybeOfferP2PChannel() {
     if (this.p2pBroker.ready && this.peers.filter(p => p.connected).length < this.desiredNbPeers) {
       this.offerP2PChannel()
     }
+
+    // todo remove when too much peers ?
+    // todo remove unconnected peers ?
   }
 
   async offerP2PChannel() {
     let offerId = await this.p2pBroker.offerChannel(this.title)
-    this.acceptingOffers.set(offerId, `(mine) ${this.title}`)
   }
 
   async mine(minedData, miningDifficulty) {
@@ -164,8 +162,6 @@ export class AppComponent {
       peerInfo = this.fullNode.addPeer(connector)
 
       existingPeer.connected = true
-
-      this.maybeOfferP2PChannel()
     })
 
     ws.on('error', (err) => {
@@ -183,8 +179,6 @@ export class AppComponent {
       console.log('closed')
 
       existingPeer.connected = false
-
-      this.maybeOfferP2PChannel()
     })
   }
 }

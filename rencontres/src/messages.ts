@@ -9,12 +9,13 @@ export interface OfferDto {
 
 export interface AnswerDto {
     offerId: string
-    // TODO add answerMessage
+    answerMessage: string
 }
 
 export interface ConfirmationDto {
     offerId: string
     status: boolean // true means accepted, false means error
+    offerMessage: string
 }
 
 export interface DataMessageDto {

@@ -46,7 +46,9 @@ export class PeerToPeerBrokering {
 
     private fakeSockets = new Map<string, FakeWebSocket>()
 
-    constructor(private url: string, private acceptOffer: (offerId: string, offerMessage: string) => boolean, private onChannelOpened: (channelDescription: { offerId: string }, channel: SocketAPI) => void) { }
+    constructor(private url: string,
+        private acceptOffer: (offerId: string, offerMessage: string) => { accepted: boolean; message: string },
+        private onChannelOpened: (channelDescription: { offerId: string; counterPartyMessage: string; }, channel: SocketAPI) => void) { }
 
     createSignalingSocket() {
         if (this.signalingSocket)
@@ -62,8 +64,6 @@ export class PeerToPeerBrokering {
             this.ready = true
 
             this.signalingSocket.addEventListener('message', async message => {
-                //console.log(`ws rcv message ${message.data}`)
-
                 try {
                     let { type, data } = JSON.parse(message.data)
 
@@ -146,19 +146,19 @@ export class PeerToPeerBrokering {
         let fakeSocket = new FakeWebSocket(answer.offerId, this.signalingSocket)
         this.fakeSockets.set(answer.offerId, fakeSocket)
 
-        this.onChannelOpened({ offerId: answer.offerId }, fakeSocket)
+        this.onChannelOpened({ offerId: answer.offerId, counterPartyMessage: answer.answerMessage }, fakeSocket)
     }
 
     private async processOffer(offer: Messages.OfferDto) {
         console.log(`received offer ${JSON.stringify(offer)}`)
 
-        let filtered = !this.acceptOffer(offer.offerId, offer.offerMessage)
-        if (filtered) {
+        let acceptStatus = this.acceptOffer(offer.offerId, offer.offerMessage)
+        if (!acceptStatus || !acceptStatus.accepted) {
             console.log(`not accepted offer ${JSON.stringify(offer)}`)
             return
         }
 
-        await this.signalingSocket.send(JSON.stringify({ type: 'answer', data: { offerId: offer.offerId } }))
+        await this.signalingSocket.send(JSON.stringify({ type: 'answer', data: { offerId: offer.offerId, answerMessage: acceptStatus.message } }))
     }
 
     private async processConfirmation(confirmation: Messages.ConfirmationDto) {
@@ -172,7 +172,7 @@ export class PeerToPeerBrokering {
         let fakeSocket = new FakeWebSocket(confirmation.offerId, this.signalingSocket)
         this.fakeSockets.set(confirmation.offerId, fakeSocket)
 
-        this.onChannelOpened({ offerId: confirmation.offerId }, fakeSocket)
+        this.onChannelOpened({ offerId: confirmation.offerId, counterPartyMessage: confirmation.offerMessage }, fakeSocket)
 
         return
     }

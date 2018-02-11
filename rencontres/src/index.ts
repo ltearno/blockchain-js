@@ -17,8 +17,9 @@ declare module "express" {
 interface Offer {
     id: string
     offererMessage: string
-
     offererSocket: WebSocket
+
+    answererMessage: string
     answererSocket: WebSocket
 }
 
@@ -60,6 +61,7 @@ function createExpressApp(port: number) {
                         id: offerId,
                         offererMessage: offerMessage,
                         offererSocket: ws,
+                        answererMessage: null,
                         answererSocket: null
                     }
 
@@ -71,7 +73,7 @@ function createExpressApp(port: number) {
                 } break
 
                 case 'answer': {
-                    let { offerId, sdp } = message.data
+                    let { offerId, answerMessage, sdp } = message.data
 
                     let offer = offers.find(o => o.id == offerId)
                     if (!offer || offer.answererSocket) {
@@ -82,9 +84,16 @@ function createExpressApp(port: number) {
                     // TODO give the offerer the possibility to decline the offer
 
                     offer.answererSocket = ws
+                    offer.answererMessage = answerMessage
 
-                    send(offer.offererSocket, JSON.stringify({ type: 'answer', data: { offerId } }))
-                    send(offer.answererSocket, JSON.stringify({ type: 'confirmation', data: { offerId, status: true } }))
+                    send(offer.offererSocket, JSON.stringify({ type: 'answer', data: { offerId, answerMessage } }))
+                    send(offer.answererSocket, JSON.stringify({
+                        type: 'confirmation', data: {
+                            offerId,
+                            status: true,
+                            offerMessage: offer.offererMessage
+                        }
+                    }))
                 } break
 
                 case 'dataMessage': {
