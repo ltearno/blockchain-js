@@ -1,20 +1,26 @@
 <div>
-  <input [(ngModel)]='title'>
-  <div>Node : {{fullNode.node?.name}}</div>
-  <div>P2P :
-    <div *ngFor='let m of knownAcceptedMessages'>MESSAGE {{m | json}}</div>
-    <div *ngIf='p2pBroker.ready'>P2P broker ready</div>
+  presentation message :
+  <input [(ngModel)]='title' size="30">
+  <div>
+    <div *ngIf='p2pBroker.ready'>
+      <button (click)='toggleAutoP2P()'>{{autoP2P?'desactivate peer discovery':'activate peer discovery'}}</button>
+      <button (click)='offerP2PChannel()'>offer channel</button>
+      <p>known remote peers</p>
+      <ul>
+        <li *ngFor='let m of knownAcceptedMessages'>{{m | json}}</li>
+      </ul>
+    </div>
     <div *ngIf='!p2pBroker.ready' style='color:red;'>P2P broker NOT READY</div>
-    <button (click)='offerP2PChannel()'>offer channel</button>
   </div>
   <div>
-    Mining Message :
+    mining Message :
     <input #minedData type="text" value='Some data to mine...'> Difficulty :
     <input #miningDifficulty type="number" value='100'>
     <button (click)='mine(minedData.value, miningDifficulty.value)' [disabled]='isMining'>Mine</button>
-    <br>
-    timer : <input #automineTimer type="number" value='2000'>
-    <button (click)='toggleAutomine(minedData.value, miningDifficulty.value, automineTimer.value)'>toggle auto-mine (is {{autoMining}})</button>
+    <br>timer :
+    <input #automineTimer type="number" value='2000'>
+    <button (click)='toggleAutomine(minedData.value, miningDifficulty.value, automineTimer.value)'>{{autoMining ? 'disable' : 'enable'}} auto-mining</button>
+    <span *ngIf='autoMining' style='color:green;'>auto-mining enabled</span>
   </div>
   <div>Branches
     <ul>

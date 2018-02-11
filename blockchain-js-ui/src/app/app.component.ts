@@ -27,6 +27,10 @@ export class AppComponent {
 
   knownAcceptedMessages = new Set<string>()
 
+  autoMining = false
+  autoMiningIteration = 1
+  autoP2P = false
+
   constructor() {
     this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`, (offerId, offerMessage) => {
       if (this.knownAcceptedMessages.has(offerMessage))
@@ -45,7 +49,10 @@ export class AppComponent {
       this.addPeerBySocket(desc, channel)
     })
     this.p2pBroker.createSignalingSocket()
-    setInterval(() => this.maybeOfferP2PChannel(), 1000)
+    setInterval(() => {
+      if (this.autoP2P && this.p2pBroker.ready)
+        this.maybeOfferP2PChannel()
+    }, 10000)
 
     this.fullNode = new Blockchain.FullNode(NETWORK_CLIENT_IMPL)
     console.log(`full node created : ${this.fullNode.node.name}`)
@@ -126,19 +133,25 @@ export class AppComponent {
     }
   }
 
-  autoMining = false
+  toggleAutoP2P() {
+    if (this.autoP2P) {
+      this.autoP2P = false
+    }
+    else {
+      this.autoP2P = true
+      this.maybeOfferP2PChannel()
+    }
+  }
 
   toggleAutomine(minedData, miningDifficulty, automineTimer) {
     if (this.autoMining) {
       this.autoMining = false
-      return
     }
     else {
       this.autoMining = true
 
-      let iteration = 1
       let action = async () => {
-        this.autoMining && await this.mine(`${minedData} - ${iteration++}`, miningDifficulty)
+        this.autoMining && await this.mine(`${minedData} - ${this.autoMiningIteration++}`, miningDifficulty)
         if (this.autoMining)
           setTimeout(action, automineTimer)
       }
