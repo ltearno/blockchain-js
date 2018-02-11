@@ -58,7 +58,7 @@ export class AppComponent {
     console.log(`full node created : ${this.fullNode.node.name}`)
 
     this.fullNode.node.addEventListener('head', async branch => {
-      this.logs.unshift(`new head on branch ${branch} : ${await this.fullNode.node.blockChainHead(branch)}`)
+      this.log(`new head on branch ${branch} : ${await this.fullNode.node.blockChainHead(branch)}`)
 
       let state = []
 
@@ -122,15 +122,21 @@ export class AppComponent {
     try {
       this.fullNode.miner.addData(Blockchain.MASTER_BRANCH, minedData)
       let mineResult = await this.fullNode.miner.mineData(miningDifficulty, 30)
-      this.logs.unshift(`mine result: ${JSON.stringify(mineResult)}`)
+      this.log(`mine result: ${JSON.stringify(mineResult)}`)
     }
     catch (error) {
-      this.logs.unshift(`error mining: ${JSON.stringify(error)}`)
+      this.log(`error mining: ${JSON.stringify(error)}`)
       throw error
     }
     finally {
       this.isMining = false
     }
+  }
+
+  log(message) {
+    this.logs.unshift(message)
+    if (this.logs.length > 50)
+      this.logs.splice(20)
   }
 
   toggleAutoP2P() {

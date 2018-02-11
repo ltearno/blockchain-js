@@ -5,7 +5,8 @@
     <div *ngIf='p2pBroker.ready'>
       <button (click)='toggleAutoP2P()'>{{autoP2P?'desactivate peer discovery':'activate peer discovery'}}</button>
       <button (click)='offerP2PChannel()'>offer channel</button>
-      <p>known remote peers</p>
+      <br>
+      <span>known p2p presentation messages:</span>
       <ul>
         <li *ngFor='let m of knownAcceptedMessages'>{{m | json}}</li>
       </ul>
@@ -13,10 +14,24 @@
     <div *ngIf='!p2pBroker.ready' style='color:red;'>P2P broker NOT READY</div>
   </div>
   <div>
+    peers :
+    <ul>
+      <li [style.background-color]='peer.connected ? "green":"red"' *ngFor='let peer of peers'>{{peer.host}}:{{peer.port}}</li>
+    </ul>
+    add a peer :
+    <input type="text" #peerHost value="localhost">
+    <input type="text" #peerPort value="9091">
+    <button (click)='addPeer(peerHost.value, peerPort.value)'>connect</button>
+  </div>
+  <br>
+  <div>
     mining Message :
-    <input #minedData type="text" value='Some data to mine...'> Difficulty :
+    <input #minedData type="text" value='Some data to mine...'>
+    <br> Difficulty :
     <input #miningDifficulty type="number" value='100'>
+    <br>
     <button (click)='mine(minedData.value, miningDifficulty.value)' [disabled]='isMining'>Mine</button>
+    <br>
     <br>timer :
     <input #automineTimer type="number" value='2000'>
     <button (click)='toggleAutomine(minedData.value, miningDifficulty.value, automineTimer.value)'>{{autoMining ? 'disable' : 'enable'}} auto-mining</button>
@@ -46,14 +61,6 @@
           </li>
         </ul>
       </li>
-    </ul>
-  </div>
-  <div>Peers
-    <input type="text" #peerHost value="localhost">
-    <input type="text" #peerPort value="9091">
-    <button (click)='addPeer(peerHost.value, peerPort.value)'>Add peer</button>
-    <ul>
-      <li [style.background-color]='peer.connected ? "green":"red"' *ngFor='let peer of peers'>{{peer.host}}:{{peer.port}}</li>
     </ul>
   </div>
   <div>Logs
