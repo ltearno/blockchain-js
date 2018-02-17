@@ -9,6 +9,11 @@ spec:
   selector:
     matchLabels:
       run: blockchain-js-ui
+  strategy:
+    rollingUpdate:
+      maxSurge: 10
+      maxUnavailable: 0
+    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -17,11 +22,13 @@ spec:
       containers:
       - name: blockchain-js-ui
         image: eu.gcr.io/blockchain-js/blockchain-js-ui:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
           protocol: TCP
       - name: rencontres
         image: eu.gcr.io/blockchain-js/rencontres:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8999
           protocol: TCP
