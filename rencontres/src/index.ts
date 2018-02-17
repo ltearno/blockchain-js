@@ -21,6 +21,8 @@ interface Offer {
 
     answererMessage: string
     answererSocket: WebSocket
+
+    registerTime?: number
 }
 
 interface Message {
@@ -37,7 +39,7 @@ class OffersIndex {
 
     registerNewOffer(offer: Offer) {
         this.offers.set(offer.id, offer)
-        // TODO save time for timeout
+        offer.registerTime = Date.now()
     }
 
     get count() {
@@ -75,7 +77,17 @@ class OffersIndex {
     }
 
     private clearOldOffers() {
-        // TODO NYI
+        let timeoutTime = Date.now() - 15000
+
+        let toBeRemoved = []
+        for (let offer of this.offers.values())
+            if ((!offer.offererSocket || !offer.answererSocket) && offer.registerTime <= timeoutTime)
+                toBeRemoved.push(offer)
+
+        toBeRemoved.forEach(offer => this.offers.delete(offer.id))
+
+        if (toBeRemoved.length)
+            console.log(`removed ${toBeRemoved.length} unused offers`)
     }
 }
 

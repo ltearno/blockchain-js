@@ -75,6 +75,8 @@ export class AppComponent {
           blocks: []
         }
 
+        let count = 0
+
         let toFetchs = [toFetch]
         while (toFetchs.length) {
           let fetching = toFetchs.shift()
@@ -91,6 +93,10 @@ export class AppComponent {
           branchState.blocks.push({ blockMetadata, blockData })
 
           blockData && blockData.previousBlockIds && blockData.previousBlockIds.forEach(b => !toFetchs.some(bid => bid == b) && toFetchs.push(b))
+
+          count++
+          if (count > 10)
+            break
         }
 
         state.push(branchState)

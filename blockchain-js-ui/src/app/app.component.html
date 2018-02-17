@@ -44,12 +44,12 @@
         <br/> Blocks:
         <br/>
         <ul>
-          <li *ngFor="let block of branchInfo.blocks">
+          <li *ngFor="let block of branchInfo.blocks; index as i">
             {{block.blockData.data | json}}
             <br/>
             <!--<span style='font-size:.7em;'>metadata: {{block.blockMetadata | json}}</span>-->
             <!--  ], "validityProof": { "difficulty": 1, "padding": 3 } }, "chainLength": 45 }-->
-            <div style='font-size:.7em;'>
+            <div *ngIf='i==0' style='font-size:.7em;'>
               id: {{block.blockMetadata.blockId}}
               <br/> valid: {{block.blockMetadata.isValid}}
               <br/> branch: {{block.blockData?.branch}}
