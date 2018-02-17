@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: blockchain-js-ui
+  labels:
+    run: blockchain-js-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: blockchain-js-ui
+  template:
+    metadata:
+      labels:
+        run: blockchain-js-ui
+    spec:
+      containers:
+      - name: blockchain-js-ui
+        image: eu.gcr.io/blockchain-js/blockchain-js-ui:latest
+        ports:
+        - containerPort: 80
+          protocol: TCP
+      - name: rencontres
+        image: eu.gcr.io/blockchain-js/rencontres:latest
+        ports:
+        - containerPort: 8999
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blockchain-js-ui
+  labels:
+    run: blockchain-js-ui
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+  - name: signal
+    protocol: TCP
+    port: 8999
+    targetPort: 8999
+  selector:
+    run: blockchain-js-ui
