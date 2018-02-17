@@ -29,27 +29,32 @@ interface Message {
 }
 
 class OffersIndex {
-    private offers: Offer[] = []
+    private offers = new Map<string, Offer>()
 
-    registerNewOffer(offer) {
-        this.offers.push(offer)
-        // TODO register a timeout
+    constructor() {
+        setInterval(() => this.clearOldOffers(), 10 * 1000)
+    }
+
+    registerNewOffer(offer: Offer) {
+        this.offers.set(offer.id, offer)
+        // TODO save time for timeout
     }
 
     get count() {
-        return this.offers.length
+        return this.offers.size
     }
 
     findById(offerId) {
-        return this.offers.find(o => o.id == offerId)
+        return this.offers.get(offerId)
     }
 
     removeById(offerId): Offer {
-        let offer = this.findById(offerId)
+        let offer = this.offers.get(offerId)
         if (!offer)
             return null
 
-        this.offers = this.offers.filter(o => offerId != o.id)
+        this.offers.delete(offerId)
+
         return offer
     }
 
@@ -61,7 +66,16 @@ class OffersIndex {
     }
 
     removeSocketOffers(ws: WebSocket) {
-        this.offers = this.offers.filter(o => ws !== o.answererSocket && ws !== o.offererSocket)
+        let toBeRemoved = []
+        for (let offer of this.offers.values())
+            if (ws !== offer.answererSocket && ws !== offer.offererSocket)
+                toBeRemoved.push(offer)
+
+        toBeRemoved.forEach(offer => this.offers.delete(offer.id))
+    }
+
+    private clearOldOffers() {
+        // TODO NYI
     }
 }
 
@@ -146,7 +160,7 @@ function createExpressApp(port: number) {
                             console.log(`lost data message on offer ${offerId}: ${payload}`)
                             break
                         }
-                        
+
                         send(counterpartyWs, JSON.stringify({ type: 'dataMessage', data: { offerId, payload } }))
                     }
                     catch (error) {
