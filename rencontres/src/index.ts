@@ -141,12 +141,13 @@ function createExpressApp(port: number) {
                         break
 
                     try {
-                        if (ws === offer.offererSocket)
-                            send(offer.answererSocket, JSON.stringify({ type: 'dataMessage', data: { offerId, payload } }))
-                        else if (ws === offer.answererSocket)
-                            send(offer.offererSocket, JSON.stringify({ type: 'dataMessage', data: { offerId, payload } }))
-                        else
+                        let counterpartyWs = counterparty(ws, offer)
+                        if (!counterpartyWs) {
                             console.log(`lost data message on offer ${offerId}: ${payload}`)
+                            break
+                        }
+                        
+                        send(counterpartyWs, JSON.stringify({ type: 'dataMessage', data: { offerId, payload } }))
                     }
                     catch (error) {
                         console.log(`error proxying a dataMessage ${error}`)
@@ -163,12 +164,13 @@ function createExpressApp(port: number) {
                     console.log(`closed channel, ${offers.count} left`)
 
                     try {
-                        if (ws === offer.offererSocket)
-                            send(offer.answererSocket, JSON.stringify({ type: 'close', data: { offerId } }))
-                        else if (ws === offer.answererSocket)
-                            send(offer.offererSocket, JSON.stringify({ type: 'close', data: { offerId } }))
-                        else
+                        let counterpartyWs = counterparty(ws, offer)
+                        if (!counterpartyWs) {
                             console.log(`lost close message on offer ${offerId}`)
+                            break
+                        }
+
+                        send(counterparty(ws, offer), JSON.stringify({ type: 'close', data: { offerId } }))
                     }
                     catch (error) {
                         console.log(`error proxying a close event ${error}`)
@@ -185,10 +187,7 @@ function createExpressApp(port: number) {
 
         ws.on('close', () => {
             offers.forEachSocketOffers(ws, offer => {
-                if (ws == offer.offererSocket)
-                    send(offer.answererSocket, JSON.stringify({ type: 'close', data: { offerId: offer.id } }))
-                else if (ws == offer.answererSocket)
-                    send(offer.offererSocket, JSON.stringify({ type: 'close', data: { offerId: offer.id } }))
+                send(counterparty(ws, offer), JSON.stringify({ type: 'close', data: { offerId: offer.id } }))
             })
 
             wss.delete(ws)
@@ -200,6 +199,14 @@ function createExpressApp(port: number) {
     })
 
     return app
+}
+
+function counterparty(ws: WebSocket, offer: Offer) {
+    if (ws === offer.offererSocket)
+        return offer.answererSocket
+    else if (ws == offer.answererSocket)
+        return offer.offererSocket
+    return null
 }
 
 function send(socket, payload) {
