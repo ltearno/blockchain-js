@@ -28,10 +28,47 @@ interface Message {
     data: any
 }
 
+class OffersIndex {
+    private offers: Offer[] = []
+
+    registerNewOffer(offer) {
+        this.offers.push(offer)
+        // TODO register a timeout
+    }
+
+    get count() {
+        return this.offers.length
+    }
+
+    findById(offerId) {
+        return this.offers.find(o => o.id == offerId)
+    }
+
+    removeById(offerId): Offer {
+        let offer = this.findById(offerId)
+        if (!offer)
+            return null
+
+        this.offers = this.offers.filter(o => offerId != o.id)
+        return offer
+    }
+
+    forEachSocketOffers(ws: WebSocket, cb: (offer: Offer) => any) {
+        this.offers.forEach(offer => {
+            if (ws == offer.offererSocket || ws == offer.answererSocket)
+                cb(offer)
+        })
+    }
+
+    removeSocketOffers(ws: WebSocket) {
+        this.offers = this.offers.filter(o => ws !== o.answererSocket && ws !== o.offererSocket)
+    }
+}
+
 function createExpressApp(port: number) {
     let app = express() as express.Express
 
-    let offers: Offer[] = []
+    let offers = new OffersIndex()
     let wss = new Set<WebSocket>()
 
     require('express-ws')(app)
@@ -65,8 +102,8 @@ function createExpressApp(port: number) {
                         answererSocket: null
                     }
 
-                    offers.push(offer)
-                    console.log(`offered channel, ${offers.length} left`)
+                    offers.registerNewOffer(offer)
+                    console.log(`offered channel, ${offers.count} left`)
 
                     let signalingPayload = JSON.stringify({ type: 'offer', data: { offerId: offer.id, offerMessage: offer.offererMessage } })
                     wss.forEach((info, peer) => peer != ws && send(peer, signalingPayload))
@@ -75,7 +112,7 @@ function createExpressApp(port: number) {
                 case 'answer': {
                     let { offerId, answerMessage, sdp } = message.data
 
-                    let offer = offers.find(o => o.id == offerId)
+                    let offer = offers.findById(offerId)
                     if (!offer || offer.answererSocket) {
                         send(ws, JSON.stringify({ type: 'confirmation', data: { offerId, status: false } }))
                         break
@@ -99,7 +136,7 @@ function createExpressApp(port: number) {
                 case 'dataMessage': {
                     let { offerId, payload } = message.data
 
-                    let offer = offers.find(o => o.id == offerId)
+                    let offer = offers.findById(offerId)
                     if (!offer)
                         break
 
@@ -119,12 +156,11 @@ function createExpressApp(port: number) {
                 case 'close': {
                     let { offerId } = message.data
 
-                    let offer = offers.find(o => o.id == offerId)
+                    let offer = offers.removeById(offerId)
                     if (!offer)
                         break
 
-                    offers = offers.filter(o => offerId != o.id)
-                    console.log(`closed channel, ${offers.length} left`)
+                    console.log(`closed channel, ${offers.count} left`)
 
                     try {
                         if (ws === offer.offererSocket)
@@ -142,20 +178,13 @@ function createExpressApp(port: number) {
         })
 
         ws.on('error', err => {
-            console.log(`error on ws ${err}`)
-
-            offers.forEach(offer => {
-                if (ws == offer.offererSocket)
-                    send(offer.answererSocket, JSON.stringify({ type: 'error', data: { offerId: offer.id } }))
-                else if (ws == offer.answererSocket)
-                    send(offer.offererSocket, JSON.stringify({ type: 'error', data: { offerId: offer.id } }))
-            })
+            console.log(`error on ws ${err}, closing`)
 
             ws.close()
         })
 
         ws.on('close', () => {
-            offers.forEach(offer => {
+            offers.forEachSocketOffers(ws, offer => {
                 if (ws == offer.offererSocket)
                     send(offer.answererSocket, JSON.stringify({ type: 'close', data: { offerId: offer.id } }))
                 else if (ws == offer.answererSocket)
@@ -163,9 +192,10 @@ function createExpressApp(port: number) {
             })
 
             wss.delete(ws)
-            offers = offers.filter(o => ws !== o.answererSocket && ws !== o.offererSocket)
 
-            console.log(`closed ws, ${wss.size} left`)
+            offers.removeSocketOffers(ws)
+
+            console.log(`closed ws, ws count:${wss.size}, offers count:${offers.count}`)
         })
     })
 
@@ -173,7 +203,12 @@ function createExpressApp(port: number) {
 }
 
 function send(socket, payload) {
-    socket && socket.readyState == 1 && socket.send(payload)
+    try {
+        socket && socket.readyState == 1 && socket.send(payload)
+    }
+    catch (error) {
+        console.log(`error send message on socket ${error}`)
+    }
 }
 
 createExpressApp(8999)
