@@ -92,43 +92,38 @@ export class NodeTransfer {
         }
     }
 
-    // list of blocks to load (id + remotes)
-
-    // load when all parents are in the node
-
     private async fetchFromNode(remoteNode: NodeApi.NodeApi, branch: string) {
+        const BATCH_SIZE = 1
+
         let remoteHead = await remoteNode.blockChainHead(branch)
 
-        // TODO : do it by batches
         // TODO : have a global context to do that
 
-        // fetch the missing parent blocks in node
-        let toAddBlocks: { id: string, block: Block.Block }[] = []
         let fetchList = [remoteHead]
         while (fetchList.length) {
             let toMaybeFetch = fetchList.shift()
-
             if (await this.node.knowsBlock(toMaybeFetch))
                 continue
 
-            let addedBlocks = await remoteNode.blockChainBlockData(toMaybeFetch, 10)
-            if (addedBlocks) {
-                for (let addedBlock of addedBlocks) {
-                    let addedBlockId = await Block.idOfBlock(addedBlock)
+            let blockIds = await remoteNode.blockChainBlockIds(toMaybeFetch, BATCH_SIZE)
+            let blocks = await remoteNode.blockChainBlockData(toMaybeFetch, BATCH_SIZE)
+            if (blockIds && blocks && blockIds.length == blocks.length) {
+                for (let i = 0; i < blocks.length; i++) {
+                    let block = blocks[i]
+                    let blockId = blockIds[i]
 
-                    if (!toAddBlocks.find(b => b.id == addedBlockId))
-                        toAddBlocks.push({ id: addedBlockId, block: addedBlock })
+                    if (await this.node.knowsBlock(blockId)) {
+                        console.log(`finished transfer batch early`)
+                        break
+                    }
 
-                    addedBlock.previousBlockIds && addedBlock.previousBlockIds.forEach(previousBlockId => fetchList.push(previousBlockId))
+                    console.log(`transfer block ${blockId.substring(0, 5)} from ${remoteNode.name} to ${this.node.name}`)
+
+                    await this.node.registerBlock(blockId, block)
+
+                    block.previousBlockIds && block.previousBlockIds.forEach(previous => fetchList.push(previous))
                 }
             }
-        }
-
-        // add them to node
-        toAddBlocks = toAddBlocks.reverse()
-        for (let toAddBlock of toAddBlocks) {
-            console.log(`transfer block ${toAddBlock.id.substring(0, 5)} from ${remoteNode.name} to ${this.node.name}`)
-            await this.node.registerBlock(toAddBlock.block)
         }
     }
 }

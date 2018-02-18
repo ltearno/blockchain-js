@@ -53,7 +53,7 @@ export interface NodeApi {
      * - if valid, and all previous blocks are know, and the new block represents
      *   the longest valid chain, then head is updated
      */
-    registerBlock(minedBlock: Block.Block): Promise<Block.BlockMetadata>
+    registerBlock(minedBlockId: string, minedBlock: Block.Block): Promise<Block.BlockMetadata>
 
     /**
      * Registers an event handler that will be called when the blockchain head changes
