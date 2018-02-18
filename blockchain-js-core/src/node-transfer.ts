@@ -92,8 +92,15 @@ export class NodeTransfer {
         }
     }
 
+    // list of blocks to load (id + remotes)
+
+    // load when all parents are in the node
+
     private async fetchFromNode(remoteNode: NodeApi.NodeApi, branch: string) {
         let remoteHead = await remoteNode.blockChainHead(branch)
+
+        // TODO : do it by batches
+        // TODO : have a global context to do that
 
         // fetch the missing parent blocks in node
         let toAddBlocks: { id: string, block: Block.Block }[] = []
@@ -102,15 +109,19 @@ export class NodeTransfer {
             let toMaybeFetch = fetchList.shift()
 
             if (await this.node.knowsBlock(toMaybeFetch))
-                break
+                continue
 
-            let addedBlock = (await remoteNode.blockChainBlockData(toMaybeFetch, 1))[0]
-            let addedBlockId = await Block.idOfBlock(addedBlock)
+            let addedBlocks = await remoteNode.blockChainBlockData(toMaybeFetch, 10)
+            if (addedBlocks) {
+                for (let addedBlock of addedBlocks) {
+                    let addedBlockId = await Block.idOfBlock(addedBlock)
 
-            if (!toAddBlocks.find(b => b.id == addedBlockId))
-                toAddBlocks.push({ id: addedBlockId, block: addedBlock })
+                    if (!toAddBlocks.find(b => b.id == addedBlockId))
+                        toAddBlocks.push({ id: addedBlockId, block: addedBlock })
 
-            addedBlock.previousBlockIds && addedBlock.previousBlockIds.forEach(previousBlockId => fetchList.push(previousBlockId))
+                    addedBlock.previousBlockIds && addedBlock.previousBlockIds.forEach(previousBlockId => fetchList.push(previousBlockId))
+                }
+            }
         }
 
         // add them to node

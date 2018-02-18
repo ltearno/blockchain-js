@@ -45,8 +45,6 @@
         <br/>
         <ul>
           <li *ngFor="let block of branchInfo.blocks; index as i">
-            {{block.blockData.data | json}}
-            <br/>
             <!--<span style='font-size:.7em;'>metadata: {{block.blockMetadata | json}}</span>-->
             <!--  ], "validityProof": { "difficulty": 1, "padding": 3 } }, "chainLength": 45 }-->
             <div *ngIf='i==0' style='font-size:.7em;'>
@@ -58,6 +56,8 @@
               <br/> blockCount: {{block.blockMetadata.blockCount}}
               <br/> validityProof: {{block.blockData?.validityProof | json}}
             </div>
+            <br/>
+            {{block.blockData.data | json}}
           </li>
         </ul>
       </li>
