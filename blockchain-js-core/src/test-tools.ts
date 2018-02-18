@@ -9,7 +9,7 @@ export function createSimpleMiner(branch: string, previousBlockId: string, diffi
         previousBlockId = await Block.idOfBlock(minedBlock)
 
         console.log(`mined block ${previousBlockId.substring(0, 5)}`)
-        return minedBlock
+        return { id: previousBlockId, block: minedBlock }
     }
 }
 

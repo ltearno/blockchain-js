@@ -12,6 +12,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     private headLog: Map<string, string[]> = new Map()
 
     private listeners: NodeApi.NodeEventListener[] = []
+    private waitingBlocks = new Map<string, Set<string>>()
 
     constructor(public name: string) { }
 
@@ -58,49 +59,128 @@ export class NodeImpl implements NodeApi.NodeApi {
     // process block's metadata
     // update head if required (new block is valid and has the longest chain)
     async registerBlock(blockId: string, block: Block.Block): Promise<Block.BlockMetadata> {
-        // process block data
+        console.log(`[${this.name}] receive block ${blockId}`)
 
-        console.log(`[${this.name}] receive block ${(await Block.idOfBlock(block)).substring(0, 5)}`)
+        if (!blockId || !block) {
+            console.error(`[${this.name}] invalid block`)
+            return
+        }
 
-        if (!blockId || this.knownBlocksData.has(blockId)) {
+        if (!block.branch) {
+            console.error(`invalid block ! Aborting registration`)
+            return
+        }
+
+        if (this.knownBlocksData.has(blockId)) {
             console.log(`[${this.name}] already registered block ${blockId && blockId.substring(0, 5)}`)
             return
         }
 
-        blockId = await Block.idOfBlock(block)
+        let fixedId = await Block.idOfBlock(block)
+        if (fixedId != blockId) {
+            console.warn(`registering a fixed block ${blockId} ${fixedId}`)
+            blockId = fixedId
+        }
+
+        if (this.knownBlocksData.has(blockId)) {
+            console.log(`[${this.name}] already registered block ${blockId && blockId.substring(0, 5)} after processing the id`)
+            return
+        }
 
         this.knownBlocksData.set(blockId, block)
 
-        if (!block.branch) {
-            console.log(`invalid block ! Aborting registration`)
-            return
-        }
+        return this.processBlockMetadata(blockId, block)
+    }
 
-        // process block metadata
-
+    private async processBlockMetadata(blockId: string, block: Block.Block) {
         if (this.knownBlocks.has(blockId)) {
-            console.log(`[${this.name}] already registered block ${blockId.substring(0, 5)}`)
+            console.log(`[${this.name}] already registered block metadata ${blockId.substring(0, 5)}`)
             return
         }
 
-        if (!block.previousBlockIds.every(parentBlockId => this.knownBlocks.has(parentBlockId))) {
-            // TODO register for later this block
-            console.log(`register block ${blockId} for later, waiting for parents`)
+        if (block.previousBlockIds && block.previousBlockIds.length && !block.previousBlockIds.every(parentBlockId => this.knownBlocks.has(parentBlockId))) {
+            block.previousBlockIds.forEach(parentBlockId => {
+                if (!this.knownBlocks.has(parentBlockId)) {
+                    console.log(`${blockId} waits for parent ${parentBlockId}`)
+                    this.waitBlock(parentBlockId, blockId)
+                }
+            })
             return
         }
 
+        let metadata = this.realProcessBlock(blockId, block)
+
+        return metadata
+    }
+
+    private waitBlock(waitedBlockId: string, waitingBlockId: string) {
+        if (!this.knownBlocksData.has(waitingBlockId)) {
+            console.error(`WAITING WITHOUT DATA !`)
+            return
+        }
+
+        if (this.knownBlocks.has(waitedBlockId)) {
+            console.error(`WAITING ALREADY HERE DATA !`)
+            return
+        }
+
+        if (this.waitingBlocks.has(waitedBlockId)) {
+            this.waitingBlocks.get(waitedBlockId).add(waitingBlockId)
+        }
+        else {
+            let waitSet = new Set<string>()
+            waitSet.add(waitingBlockId)
+            this.waitingBlocks.set(waitedBlockId, waitSet)
+        }
+    }
+
+    private async wakeupBlocks(blockId: string) {
+        if (!this.waitingBlocks.has(blockId))
+            return
+
+        if (!this.knownBlocks.has(blockId)) {
+            console.error(`waking up without metadata`)
+            return
+        }
+
+        if (!this.knownBlocksData.has(blockId)) {
+            console.error(`waking up without data`)
+            return
+        }
+
+        this.waitingBlocks.get(blockId).forEach(waitingBlockId => {
+            let waitingBlock = this.knownBlocksData.get(waitingBlockId)
+            if (!waitingBlockId || !waitingBlock) {
+                console.error(`error cannot find block ${waitingBlockId} data triggered by ${blockId}`)
+                return
+            }
+
+            this.realProcessBlock(waitingBlockId, waitingBlock)
+        })
+        this.waitingBlocks.delete(blockId)
+    }
+
+    private async realProcessBlock(blockId: string, block: Block.Block) {
         let metadata = await this.processMetaData(blockId, block)
         if (!metadata) {
-            console.log("cannot build metadata for block")
+            console.error("cannot build metadata for block")
+            return null
+        }
+
+        if (blockId != metadata.blockId) {
+            console.error(`is someone hacking us ?`)
             return
         }
 
-        console.log(`new block accepted`)
         this.knownBlocks.set(metadata.blockId, metadata)
+        this.wakeupBlocks(metadata.blockId)
 
-        // TODO call metadata processing for waiting blocks
+        this.maybeUpdateHead(block, metadata)
 
-        // TODO move to method maybeUpdateHead, called at the end of meta data processing (but to be optimized so that head doesnt jump one block by one if long run is possible)
+        return metadata
+    }
+
+    private async maybeUpdateHead(block: Block.Block, metadata: Block.BlockMetadata) {
         let oldHead = await this.blockChainHead(block.branch)
         if (metadata.isValid && this.compareBlockchains(metadata.blockId, oldHead) > 0) {
             console.log(`new block ${metadata.blockId} is the new head of branch ${block.branch}`)
@@ -115,8 +195,6 @@ export class NodeImpl implements NodeApi.NodeApi {
                 let minedBlock = Block.mineBlock(pre, oldHeadBlock ? Math.max(oldHeadBlock.validityProof.difficulty, block.validityProof.difficulty) : block.validityProof.difficulty)
             }
         }
-
-        return metadata
     }
 
     private isAncestorOf(ancestorId: string, ofId: string): boolean {
@@ -215,6 +293,10 @@ export class NodeImpl implements NodeApi.NodeApi {
      * @param block 
      */
     private async processMetaData(blockId: string, block: Block.Block): Promise<Block.BlockMetadata> {
+        if (!blockId || !block) {
+            console.log(`error cannot find block`)
+            return null
+        }
         let blockCount = 1
         let confidence = 1 * block.validityProof.difficulty
 

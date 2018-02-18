@@ -74,10 +74,13 @@ export class MinerImpl {
             let preBlock = Block.createBlock(branch, [head], dataToMine)
             let block = await Block.mineBlock(preBlock, difficulty, batchSize)
 
-            let metadata = await this.node.registerBlock(block)
+            let blockId = await Block.idOfBlock(block)
+
+            console.log(`mined block ${blockId.substring(0, 5)}`)
+
+            let metadata = await this.node.registerBlock(blockId, block)
 
             nbMinedBlocks++
-            console.log(`mined block ${metadata.blockId.substring(0, 5)}`)
         }
 
         return { nbMinedBlocks, errors }

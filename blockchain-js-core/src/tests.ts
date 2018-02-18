@@ -35,7 +35,7 @@ async function testBasicMining() {
         let minedBlock = await miner()
 
         console.log(`adding block to node`)
-        let metadata = await node.registerBlock(minedBlock)
+        let metadata = await node.registerBlock(minedBlock.id, minedBlock.block)
         console.log(`added block: ${JSON.stringify(metadata)}`)
     }
 
@@ -89,7 +89,8 @@ async function testNodeTransfer() {
     console.log(`mining initial blocks`)
     let initNode = anyNode()
     for (let i = 0; i < NB_MINED_BLOCKS_INITIAL; i++) {
-        await initNode.registerBlock(await miner())
+        let mined = await miner()
+        await initNode.registerBlock(mined.id, mined.block)
     }
 
     function fullyConnectedTopology(node, index) { return nodes.filter(n => n != node) }
@@ -110,11 +111,11 @@ async function testNodeTransfer() {
         // mine blocks and register them to any of the nodes
         let nbToMine = NB_MINED_BLOCKS_EACH_TOPOLOGY
         while (nbToMine-- >= 0) {
-            let minedBlock = await miner()
+            let mined = await miner()
 
             let nodeToRegisterBlock = anyNode()
 
-            for (let previousBlockId of minedBlock.previousBlockIds) {
+            for (let previousBlockId of mined.block.previousBlockIds) {
                 while (!await nodeToRegisterBlock.knowsBlock(previousBlockId)) {
                     console.log(`waiting for block ${previousBlockId} availability on node ${nodeToRegisterBlock.name}`)
                     await TestTools.wait(300)
@@ -122,7 +123,7 @@ async function testNodeTransfer() {
             }
 
             console.log(`adding block to node ${nodeToRegisterBlock.name}`)
-            let metadata = await nodeToRegisterBlock.registerBlock(minedBlock)
+            let metadata = await nodeToRegisterBlock.registerBlock(mined.id, mined.block)
         }
 
         await TestTools.wait(1000)
@@ -159,8 +160,8 @@ async function testNodeProxy() {
         blockChainBlockData: (blockId, depth) => {
             return Promise.resolve([])
         },
-        registerBlock: async block => {
-            console.log(`register block ${(await Block.idOfBlock(block)).substring(0, 5)} : ${JSON.stringify(block)}`)
+        registerBlock: async (blockId, block) => {
+            console.log(`register block ${blockId.substring(0, 5)} : ${JSON.stringify(block)}`)
             console.log(`*** it should be the same as the created one ***`)
             return null
         },
@@ -183,11 +184,10 @@ async function testNodeProxy() {
     proxy.initialize()
 
     let miner = TestTools.createSimpleMiner(Block.MASTER_BRANCH, null, 3)
-    let block = await miner()
-    let id = await Block.idOfBlock(block)
-    console.log(`created ${id} : ${JSON.stringify(block)}`)
+    let mined = await miner()
+    console.log(`created ${mined.id} : ${JSON.stringify(mined.block)}`)
     let remoteNode = proxy.remoteFacade()
-    let metadata = await remoteNode.registerBlock(block)
+    let metadata = await remoteNode.registerBlock(mined.id, mined.block)
     remoteNode.addEventListener('head', () => console.log(`receive head change`))
 }
 

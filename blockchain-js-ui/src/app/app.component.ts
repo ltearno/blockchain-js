@@ -63,11 +63,7 @@ export class AppComponent {
       let state = []
 
       for (let branch of await this.fullNode.node.branches()) {
-        console.log(`branch ${branch}`)
-
         let toFetch = await this.fullNode.node.blockChainHead(branch)
-
-        console.log(` head ${toFetch}`)
 
         let branchState = {
           branch: branch,
@@ -81,14 +77,10 @@ export class AppComponent {
         while (toFetchs.length) {
           let fetching = toFetchs.shift()
 
-          console.log(`fetching block ${fetching}`)
           let blockMetadatas = await this.fullNode.node.blockChainBlockMetadata(fetching, 1)
           let blockMetadata = blockMetadatas && blockMetadatas[0]
           let blockDatas = await this.fullNode.node.blockChainBlockData(fetching, 1)
           let blockData = blockDatas && blockDatas[0]
-
-          console.log(`block metadata : ${JSON.stringify(blockMetadata)}`)
-          console.log(`block data : ${JSON.stringify(blockData)}`)
 
           branchState.blocks.push({ blockMetadata, blockData })
 

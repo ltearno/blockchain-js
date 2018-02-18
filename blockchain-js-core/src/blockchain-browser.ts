@@ -25,7 +25,7 @@ async function run() {
         let minedBlock = await miner()
 
         console.log(`adding block to node`)
-        let metadata = await fullNode.node.registerBlock(minedBlock)
+        let metadata = await fullNode.node.registerBlock(minedBlock.minedBlockId, minedBlock.minedBlock)
         console.log(`added block: ${JSON.stringify(metadata)}`)
     }
 
@@ -61,9 +61,9 @@ function createSimpleMiner(branch: string, previousBlockId: string, difficulty: 
 
         let minedBlock = await Block.mineBlock(block, difficulty)
 
-        previousBlockId = await Block.idOfBlock(minedBlock)
+        let minedBlockId = await Block.idOfBlock(minedBlock)
 
         console.log(`mined block ${previousBlockId.substring(0, 5)}`)
-        return minedBlock
+        return { minedBlockId, minedBlock }
     }
 }

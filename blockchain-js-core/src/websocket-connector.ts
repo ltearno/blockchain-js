@@ -39,7 +39,7 @@ export class WebSocketConnector implements NodeApi.NodeApi {
     }
 
     private messageListener = async rawMessage => {
-        console.log(`ws rcv: ${rawMessage}`)
+        //console.log(`ws rcv: ${rawMessage}`)
         let message = JSON.parse(rawMessage) as Message
         switch (message.type) {
             case 'hello':
@@ -58,7 +58,7 @@ export class WebSocketConnector implements NodeApi.NodeApi {
                     try {
                         let result = await this.messageToNode(message, this.localNode)
                         let payload = JSON.stringify({ id: message.id, type: 'reply', data: result })
-                        console.log(`ws reply: ${payload}`)
+                        //console.log(`ws reply: ${payload}`)
                         this.ws.send(payload)
                     }
                     catch (error) {
@@ -91,7 +91,7 @@ export class WebSocketConnector implements NodeApi.NodeApi {
     blockChainBlockIds(startBlockId: string, depth: number): Promise<string[]> { return this.sendCall('blockChainBlockIds', [startBlockId, depth]) }
     blockChainBlockMetadata(startBlockId: string, depth: number): Promise<Block.BlockMetadata[]> { return this.sendCall('blockChainBlockMetadata', [startBlockId, depth]) }
     blockChainBlockData(startBlockId: string, depth: number): Promise<Block.Block[]> { return this.sendCall('blockChainBlockData', [startBlockId, depth]) }
-    registerBlock(minedBlock: Block.Block): Promise<Block.BlockMetadata> { return this.sendCall('registerBlock', [minedBlock]) }
+    registerBlock(blockId: string, block: Block.Block): Promise<Block.BlockMetadata> { return this.sendCall('registerBlock', [blockId, block]) }
     addEventListener(type: "head", eventListener: NodeApi.NodeEventListener): void {
         let listenerId = `listener_${uuidv4()}`
         this.remoteEventListeners.set(listenerId, eventListener)
@@ -120,7 +120,7 @@ export class WebSocketConnector implements NodeApi.NodeApi {
 
         let payload = JSON.stringify(message)
 
-        console.log(`ws send: ${payload}`)
+        //console.log(`ws send: ${payload}`)
 
         if (waitForReturn) {
             res = new Promise<T>((resolve, reject) => {
@@ -176,7 +176,6 @@ export class WebSocketConnector implements NodeApi.NodeApi {
         }
 
         let { method, parameters } = message.data
-        console.log(`analysing method ${method}`)
         switch (method) {
             case 'addEventListener': {
                 let [type, listenerId] = parameters
@@ -243,11 +242,11 @@ export class WebSocketConnector implements NodeApi.NodeApi {
             }
 
             case 'registerBlock': {
-                let [block] = parameters
+                let [blockId, block] = parameters
 
                 // TODO check that input is a real block !
                 console.log(`received block ${JSON.stringify(block)}`)
-                return await node.registerBlock(block as Block.Block)
+                return await node.registerBlock(blockId as string, block as Block.Block)
             }
 
             case 'knowsBlock': {

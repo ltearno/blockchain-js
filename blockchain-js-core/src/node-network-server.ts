@@ -89,7 +89,9 @@ export class NodeServer {
         app.post('/registerBlock', async (req, res) => {
             // TODO check that input is a real block !
             console.log(`received block ${JSON.stringify(req.body)}`)
-            let metadata = await this.node.registerBlock(req.body as Block.Block)
+            let block = req.body as Block.Block
+            let blockId = await Block.idOfBlock(block)
+            let metadata = await this.node.registerBlock(blockId, block)
             res.send(JSON.stringify(metadata))
         })
 
