@@ -119,8 +119,7 @@ export class NodeTransfer {
                 continue
 
             let blockIds = await remoteNode.blockChainBlockIds(toMaybeFetch, BATCH_SIZE)
-
-            console.log(`fetched ${blockIds.length} blocks`)
+            console.log(`fetched ${blockIds.length} block ids`)
 
             let nbBlocksToLoad = 0
             for (let blockId of blockIds) {

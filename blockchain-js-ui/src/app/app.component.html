@@ -1,68 +1,93 @@
-<div>
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand has-text-grey">
+    <h1 class='title'>Blockchain JS</h1>
+  </div>
+</nav>
+
+<div class="container is-fluid">
   presentation message :
   <input [(ngModel)]='title' size="30">
-  <div>
-    <div *ngIf='p2pBroker.ready'>
-      <button (click)='toggleAutoP2P()'>{{autoP2P?'desactivate peer discovery':'activate peer discovery'}}</button>
-      <button (click)='offerP2PChannel()'>offer channel</button>
-      <br>
-      <span>known p2p presentation messages:</span>
-      <ul>
-        <li *ngFor='let m of knownAcceptedMessages'>{{m | json}}</li>
-      </ul>
-    </div>
-    <div *ngIf='!p2pBroker.ready' style='color:red;'>P2P broker NOT READY</div>
-  </div>
-  <div>
-    peers :
-    <ul>
-      <li *ngFor='let peerInfo of fullNode.peerInfos'>{{peerInfo.description}}</li>
-    </ul>
-    add a peer :
-    <input type="text" #peerHost value="localhost">
-    <input type="text" #peerPort value="9091">
-    <button (click)='addPeer(peerHost.value, peerPort.value)'>connect</button>
-  </div>
-  <br>
-  <div>
-    mining Message :
-    <input #minedData type="text" value='Some data to mine...'>
-    <br> Difficulty :
-    <input #miningDifficulty type="number" value='100'>
-    <br>
-    <button (click)='mine(minedData.value, miningDifficulty.value)' [disabled]='isMining'>Mine</button>
-    <br>
-    <br>timer :
-    <input #automineTimer type="number" value='2000'>
-    <button (click)='toggleAutomine(minedData.value, miningDifficulty.value, automineTimer.value)'>{{autoMining ? 'disable' : 'enable'}} auto-mining</button>
-    <span *ngIf='autoMining' style='color:green;'>auto-mining enabled</span>
-  </div>
-  <div>Branches
-    <ul>
-      <li *ngFor="let branchInfo of state">
-        Branch: {{branchInfo.branch}} at {{branchInfo.head}}
-        <br/> Blocks:
-        <br/>
-        <ul>
-          <li *ngFor="let block of branchInfo.blocks; index as i">
-            <!--<span style='font-size:.7em;'>metadata: {{block.blockMetadata | json}}</span>-->
-            <!--  ], "validityProof": { "difficulty": 1, "padding": 3 } }, "chainLength": 45 }-->
-            <div *ngIf='i==0' style='font-size:.7em;'>
-              id: {{block.blockMetadata.blockId}}
-              <br/> valid: {{block.blockMetadata.isValid}}
-              <br/> branch: {{block.blockData?.branch}}
-              <br/> previous blocks: {{block.blockData?.previousBlockIds | json}}
-              <br/> confidence: {{block.blockMetadata.confidence}}
-              <br/> blockCount: {{block.blockMetadata.blockCount}}
-              <br/> validityProof: {{block.blockData?.validityProof | json}}
-            </div>
-            <br/>{{block.blockData.data | json}}
-          </li>
-        </ul>
-      </li>
-    </ul>
-  </div>
-  <div>Logs
-    <div *ngFor="let log of logs">{{log}}</div>
-  </div>
 </div>
+
+<div class="container is-fluid">
+  <div *ngIf='p2pBroker.ready'>
+    <button (click)='toggleAutoP2P()' class='button'>{{autoP2P?'desactivate peer discovery':'activate peer discovery'}}</button>
+    <button (click)='offerP2PChannel()' class='button'>offer channel</button>
+    <br>
+    <span>known p2p presentation messages:</span>
+    <ul>
+      <li *ngFor='let m of knownAcceptedMessages'>{{m | json}}</li>
+    </ul>
+  </div>
+  <div *ngIf='!p2pBroker.ready' style='color:red;'>P2P broker NOT READY</div>
+</div>
+
+<div class="container is-fluid">
+  peers :
+  <ul>
+    <li *ngFor='let peerInfo of fullNode.peerInfos'>{{peerInfo.description}}</li>
+  </ul>
+  add a peer :
+  <input type="text" #peerHost value="localhost">
+  <input type="text" #peerPort value="9091">
+  <button (click)='addPeer(peerHost.value, peerPort.value)' class='button'>connect</button>
+</div>
+
+<div class="container is-fluid">
+  mining Message :
+  <input #minedData type="text" value='Some data to mine...'>
+  <br> Difficulty :
+  <input #miningDifficulty type="number" value='100'>
+  <br>
+  <button (click)='mine(minedData.value, miningDifficulty.value)' [disabled]='isMining' class='button'>Mine</button>
+  <br>
+  <br>timer :
+  <input #automineTimer type="number" value='2000'>
+  <button (click)='toggleAutomine(minedData.value, miningDifficulty.value, automineTimer.value)' class='button'>{{autoMining ? 'disable' : 'enable'}} auto-mining</button>
+  <span *ngIf='autoMining' style='color:green;'>auto-mining enabled</span>
+</div>
+
+<div class="container is-fluid">Branches
+  <ul>
+    <li *ngFor="let branchInfo of state">
+      Branch: {{branchInfo.branch}} at {{branchInfo.head}}
+      <br/> Blocks:
+      <br/>
+      <ul>
+        <li *ngFor="let block of branchInfo.blocks; index as i">
+          <!--<span style='font-size:.7em;'>metadata: {{block.blockMetadata | json}}</span>-->
+          <!--  ], "validityProof": { "difficulty": 1, "padding": 3 } }, "chainLength": 45 }-->
+          <div *ngIf='i==0' style='font-size:.7em;'>
+            id: {{block.blockMetadata.blockId}}
+            <br/> valid: {{block.blockMetadata.isValid}}
+            <br/> branch: {{block.blockData?.branch}}
+            <br/> previous blocks: {{block.blockData?.previousBlockIds | json}}
+            <br/> confidence: {{block.blockMetadata.confidence}}
+            <br/> blockCount: {{block.blockMetadata.blockCount}}
+            <br/> validityProof: {{block.blockData?.validityProof | json}}
+          </div>
+          <br/>{{block.blockData.data | json}}
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<div class="container is-fluid">Logs
+  <div *ngFor="let log of logs">{{log}}</div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <p>
+        <strong>Blockchain JS</strong> by
+        <a href='https://github.com/ltearno'>Arnaud Tournier</a>
+        <a href="https://stack-labs.com">Stack Labs</a>
+      </p>
+      <p>
+        {{fullNode.peerInfos.length}} peers connected
+      </p>
+    </div>
+  </div>
+</footer>

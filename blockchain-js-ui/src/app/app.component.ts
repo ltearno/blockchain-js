@@ -5,7 +5,7 @@ import * as PeerToPeer from 'rencontres'
 const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
 
 @Component({
-  selector: 'app-root',
+  selector: 'body',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
