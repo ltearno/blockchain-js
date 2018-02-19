@@ -28,7 +28,7 @@ export class NodeTransfer {
     }
 
     addRemoteNode(remoteNode: NodeApi.NodeApi) {
-        console.log(`addRemoteNode ${remoteNode.name}`)
+        console.log(`addRemoteNode`)
         this.initRemoteNode(remoteNode)
     }
 
@@ -37,7 +37,7 @@ export class NodeTransfer {
         if (index < 0)
             return
 
-        console.log(`removeRemoteNode ${remoteNode.name}`)
+        console.log(`removeRemoteNode`)
 
         remoteNode.removeEventListener(this.listeners[index])
         this.listeners.splice(index, 1)
@@ -55,12 +55,12 @@ export class NodeTransfer {
         this.knownNodes.push(remoteNode)
 
         let listener = (branch: string) => {
-            console.log(`[${this.node.name}] receive branch ${branch} change from ${remoteNode.name}`)
+            console.log(`receive branch ${branch} change`)
             try {
                 this.fetchFromNode(remoteNode, branch)
             }
             catch (err) {
-                console.log(`error when fetchAllBranchesFromNode for node ${remoteNode.name}: ${err}`)
+                console.error(`error when fetchAllBranchesFromNode for node: ${err}`)
             }
         }
 
@@ -83,12 +83,12 @@ export class NodeTransfer {
                     await this.fetchFromNode(remoteNode, branch)
                 }
                 catch (err) {
-                    console.log(`error when fetchAllBranchesFromNode for node ${remoteNode.name}: ${err}`)
+                    console.log(`error when fetchAllBranchesFromNode for node: ${err}`)
                 }
             }
         }
         catch (err) {
-            console.log(`error when fetchAllBranchesFromNode for node ${remoteNode.name}: ${err}`)
+            console.log(`error when fetchAllBranchesFromNode for node: ${err}`)
         }
     }
 
@@ -142,7 +142,7 @@ export class NodeTransfer {
                         break
                     }
 
-                    console.log(`transfer block ${blockId.substring(0, 5)} from ${remoteNode.name} to ${this.node.name}`)
+                    console.log(`transfer block ${blockId.substring(0, 5)}`)
 
                     await this.node.registerBlock(blockId, block)
 

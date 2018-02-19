@@ -13,6 +13,7 @@ export interface Peer {
 
 export interface PeerInfo {
     id: number
+    description: string
     client: NodeApi.NodeApi
 }
 
@@ -35,7 +36,7 @@ export class FullNode {
 
     constructor(private networkClientApi: NetworkApi.NetworkApi) {
         // node creation
-        this.node = new NodeImpl.NodeImpl('original')
+        this.node = new NodeImpl.NodeImpl()
 
         // node peering
         this.transfer = new NodeTransfer.NodeTransfer(this.node)
@@ -48,9 +49,10 @@ export class FullNode {
         this.lists = new Map<string, ListOnChain.ListOnChain>()
     }
 
-    addPeer(peer: NodeApi.NodeApi) {
+    addPeer(peer: NodeApi.NodeApi, description: string) {
         let info: PeerInfo = {
             id: this.nextPeerId++,
+            description,
             client: peer
         }
 

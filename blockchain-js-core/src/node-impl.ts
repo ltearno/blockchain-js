@@ -14,7 +14,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     private listeners: NodeApi.NodeEventListener[] = []
     private waitingBlocks = new Map<string, Set<string>>()
 
-    constructor(public name: string) { }
+    constructor() { }
 
     private getBranchHead(branch: string) {
         if (!branch || !this.headLog.has(branch))
@@ -59,10 +59,10 @@ export class NodeImpl implements NodeApi.NodeApi {
     // process block's metadata
     // update head if required (new block is valid and has the longest chain)
     async registerBlock(blockId: string, block: Block.Block): Promise<Block.BlockMetadata> {
-        console.log(`[${this.name}] receive block ${blockId}`)
+        console.log(`receive block ${blockId}`)
 
         if (!blockId || !block) {
-            console.error(`[${this.name}] invalid block`)
+            console.error(`invalid block`)
             return
         }
 
@@ -72,7 +72,7 @@ export class NodeImpl implements NodeApi.NodeApi {
         }
 
         if (this.knownBlocksData.has(blockId)) {
-            console.log(`[${this.name}] already registered block ${blockId && blockId.substring(0, 5)}`)
+            console.log(`already registered block ${blockId && blockId.substring(0, 5)}`)
             return
         }
 
@@ -83,7 +83,7 @@ export class NodeImpl implements NodeApi.NodeApi {
         }
 
         if (this.knownBlocksData.has(blockId)) {
-            console.log(`[${this.name}] already registered block ${blockId && blockId.substring(0, 5)} after processing the id`)
+            console.log(`already registered block ${blockId && blockId.substring(0, 5)} after processing the id`)
             return
         }
 
@@ -94,7 +94,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
     private async processBlockMetadata(blockId: string, block: Block.Block) {
         if (this.knownBlocks.has(blockId)) {
-            console.log(`[${this.name}] already registered block metadata ${blockId.substring(0, 5)}`)
+            console.log(`already registered block metadata ${blockId.substring(0, 5)}`)
             return
         }
 
@@ -283,7 +283,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         headLog.push(blockId)
 
-        console.log(`[${this.name}] new head on branch ${branch} : ${blockId.substring(0, 5)}`)
+        console.log(`new head on branch ${branch} : ${blockId.substring(0, 5)}`)
 
         this.listeners.forEach(listener => listener(branch))
     }

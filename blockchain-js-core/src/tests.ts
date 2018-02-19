@@ -24,7 +24,7 @@ async function testDataSerialization() {
 
 async function testBasicMining() {
     console.log(`creating a node`)
-    let node = new NodeImpl.NodeImpl('original')
+    let node = new NodeImpl.NodeImpl()
     node.addEventListener('head', async () => console.log(`event : node has new head (${await node.blockChainHead(Block.MASTER_BRANCH)})`))
 
     console.log(`current head: ${await node.blockChainHead(Block.MASTER_BRANCH)}`)
@@ -54,7 +54,7 @@ async function testNodeTransfer() {
 
     let nodes: NodeApi.NodeApi[] = []
     for (let i = 0; i < NB_NODES; i++) {
-        let node: NodeApi.NodeApi = new NodeImpl.NodeImpl(`node ${i}`)
+        let node: NodeApi.NodeApi = new NodeImpl.NodeImpl()
 
         if (USE_NETWORK) {
             let port = NETWORK_BASE_PORT + i
@@ -78,7 +78,7 @@ async function testNodeTransfer() {
         let head = await nodes[0].blockChainHead(Block.MASTER_BRANCH)
         for (let i = 1; i < nodes.length; i++) {
             if (head != await nodes[i].blockChainHead(Block.MASTER_BRANCH)) {
-                console.log(`node ${nodes[i].name} has head ${await nodes[i].blockChainHead(Block.MASTER_BRANCH)} instead of ${head}`)
+                console.log(`node has head ${await nodes[i].blockChainHead(Block.MASTER_BRANCH)} instead of ${head}`)
                 ok = false
             }
         }
@@ -117,12 +117,12 @@ async function testNodeTransfer() {
 
             for (let previousBlockId of mined.block.previousBlockIds) {
                 while (!await nodeToRegisterBlock.knowsBlock(previousBlockId)) {
-                    console.log(`waiting for block ${previousBlockId} availability on node ${nodeToRegisterBlock.name}`)
+                    console.log(`waiting for block ${previousBlockId} availability on node`)
                     await TestTools.wait(300)
                 }
             }
 
-            console.log(`adding block to node ${nodeToRegisterBlock.name}`)
+            console.log(`adding block to node`)
             let metadata = await nodeToRegisterBlock.registerBlock(mined.id, mined.block)
         }
 
@@ -135,7 +135,6 @@ async function testNodeTransfer() {
 
 async function testNodeProxy() {
     let server = new NodeNetworkServer.NodeServer({
-        name: 'debug',
         knowsBlock: (blockId) => {
             console.log(`knowsBlock( ${blockId}`)
             return Promise.resolve(false)
@@ -192,7 +191,7 @@ async function testNodeProxy() {
 }
 
 async function testListOnBlockBasic() {
-    let node = new NodeImpl.NodeImpl('alone')
+    let node = new NodeImpl.NodeImpl()
     let miner = new MinerImpl.MinerImpl(node)
     let list = new ListOnChain.ListOnChain(node, Block.MASTER_BRANCH, 'main', miner)
     list.initialise()
@@ -225,7 +224,7 @@ async function testListOnBlockBasic() {
 }
 
 async function testListOnBlockSpeed() {
-    let node = new NodeImpl.NodeImpl('alone')
+    let node = new NodeImpl.NodeImpl()
     let miner = new MinerImpl.MinerImpl(node)
     let list = new ListOnChain.ListOnChain(node, Block.MASTER_BRANCH, 'main', miner)
     list.initialise()

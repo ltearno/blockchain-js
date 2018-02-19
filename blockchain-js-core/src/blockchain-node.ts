@@ -36,7 +36,7 @@ app.get('/mineSomething/:branch', async (req, res) => {
 
 // peer connections facility
 app.get('/peers', (req, res) => {
-    let peers = fullNode.peerInfos.map(info => ({ id: info.id, name: info.client.name }))
+    let peers = fullNode.peerInfos.map(info => ({ id: info.id, description: info.description }))
     res.send(JSON.stringify(peers))
 })
 
@@ -53,7 +53,7 @@ app.post('/peers', async (req, res) => {
     try {
         await peerNode.initialize()
 
-        peerInfo.fullNodePeerInfo = fullNode.addPeer(peerNode.remoteFacade())
+        peerInfo.fullNodePeerInfo = fullNode.addPeer(peerNode.remoteFacade(), `peer added through REST: ${peer.address}:${peer.port}`)
 
         res.send(JSON.stringify({ id: peerInfo.fullNodePeerInfo.id }))
     }

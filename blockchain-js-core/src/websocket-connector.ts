@@ -23,8 +23,6 @@ function uuidv4() {
  * allows to talk to remote node and receive calls from remote node too
  */
 export class WebSocketConnector implements NodeApi.NodeApi {
-    name: string = 'unconnected-not-yet-known'
-
     private waitingCalls: Map<string, Resolver<any>> = new Map()
     private remoteEventListeners: Map<string, NodeApi.NodeEventListener> = new Map()
     private localEventListeners: Map<string, NodeApi.NodeEventListener> = new Map()
@@ -33,7 +31,7 @@ export class WebSocketConnector implements NodeApi.NodeApi {
         ws.on('message', this.messageListener)
 
         if (this.localNode)
-            ws.send(JSON.stringify({ id: null, type: 'hello', data: this.localNode.name }))
+            ws.send(JSON.stringify({ id: null, type: 'hello', data: `hello` }))
         else
             console.log(`WARNING : localNode is null`)
     }
@@ -43,7 +41,6 @@ export class WebSocketConnector implements NodeApi.NodeApi {
         let message = JSON.parse(rawMessage) as Message
         switch (message.type) {
             case 'hello':
-                this.name = `proxy-to-${message.data}`
                 break
 
             case 'event': {
@@ -78,7 +75,6 @@ export class WebSocketConnector implements NodeApi.NodeApi {
         // TODO remove listener to the ws
         // this.ws.unsubscribe(this.messageListener)
         this.localNode = null
-        this.name = `_TERMINATED_${this.name}`
         this.waitingCalls.clear()
         this.remoteEventListeners.clear()
         this.localEventListeners.clear()

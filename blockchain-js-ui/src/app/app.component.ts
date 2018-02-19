@@ -14,12 +14,6 @@ export class AppComponent {
   fullNode: Blockchain.FullNode = null
   logs: string[] = []
   state = []
-  peers: {
-    host?: string,
-    port?: number,
-
-    connected?: boolean
-  }[] = []
   p2pBroker: PeerToPeer.PeerToPeerBrokering
   isMining = false
 
@@ -44,9 +38,7 @@ export class AppComponent {
       this.knownAcceptedMessages.add(counterPartyMessage)
       channel.on('close', () => this.knownAcceptedMessages.delete(counterPartyMessage))
 
-      let desc = { host: `channel ${description.offerId.substr(0, 5)} message ${counterPartyMessage} (as '${this.title}')`, port: 0, connected: true }
-      this.peers.push(desc)
-      this.addPeerBySocket(desc, channel)
+      this.addPeerBySocket(channel, `p2p with ${counterPartyMessage} (as '${this.title}') on channel ${description.offerId.substr(0, 5)}`)
     })
     this.p2pBroker.createSignalingSocket()
     setInterval(() => {
@@ -55,7 +47,7 @@ export class AppComponent {
     }, 10000)
 
     this.fullNode = new Blockchain.FullNode(NETWORK_CLIENT_IMPL)
-    console.log(`full node created : ${this.fullNode.node.name}`)
+    console.log(`full node created`)
 
     this.fullNode.node.addEventListener('head', async branch => {
       this.log(`new head on branch ${branch} : ${await this.fullNode.node.blockChainHead(branch)}`)
@@ -99,7 +91,7 @@ export class AppComponent {
   }
 
   maybeOfferP2PChannel() {
-    if (this.p2pBroker.ready && this.peers.filter(p => p.connected).length < this.desiredNbPeers) {
+    if (this.p2pBroker.ready && this.fullNode.peerInfos.length < this.desiredNbPeers) {
       this.offerP2PChannel()
     }
 
@@ -166,46 +158,26 @@ export class AppComponent {
   async addPeer(peerHost, peerPort) {
     console.log(`add peer ${peerHost}:${peerPort}`)
 
-    let existingPeer = this.peers.find(p => p.host == peerHost && p.port == peerPort)
-    if (existingPeer && existingPeer.connected) {
-      console.log(`already connected`)
-      return
-    }
-
-    if (!existingPeer) {
-      existingPeer = {
-        host: peerHost,
-        port: peerPort,
-        connected: true
-      }
-
-      this.peers.push(existingPeer)
-    }
-
     let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`ws://${peerHost}:${peerPort}/events`)
 
-    this.addPeerBySocket(existingPeer, ws)
+    this.addPeerBySocket(ws, `direct peer ${peerHost}:${peerPort}`)
   }
 
-  private async addPeerBySocket(existingPeer, ws) {
-    let peerInfo = null
-
+  private async addPeerBySocket(ws, description: string) {
+    let peerInfo: Blockchain.PeerInfo = null
     let connector = null
+
     ws.on('open', () => {
       console.log(`web socket connected`)
 
       connector = new Blockchain.WebSocketConnector(this.fullNode.node, ws)
 
-      peerInfo = this.fullNode.addPeer(connector)
-
-      existingPeer.connected = true
+      peerInfo = this.fullNode.addPeer(connector, description)
     })
 
     ws.on('error', (err) => {
       console.log(`error on ws : ${err}`)
       ws.close()
-
-      existingPeer.connected = false
     })
 
     ws.on('close', () => {
@@ -213,9 +185,7 @@ export class AppComponent {
       connector = null
       this.fullNode.removePeer(peerInfo.id)
 
-      console.log('closed')
-
-      existingPeer.connected = false
+      console.log('closed peer connection')
     })
   }
 }

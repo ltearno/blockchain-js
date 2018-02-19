@@ -16,7 +16,7 @@
   <div>
     peers :
     <ul>
-      <li [style.background-color]='peer.connected ? "green":"red"' *ngFor='let peer of peers'>{{peer.host}}:{{peer.port}}</li>
+      <li *ngFor='let peerInfo of fullNode.peerInfos'>{{peerInfo.description}}</li>
     </ul>
     add a peer :
     <input type="text" #peerHost value="localhost">
@@ -56,8 +56,7 @@
               <br/> blockCount: {{block.blockMetadata.blockCount}}
               <br/> validityProof: {{block.blockData?.validityProof | json}}
             </div>
-            <br/>
-            {{block.blockData.data | json}}
+            <br/>{{block.blockData.data | json}}
           </li>
         </ul>
       </li>

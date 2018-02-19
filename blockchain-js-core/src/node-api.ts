@@ -6,11 +6,6 @@ export interface NodeEventListener {
 
 export interface NodeApi {
     /**
-     * A sympathetic name useful for debugging
-     */
-    name: string
-
-    /**
      * Asks if the node knows a block in memory
      */
     knowsBlock(blockId: string): Promise<boolean>
