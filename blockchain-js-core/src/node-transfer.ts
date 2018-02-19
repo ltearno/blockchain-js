@@ -93,11 +93,13 @@ export class NodeTransfer {
     }
 
     private async fetchFromNode(remoteNode: NodeApi.NodeApi, branch: string) {
-        const BATCH_SIZE = 1
+        const BATCH_SIZE = 5
 
         let remoteHead = await remoteNode.blockChainHead(branch)
 
         // TODO : have a global context to do that
+
+        // TODO load first the IDs then the blocks in batch and reverse size, so update is quicker on client
 
         let fetchList = [remoteHead]
         while (fetchList.length) {
@@ -106,8 +108,20 @@ export class NodeTransfer {
                 continue
 
             let blockIds = await remoteNode.blockChainBlockIds(toMaybeFetch, BATCH_SIZE)
-            let blocks = await remoteNode.blockChainBlockData(toMaybeFetch, BATCH_SIZE)
-            if (blockIds && blocks && blockIds.length == blocks.length) {
+
+            console.log(`fetched ${blockIds.length} blocks`)
+
+            let nbBlocksToLoad = 0
+            for (let blockId of blockIds) {
+                if (await this.node.knowsBlock(blockId))
+                    break
+
+                nbBlocksToLoad++
+            }
+
+            let blocks = await remoteNode.blockChainBlockData(toMaybeFetch, nbBlocksToLoad)
+
+            if (blockIds && blocks) {
                 for (let i = 0; i < blocks.length; i++) {
                     let block = blocks[i]
                     let blockId = blockIds[i]
