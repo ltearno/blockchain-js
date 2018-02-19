@@ -1,12 +1,20 @@
 <nav class="navbar" role="navigation" aria-label="main navigation">
   <div class="navbar-brand has-text-grey">
-    <h1 class='title'>Blockchain JS</h1>
+    <div class="navbar-item level">
+      <div class="level-item">
+        <h1 class='title'>Blockchain JS</h1>
+      </div>
+      <div class='level-item' style='width:2em;'></div>
+      <div class='level-item'>
+        <h2 class='subtitle'>{{title}}</h2>
+      </div>
+    </div>
   </div>
 </nav>
 
 <div class="container is-fluid">
-  presentation message :
-  <input [(ngModel)]='title' size="30">
+  <label for='my-id'>My ID : </label>
+  <input id='my-id' [(ngModel)]='title' size="30">
 </div>
 
 <div class="container is-fluid">
