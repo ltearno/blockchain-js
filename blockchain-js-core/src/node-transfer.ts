@@ -97,7 +97,18 @@ export class NodeTransfer {
 
         let remoteHead = await remoteNode.blockChainHead(branch)
 
-        // TODO : have a global context to do that
+        // TODO : have a global context to do that :
+
+        // - plan de rapatriement de blockId (quel bloc id par quel(s) peer(s))
+        // - plan de rapatriement de block (quel bloc par quel(s) peer(s))
+        // faire cela dans un timer. Objectif : 
+        // - même si le réseau bouge beaucoup, se synchroniser petit à petit
+        // - minimiser le flux réseau (ne pas demander le même block à plusieurs noeuds)
+
+        // enregistrer que tel block est en provenance de tel(s) peer(s)
+        // avoir un plan global de rapatriement
+        // remonter par block-ids jusqu'à un block connu de notre noeud
+        // alimenter plan de rapatriement de blocks
 
         // TODO load first the IDs then the blocks in batch and reverse size, so update is quicker on client
 
