@@ -117,7 +117,7 @@ export class NodeTransfer {
             if (!blockIds)
                 continue
 
-            console.log(`fetched ${blockIds.length} block ids`)
+            console.log(`fetched ${blockIds.length} block ids from ${toMaybeFetch} on`)
 
             for (let i = 0; i < blockIds.length; i++) {
                 let blockId = blockIds[i]
@@ -127,7 +127,12 @@ export class NodeTransfer {
                     continue
                 }
 
-                let block = await remoteNode.blockChainBlockData(toMaybeFetch, 1)[0]
+                let blocks = await remoteNode.blockChainBlockData(blockId, 1)
+                if (!blocks || !blocks.length) {
+                    console.log(`error fetching block ${blockId}`)
+                    continue
+                }
+                let block = blocks[0]
 
                 console.log(`transfer block ${blockId.substring(0, 9)}`)
 

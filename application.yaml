@@ -24,7 +24,7 @@ spec:
         image: eu.gcr.io/blockchain-js/blockchain-js-ui:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 80
+        - containerPort: 443
           protocol: TCP
       - name: rencontres
         image: eu.gcr.io/blockchain-js/rencontres:latest
@@ -42,11 +42,12 @@ metadata:
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Cluster
+  loadBalancerIP: 35.187.182.86
   ports:
-  - name: http
+  - name: https
     protocol: TCP
-    port: 80
-    targetPort: 80
+    port: 443
+    targetPort: 443
   - name: signal
     protocol: TCP
     port: 8999

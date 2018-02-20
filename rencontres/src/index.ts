@@ -1,5 +1,8 @@
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
+import * as http from 'http'
+import * as https from 'https'
+import * as fs from 'fs'
 
 declare function ws(this: express.Server, url: string, callback: any)
 declare function ws(this: express.Express, url: string, callback: any)
@@ -92,20 +95,30 @@ class OffersIndex {
 }
 
 function createExpressApp(port: number) {
-    let app = express() as express.Express
-
     let offers = new OffersIndex()
     let wss = new Set<WebSocket>()
 
-    require('express-ws')(app)
+    let app = express() as express.Express
     app.use(bodyParser.json())
 
-    app.listen(port, '0.0.0.0', () => console.log(`listening http on port ${port}`))
+    //http.createServer(app).listen(port, '0.0.0.0', () => console.log(`listening http on port ${port}`))
+    let server = https.createServer({
+        key: fs.readFileSync('key.pem'),
+        cert: fs.readFileSync('cert.pem')
+    }, app)
+
+    require('express-ws')(app, server)
+
+    server.listen(port, '0.0.0.0', () => console.log(`listening https on port ${port}`))
 
     app.use(function (req, res, next) {
         res.header("Access-Control-Allow-Origin", "*")
         res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
         next()
+    })
+
+    app.get('/test', async (req, res) => {
+        res.send(JSON.stringify({ message: 'hello' }))
     })
 
     app.ws('/signal', (ws, req) => {

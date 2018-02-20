@@ -1,8 +1,11 @@
+import * as express from 'express'
+import * as bodyParser from 'body-parser'
 import * as NodeNetworkServer from './node-network-server'
 import * as NodeNetworkClient from './node-network-client'
-import * as Tools from './tools'
 import * as FullNode from './full-node'
 import * as NetworkApiNodeImpl from './network-api-node-impl'
+import * as https from 'https'
+import * as fs from 'fs'
 
 const NETWORK_CLIENT_API = new NetworkApiNodeImpl.NetworkApiNodeImpl()
 
@@ -12,18 +15,31 @@ let fullNode = new FullNode.FullNode(NETWORK_CLIENT_API)
 let port = (process.argv.length >= 3 && parseInt(process.argv[2])) || 9091
 
 // node rest/ws servicing
-let app = Tools.createExpressApp(port)
+let app = express()
+app.use(bodyParser.json())
+
+let server = https.createServer({
+    key: fs.readFileSync('key.pem'),
+    cert: fs.readFileSync('cert.pem')
+}, app)
+
+require('express-ws')(app, server)
+
+server.listen(port, '0.0.0.0', () => console.log(`listening https on port ${port}`))
+
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*")
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
     next()
 })
-let server = new NodeNetworkServer.NodeServer(
+
+let nodeServer = new NodeNetworkServer.NodeServer(
     fullNode.node,
     peerNode => fullNode.transfer.addRemoteNode(peerNode),
     peerNode => fullNode.transfer.removeRemoteNode(peerNode)
 )
-server.initialize(app)
+
+nodeServer.initialize(app)
 
 // mining facility
 app.get('/mineSomething/:branch', async (req, res) => {

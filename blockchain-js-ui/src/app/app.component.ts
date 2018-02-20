@@ -45,7 +45,7 @@ export class AppComponent {
   autoP2P = false
 
   constructor() {
-    this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`, (offerId, offerMessage) => {
+    this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`wss://${window.location.hostname}:8999/signal`, (offerId, offerMessage) => {
       if (!this.autoP2P || this.knownAcceptedMessages.has(offerMessage))
         return { accepted: false, message: `i know you` }
 
@@ -177,7 +177,7 @@ export class AppComponent {
   async addPeer(peerHost, peerPort) {
     console.log(`add peer ${peerHost}:${peerPort}`)
 
-    let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`ws://${peerHost}:${peerPort}/events`)
+    let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`wss://${peerHost}:${peerPort}/events`)
 
     this.addPeerBySocket(ws, `direct peer ${peerHost}:${peerPort}`)
   }
