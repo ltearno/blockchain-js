@@ -15,16 +15,27 @@ export class AppComponent {
 
   fullNode: Blockchain.FullNode = null
   logs: string[] = []
-  state = []
+  state: {
+    [key: string]: {
+      branch: string
+      head: string
+      blocks: any[]
+    }
+  } = { "master": { branch: Blockchain.MASTER_BRANCH, head: null, blocks: [] } }
   p2pBroker: PeerToPeer.PeerToPeerBrokering
   isMining = false
 
   desiredNbPeers = 3
 
   selectedTab = 1
+  selectedBranch = Blockchain.MASTER_BRANCH
 
   selectTab(i) {
     this.selectedTab = i
+  }
+
+  get branches() {
+    return Object.getOwnPropertyNames(this.state)
   }
 
   knownAcceptedMessages = new Set<string>()
@@ -57,7 +68,7 @@ export class AppComponent {
     this.fullNode.node.addEventListener('head', async branch => {
       this.log(`new head on branch ${branch} : ${await this.fullNode.node.blockChainHead(branch)}`)
 
-      let state = []
+      let state = {}
 
       for (let branch of await this.fullNode.node.branches()) {
         let toFetch = await this.fullNode.node.blockChainHead(branch)
@@ -88,7 +99,7 @@ export class AppComponent {
             break
         }
 
-        state.push(branchState)
+        state[branch] = branchState
       }
 
       this.state = state
@@ -119,7 +130,7 @@ export class AppComponent {
     this.isMining = true
 
     try {
-      this.fullNode.miner.addData(Blockchain.MASTER_BRANCH, minedData)
+      this.fullNode.miner.addData(this.selectedBranch, minedData)
       let mineResult = await this.fullNode.miner.mineData(miningDifficulty, 30)
       this.log(`mine result: ${JSON.stringify(mineResult)}`)
     }

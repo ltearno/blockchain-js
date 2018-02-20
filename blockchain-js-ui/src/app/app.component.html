@@ -57,26 +57,8 @@
       <button (click)='mine(minedData.value, miningDifficulty.value)' [disabled]='isMining || autoMining' class='button'>Mine</button>
     </div>
 
-    <div class="container is-fluid">Branches
-      <ul>
-        <li *ngFor="let branchInfo of state">
-          branch {{branchInfo.branch}} at {{branchInfo.head}}
-          <ul>
-            <div *ngIf='branchInfo.blocks.length'>
-              id: {{branchInfo.blocks[0].blockMetadata.blockId}}
-              <br/> valid: {{branchInfo.blocks[0].blockMetadata.isValid}}
-              <br/> branch: {{branchInfo.blocks[0].blockData?.branch}}
-              <br/> previous blocks: {{branchInfo.blocks[0].blockData?.previousBlockIds | json}}
-              <br/> confidence: {{branchInfo.blocks[0].blockMetadata.confidence}}
-              <br/> blockCount: {{branchInfo.blocks[0].blockMetadata.blockCount}}
-              <br/> validityProof: {{branchInfo.blocks[0].blockData?.validityProof | json}}
-            </div>
-            <li *ngFor="let block of branchInfo.blocks; index as i">
-              <br/>{{block.blockData.data | json}}
-            </li>
-          </ul>
-        </li>
-      </ul>
+    <div *ngIf='state[selectedBranch]?.blocks' class="container is-fluid">
+      <div *ngFor="let block of state[selectedBranch].blocks; index as i">{{block.blockData.data | json}}</div>
     </div>
   </div>
 
@@ -136,6 +118,31 @@
     <br/>
     <div class="container is-fluid">
       <div class="box">
+        <h2 class='subtitle'>Branch management</h2>
+        <div class="field">
+          <label class="label">Current branch</label>
+          <div class="select">
+            <select>
+              <option *ngFor='let branch of branches' [selected]='branch==selectedBranch'>{{branch}}</option>
+            </select>
+          </div>
+        </div>
+        <div *ngIf='state[selectedBranch]'>
+          <div *ngIf='state[selectedBranch].blocks.length'>
+            head block id: {{state[selectedBranch].blocks[0].blockMetadata.blockId}}
+            <br/> valid: {{state[selectedBranch].blocks[0].blockMetadata.isValid}}
+            <br/> branch: {{state[selectedBranch].blocks[0].blockData?.branch}}
+            <br/> previous blocks: {{state[selectedBranch].blocks[0].blockData?.previousBlockIds | json}}
+            <br/> confidence: {{state[selectedBranch].blocks[0].blockMetadata.confidence}}
+            <br/> blockCount: {{state[selectedBranch].blocks[0].blockMetadata.blockCount}}
+            <br/> validityProof: {{state[selectedBranch].blocks[0].blockData?.validityProof | json}}
+          </div>
+        </div>
+      </div>
+    </div>
+    <br/>
+    <div class="container is-fluid">
+      <div class="box">
         <h2 class='subtitle'>Logs</h2>
         <div *ngFor="let log of logs">{{log}}</div>
       </div>
@@ -148,11 +155,12 @@
     <div class="content has-text-centered">
       <p>
         <strong>Blockchain JS</strong> by
-        <a href='https://github.com/ltearno'>Arnaud Tournier</a>
+        <a href='https://github.com/ltearno'>Arnaud Tournier</a> at
         <a href="https://stack-labs.com">Stack Labs</a>
       </p>
       <p *ngIf='title'>
-        {{fullNode.peerInfos.length}} peers connected
+        <span>{{fullNode.peerInfos.length}} peers connected</span>
+        <span *ngIf='!p2pBroker.ready' style='color:red;'> - peer to peer connectivity is not ready</span>
         <span *ngIf='autoMining' style='color:green;'> - auto-mining enabled</span>
       </p>
     </div>
