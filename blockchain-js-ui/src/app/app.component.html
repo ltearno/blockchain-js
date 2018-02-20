@@ -54,7 +54,7 @@
       <br/>Difficulty :
       <input #miningDifficulty type="number" value='100'>
       <br/>
-      <button (click)='mine(minedData.value, miningDifficulty.value)' [disabled]='isMining' class='button'>Mine</button>
+      <button (click)='mine(minedData.value, miningDifficulty.value)' [disabled]='isMining || autoMining' class='button'>Mine</button>
     </div>
 
     <div class="container is-fluid">Branches
