@@ -11,9 +11,7 @@ export class NodeTransfer {
     private listeners: any[] = undefined
     private knownNodes: NodeApi.NodeApi[] = undefined
 
-    constructor(
-        public node: NodeApi.NodeApi
-    ) {
+    constructor(public node: NodeApi.NodeApi) {
     }
 
     initialize(knownNodes: NodeApi.NodeApi[]) {
@@ -28,7 +26,6 @@ export class NodeTransfer {
     }
 
     addRemoteNode(remoteNode: NodeApi.NodeApi) {
-        console.log(`addRemoteNode`)
         this.initRemoteNode(remoteNode)
     }
 
@@ -36,8 +33,6 @@ export class NodeTransfer {
         let index = this.knownNodes.indexOf(remoteNode)
         if (index < 0)
             return
-
-        console.log(`removeRemoteNode`)
 
         remoteNode.removeEventListener(this.listeners[index])
         this.listeners.splice(index, 1)
@@ -93,7 +88,7 @@ export class NodeTransfer {
     }
 
     private async fetchFromNode(remoteNode: NodeApi.NodeApi, branch: string) {
-        const BATCH_SIZE = 5
+        const BATCH_SIZE = 10
 
         let remoteHead = await remoteNode.blockChainHead(branch)
 
@@ -119,34 +114,26 @@ export class NodeTransfer {
                 continue
 
             let blockIds = await remoteNode.blockChainBlockIds(toMaybeFetch, BATCH_SIZE)
+            if (!blockIds)
+                continue
+
             console.log(`fetched ${blockIds.length} block ids`)
 
-            let nbBlocksToLoad = 0
-            for (let blockId of blockIds) {
-                if (await this.node.knowsBlock(blockId))
-                    break
+            for (let i = 0; i < blockIds.length; i++) {
+                let blockId = blockIds[i]
 
-                nbBlocksToLoad++
-            }
-
-            let blocks = await remoteNode.blockChainBlockData(toMaybeFetch, nbBlocksToLoad)
-
-            if (blockIds && blocks) {
-                for (let i = 0; i < blocks.length; i++) {
-                    let block = blocks[i]
-                    let blockId = blockIds[i]
-
-                    if (await this.node.knowsBlock(blockId)) {
-                        console.log(`finished transfer batch early`)
-                        break
-                    }
-
-                    console.log(`transfer block ${blockId.substring(0, 5)}`)
-
-                    await this.node.registerBlock(blockId, block)
-
-                    block.previousBlockIds && block.previousBlockIds.forEach(previous => fetchList.push(previous))
+                if (await this.node.knowsBlock(blockId)) {
+                    console.log(`finished transfer batch early`)
+                    continue
                 }
+
+                let block = await remoteNode.blockChainBlockData(toMaybeFetch, 1)[0]
+
+                console.log(`transfer block ${blockId.substring(0, 9)}`)
+
+                await this.node.registerBlock(blockId, block)
+
+                block.previousBlockIds && block.previousBlockIds.forEach(previous => fetchList.push(previous))
             }
         }
     }

@@ -10,7 +10,9 @@ const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = guid()
+  proposedPseudo = this.guid()
+  title = null
+
   fullNode: Blockchain.FullNode = null
   logs: string[] = []
   state = []
@@ -27,10 +29,8 @@ export class AppComponent {
 
   constructor() {
     this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`, (offerId, offerMessage) => {
-      if (this.knownAcceptedMessages.has(offerMessage))
+      if (!this.autoP2P || this.knownAcceptedMessages.has(offerMessage))
         return { accepted: false, message: `i know you` }
-
-      console.log(`OFFER ${offerId}, ${offerMessage}`)
 
       return { accepted: true, message: this.title }
     }, (description, channel) => {
@@ -47,7 +47,6 @@ export class AppComponent {
     }, 10000)
 
     this.fullNode = new Blockchain.FullNode(NETWORK_CLIENT_IMPL)
-    console.log(`full node created`)
 
     this.fullNode.node.addEventListener('head', async branch => {
       this.log(`new head on branch ${branch} : ${await this.fullNode.node.blockChainHead(branch)}`)
@@ -88,6 +87,10 @@ export class AppComponent {
 
       this.state = state
     })
+  }
+
+  setPseudo(pseudo) {
+    this.title = pseudo
   }
 
   maybeOfferP2PChannel() {
@@ -168,7 +171,7 @@ export class AppComponent {
     let connector = null
 
     ws.on('open', () => {
-      console.log(`web socket connected`)
+      console.log(`peer connected`)
 
       connector = new Blockchain.WebSocketConnector(this.fullNode.node, ws)
 
@@ -176,7 +179,7 @@ export class AppComponent {
     })
 
     ws.on('error', (err) => {
-      console.log(`error on ws : ${err}`)
+      console.log(`error with peer : ${err}`)
       ws.close()
     })
 
@@ -185,14 +188,17 @@ export class AppComponent {
       connector = null
       this.fullNode.removePeer(peerInfo.id)
 
-      console.log('closed peer connection')
+      console.log('peer disconnected')
     })
   }
-}
 
-function guid() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8)
-    return v.toString(16)
-  })
+  guid() {
+    //'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+    return 'xxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      let r = Math.random() * 16 | 0
+      let v = c == 'x' ? r : (r & 0x3 | 0x8)
+
+      return v.toString(16)
+    })
+  }
 }

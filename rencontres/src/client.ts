@@ -109,7 +109,7 @@ export class PeerToPeerBrokering {
                 s.close()
             this.signalingSocket = null
 
-            setTimeout(() => this.createSignalingSocket(), 30)
+            setTimeout(() => this.createSignalingSocket(), 6000)
         })
     }
 
