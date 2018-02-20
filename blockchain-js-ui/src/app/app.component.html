@@ -5,16 +5,16 @@
         <h1 class='title'>Blockchain JS</h1>
       </div>
       <div class='level-item' style='width:2em;'></div>
-      <div class='level-item' *ngIf='title'>
+      <div class='level-item' *ngIf='pseudo'>
         <span class='is-italic'>pseudo: </span>
-        <h2 class='subtitle'> {{title}}</h2>
+        <h2 class='subtitle'> {{pseudo}}</h2>
       </div>
     </div>
   </div>
 </nav>
 
 <section id='blockchain-main' class='section'>
-  <div *ngIf='!title' class="container">
+  <div *ngIf='!pseudo' class="container">
     <h1 class='subtitle'>You are not yet connected to the blockchain.</h1>
     <p>First,
       <b>choose a pseudo</b> to connect to the blockchain network.</p>
@@ -33,7 +33,7 @@
     </div>
   </div>
 
-  <div *ngIf='title' class="tabs">
+  <div *ngIf='pseudo' class="tabs">
     <ul>
       <li [class.is-active]='selectedTab==1' (click)='selectTab(1)'>
         <a>Messages</a>
@@ -47,14 +47,33 @@
     </ul>
   </div>
 
-  <div *ngIf='title && selectedTab==1'>
+  <div *ngIf='pseudo && selectedTab==1'>
     <div class="container is-fluid">
-      Message :
-      <input #minedData type="text" value='Some data to mine...'>
-      <br/>Difficulty :
-      <input #miningDifficulty type="number" value='100'>
-      <br/>
-      <button (click)='mine(minedData.value, miningDifficulty.value)' [disabled]='isMining || autoMining' class='button'>Mine</button>
+      <div class="field has-addons">
+        <p class="control is-expanded">
+          <input #minedData class='input' type="text" placeholder='Message to send to blockchain' (keyup.enter)='mine(minedData.value, miningDifficulty.value) && minedData.value=""'>
+        </p>
+        <div class="control has-icons-left">
+          <span class="select">
+            <select #miningDifficulty>
+              <option>1</option>
+              <option>5</option>
+              <option>10</option>
+              <option>20</option>
+              <option selected>100</option>
+              <option>1000</option>
+            </select>
+          </span>
+          <div class="icon is-small is-left">
+            <i class="mdi mdi-star"></i>
+          </div>
+        </div>
+        <p class="control">
+          <button (click)='mine(minedData.value, miningDifficulty.value)' [disabled]='isMining || autoMining' class='button has-icon-left'>
+            <i class='mdi mdi-cloud-upload'></i> Mine
+          </button>
+        </p>
+      </div>
     </div>
 
     <div *ngIf='state[selectedBranch]?.blocks' class="container is-fluid">
@@ -62,7 +81,7 @@
     </div>
   </div>
 
-  <div *ngIf='title && selectedTab==2'>
+  <div *ngIf='pseudo && selectedTab==2'>
     <div class="container is-fluid box">
       <div *ngIf='p2pBroker.ready'>
         <div *ngIf='autoP2P' class='level'>Peer to peer connectivity is enabled
@@ -82,9 +101,17 @@
       </div>
       <div *ngIf='!p2pBroker.ready' class='box' style='color:red;'>Peer to peer connectivity is not ready</div>
 
-      <span *ngIf="fullNode.peerInfos.length">peers :</span>
+      <span *ngIf="fullNode.peerInfos.length">Connected peers :</span>
       <ul>
-        <li *ngFor='let peerInfo of fullNode.peerInfos'>{{peerInfo.description}}</li>
+        <li *ngFor='let peerInfo of fullNode.peerInfos'>
+          <span>{{peerInfo.description}}</span>
+          <button class='button has-icon-left' (click)='disconnectPeer(peerInfo)'>
+            <span class="icon">
+              <i class="mdi mdi-star"></i>
+            </span>
+            <span>disconnect</span>
+          </button>
+        </li>
       </ul>
       <span>add a peer :</span>
       <input type="text" #peerHost value="localhost">
@@ -93,7 +120,7 @@
     </div>
   </div>
 
-  <div *ngIf='title && selectedTab==3'>
+  <div *ngIf='pseudo && selectedTab==3'>
     <div class="container is-fluid">
       <div class="box">
         <h2 class='subtitle'>Automining</h2>
@@ -122,8 +149,8 @@
         <div class="field">
           <label class="label">Current branch</label>
           <div class="select">
-            <select>
-              <option *ngFor='let branch of branches' [selected]='branch==selectedBranch'>{{branch}}</option>
+            <select [(ngModel)]='selectedBranch'>
+              <option *ngFor='let branch of branches' value='{{branch}}'>{{branch}}</option>
             </select>
           </div>
         </div>
@@ -158,7 +185,7 @@
         <a href='https://github.com/ltearno'>Arnaud Tournier</a> at
         <a href="https://stack-labs.com">Stack Labs</a>
       </p>
-      <p *ngIf='title'>
+      <p *ngIf='pseudo'>
         <span>{{fullNode.peerInfos.length}} peers connected</span>
         <span *ngIf='!p2pBroker.ready' style='color:red;'> - peer to peer connectivity is not ready</span>
         <span *ngIf='autoMining' style='color:green;'> - auto-mining enabled</span>

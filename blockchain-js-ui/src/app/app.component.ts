@@ -11,7 +11,7 @@ const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
 })
 export class AppComponent {
   proposedPseudo = this.guid()
-  title = null
+  pseudo = null
 
   fullNode: Blockchain.FullNode = null
   logs: string[] = []
@@ -49,13 +49,13 @@ export class AppComponent {
       if (!this.autoP2P || this.knownAcceptedMessages.has(offerMessage))
         return { accepted: false, message: `i know you` }
 
-      return { accepted: true, message: this.title }
+      return { accepted: true, message: this.pseudo }
     }, (description, channel) => {
       let counterPartyMessage = description.counterPartyMessage
       this.knownAcceptedMessages.add(counterPartyMessage)
       channel.on('close', () => this.knownAcceptedMessages.delete(counterPartyMessage))
 
-      this.addPeerBySocket(channel, `p2p with ${counterPartyMessage} (as '${this.title}') on channel ${description.offerId.substr(0, 5)}`)
+      this.addPeerBySocket(channel, `p2p with ${counterPartyMessage} (as '${this.pseudo}') on channel ${description.offerId.substr(0, 5)}`)
     })
     this.p2pBroker.createSignalingSocket()
     setInterval(() => {
@@ -107,7 +107,7 @@ export class AppComponent {
   }
 
   setPseudo(pseudo) {
-    this.title = pseudo
+    this.pseudo = pseudo
   }
 
   maybeOfferP2PChannel() {
@@ -120,23 +120,22 @@ export class AppComponent {
   }
 
   async offerP2PChannel() {
-    let offerId = await this.p2pBroker.offerChannel(this.title)
+    let offerId = await this.p2pBroker.offerChannel(this.pseudo)
   }
 
-  async mine(minedData, miningDifficulty) {
-    if (this.isMining && minedData == '' || miningDifficulty <= 0)
+  async mine(message, miningDifficulty) {
+    if (this.isMining || message == '' || miningDifficulty <= 0)
       return
 
     this.isMining = true
 
     try {
-      this.fullNode.miner.addData(this.selectedBranch, minedData)
+      this.fullNode.miner.addData(this.selectedBranch, { id: this.guid(), author: this.pseudo, message })
       let mineResult = await this.fullNode.miner.mineData(miningDifficulty, 30)
       this.log(`mine result: ${JSON.stringify(mineResult)}`)
     }
     catch (error) {
       this.log(`error mining: ${JSON.stringify(error)}`)
-      throw error
     }
     finally {
       this.isMining = false
@@ -207,6 +206,10 @@ export class AppComponent {
 
       console.log('peer disconnected')
     })
+  }
+
+  disconnectPeer(peerInfo) {
+    this.fullNode.removePeer(peerInfo.id)
   }
 
   guid() {
