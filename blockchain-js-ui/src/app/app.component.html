@@ -6,7 +6,8 @@
       </div>
       <div class='level-item' style='width:2em;'></div>
       <div class='level-item' *ngIf='title'>
-        <span class='is-italic'>pseudo: </span><h2 class='subtitle'> {{title}}</h2>
+        <span class='is-italic'>pseudo: </span>
+        <h2 class='subtitle'> {{title}}</h2>
       </div>
     </div>
   </div>
@@ -14,14 +15,19 @@
 
 <div *ngIf='!title' class="container">
   <h1 class='subtitle'>You are not yet connected to the blockchain.</h1>
-  <p>First, choose a pseudo. Your node will connect to the network with this identity.</p>
+  <p>First,
+    <b>choose a pseudo</b> to connect to the blockchain network.</p>
   <p>Be careful, try to be the only one with this pseudo.</p>
   <p>Choose something random,
     <span class='is-italic'>like 'arnaud-b8bd9'</span>.</p>
-  <div>
-    <input #pseudo [value]='proposedPseudo' size="30">
+  <br>
+  <div class="field">
+    <label class="label">Pseudo</label>
+    <div class="control">
+      <input #pseudo class='input' type="text" [value]='proposedPseudo' size="30" placeholder="Your pseudo">
+    </div>
   </div>
-  <button class='button' (click)='setPseudo(pseudo.value)'>Connect to the blockchain</button>
+  <button class='button is-link' (click)='setPseudo(pseudo.value)'>Connect to the blockchain</button>
 </div>
 
 <div *ngIf='title'>
