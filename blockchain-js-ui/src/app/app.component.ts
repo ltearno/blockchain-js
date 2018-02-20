@@ -21,6 +21,12 @@ export class AppComponent {
 
   desiredNbPeers = 3
 
+  selectedTab = 1
+
+  selectTab(i) {
+    this.selectedTab = i
+  }
+
   knownAcceptedMessages = new Set<string>()
 
   autoMining = false
@@ -128,8 +134,8 @@ export class AppComponent {
 
   log(message) {
     this.logs.unshift(message)
-    if (this.logs.length > 50)
-      this.logs.splice(20)
+    if (this.logs.length > 20)
+      this.logs.pop()
   }
 
   toggleAutoP2P() {
