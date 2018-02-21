@@ -48,6 +48,12 @@
   </div>
 
   <div *ngIf='pseudo && selectedTab==1'>
+    <div *ngIf='!autoP2P && !(fullNode.peerInfos?.length)' class="container is-fluid">
+      <button class='button is-success' (click)='toggleAutoP2P()'>Enable peer to peer connectivity</button>
+      <br/>
+      <br/>
+    </div>
+
     <div class="container is-fluid">
       <div class="field has-addons">
         <p class="control is-expanded">
