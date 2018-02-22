@@ -26,7 +26,8 @@
       <div class="field">
         <label class="label">Pseudo</label>
         <div class="control">
-          <input #pseudo class='input' (keyup.enter)='setPseudo(pseudo.value, true)' type="text" [value]='proposedPseudo' size="30" placeholder="Your pseudo">
+          <input #pseudo class='input' (keyup.enter)='setPseudo(pseudo.value, true)' type="text" [value]='proposedPseudo' size="30"
+            placeholder="Your pseudo">
         </div>
       </div>
       <button class='button is-link' (click)='setPseudo(pseudo.value, true)'>Connect to the blockchain</button>
@@ -85,7 +86,15 @@
     </div>
 
     <div *ngIf='state[selectedBranch]?.blocks' class="container is-fluid">
-      <div *ngFor="let block of state[selectedBranch].blocks; index as i">{{block.blockData.data | json}}</div>
+      <div *ngFor="let block of state[selectedBranch].blocks; index as i">
+        <div *ngFor="let item of block.blockData.data">
+          <div *ngIf='(!item.id) || (!item.message) || (!item.author)'>{{item | json}}</div>
+          <div *ngIf='item.id && item.message && item.author'>
+            <span style='font-size:80%;'>{{item?.author}}:&nbsp;&nbsp;</span>
+            {{item?.message}}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
