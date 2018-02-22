@@ -14,4 +14,10 @@ docker build . -t eu.gcr.io/blockchain-js/rencontres:latest
 gcloud docker -- push eu.gcr.io/blockchain-js/rencontres:latest
 cd ..
 
+echo "building http-redirect..."
+cd http-redirect
+docker build . -t eu.gcr.io/blockchain-js/http-redirect:latest
+gcloud docker -- push eu.gcr.io/blockchain-js/http-redirect:latest
+cd ..
+
 echo "all done"
