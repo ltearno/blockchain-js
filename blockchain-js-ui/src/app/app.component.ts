@@ -106,8 +106,9 @@ export class AppComponent {
     })
   }
 
-  setPseudo(pseudo) {
+  setPseudo(pseudo, peerToPeer) {
     this.pseudo = pseudo
+    this.autoP2P = peerToPeer
   }
 
   maybeOfferP2PChannel() {
