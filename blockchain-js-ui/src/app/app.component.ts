@@ -1,6 +1,12 @@
 import { Component } from '@angular/core'
 import * as Blockchain from 'blockchain-js-core'
 import * as PeerToPeer from 'rencontres'
+import sha256 from 'crypto-js/sha256'
+import hmacSHA512 from 'crypto-js/hmac-sha512'
+import Base64 from 'crypto-js/enc-base64'
+import * as CryptoJS from 'crypto-js'
+
+//CryptoJS.SHA256(
 
 const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
 
@@ -12,6 +18,9 @@ const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
 export class AppComponent {
   proposedPseudo = this.guid()
   pseudo = null
+  privateKey = ''
+  encryptMessages = false
+  encryptionKey = this.guid()
 
   fullNode: Blockchain.FullNode = null
   logs: string[] = []
