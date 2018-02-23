@@ -88,10 +88,6 @@
           <label for='encryptMessages'>Encrypt messages</label>
           <input id='encryptMessages' class='checkbox' type="checkbox" [(ngModel)]='encryptMessages'>
         </div>
-        <div *ngIf='encryptMessages' class="control">
-          <!--<span class="label">Encryption key</span>-->
-          <input class='input is-small' *ngIf='encryptMessages' type="text" [(ngModel)]='encryptionKey'>
-        </div>
       </div>
     </div>
 
@@ -100,8 +96,12 @@
         <div *ngFor="let item of block.blockData.data">
           <div *ngIf='(!item.id) || (!item.message) || (!item.author)'>{{item | json}}</div>
           <div *ngIf='item.id && item.message && item.author'>
+            <span *ngIf='item?.encrypted' class="icon">
+              <i class="mdi mdi-lock"></i>
+            </span>
             <span style='font-size:80%;'>{{item?.author}}:&nbsp;&nbsp;</span>
-            {{item?.message}}
+            <span *ngIf='!(item?.encrypted)'>{{item?.message}}</span>
+            <span *ngIf='item?.encrypted'>{{decypher(item.message)}}</span>
           </div>
         </div>
       </div>
@@ -152,8 +152,25 @@
       <div class="box">
         <h2 class='subtitle'>Privacy</h2>
         <div class="field">
-          <label class='label'>privateKey</label>
-          <input [(ngModel)]='privateKey' class='input' type="text" placeholder='Private key'>
+          <label class='label'>My encryption key</label>
+          <input [(ngModel)]='encryptionKey' class='input' type="text" placeholder='My encryption key'>
+        </div>
+        <label class="label">Know others encryption keys</label>
+        <div class="field has-addons">
+          <div class="control">
+            <input #newEncryptionKey class='input' type="text" placeholder='New key' (keyup.enter)='addEncryptionKey(newEncryptionKey.value) && newEncryptionKey.value=""'>
+          </div>
+          <div class="control">
+            <button (click)='addEncryptionKey(newEncryptionKey.value) && newEncryptionKey.value=""' class="button is-primary">Search</button>
+          </div>
+        </div>
+        <div *ngFor='let key of otherEncryptionKeys'>
+          <button class='button is-warning' (click)='removeEncryptionKey(key)'>
+            <span class="icon">
+              <i class="mdi mdi-delete"></i>
+            </span>
+          </button>
+          <span>{{key}}</span>
         </div>
       </div>
     </div>

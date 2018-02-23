@@ -6,8 +6,6 @@ import hmacSHA512 from 'crypto-js/hmac-sha512'
 import Base64 from 'crypto-js/enc-base64'
 import * as CryptoJS from 'crypto-js'
 
-//CryptoJS.SHA256(
-
 const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
 
 @Component({
@@ -18,9 +16,9 @@ const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
 export class AppComponent {
   proposedPseudo = this.guid()
   pseudo = null
-  privateKey = ''
   encryptMessages = false
   encryptionKey = this.guid()
+  otherEncryptionKeys: string[] = []
 
   fullNode: Blockchain.FullNode = null
   logs: string[] = []
@@ -133,14 +131,71 @@ export class AppComponent {
     let offerId = await this.p2pBroker.offerChannel(this.pseudo)
   }
 
-  async mine(message, miningDifficulty) {
+  addEncryptionKey(newEncryptionKey: string) {
+    if (!newEncryptionKey || !newEncryptionKey.length || this.otherEncryptionKeys.includes(newEncryptionKey))
+      return
+
+    this.decypherCache.clear()
+
+    this.otherEncryptionKeys.push(newEncryptionKey)
+  }
+
+  removeEncryptionKey(key) {
+    this.otherEncryptionKeys = this.otherEncryptionKeys.filter(k => k != key)
+  }
+
+  private decypherCache = new Map<string, string>()
+
+  decypher(message: string) {
+    if (!message || message.length < 5)
+      return `(invalid) ${message}`
+
+    if (this.decypherCache.has(message))
+      return this.decypherCache.get(message)
+
+    let decypheredMessage = `(crypted) ${message}`
+    for (let key of this.otherEncryptionKeys) {
+      let decyphered = CryptoJS.AES.decrypt(message, key).toString(CryptoJS.enc.Utf8)
+      if (!decyphered || decyphered.length < 6)
+        continue
+
+      console.log(`decy ${decyphered}`)
+
+      let check = decyphered.substr(-3)
+      decyphered = decyphered.substr(0, decyphered.length - 3)
+      if (check == decyphered.substr(-3)) {
+        this.decypherCache.set(message, decyphered)
+        decypheredMessage = decyphered
+        break
+      }
+    }
+
+    this.decypherCache.set(message, decypheredMessage)
+
+    return decypheredMessage
+  }
+
+  async mine(message: string, miningDifficulty) {
     if (this.isMining || message == '' || miningDifficulty <= 0)
       return
 
     this.isMining = true
 
     try {
-      this.fullNode.miner.addData(this.selectedBranch, { id: this.guid(), author: this.pseudo, message })
+      let dataItem = {
+        id: this.guid(),
+        author: this.pseudo,
+        message,
+        encrypted: false
+      }
+
+      if (this.encryptMessages && this.encryptionKey && dataItem.message.length >= 3) {
+        this.addEncryptionKey(this.encryptionKey)
+        dataItem.message = CryptoJS.AES.encrypt(dataItem.message + dataItem.message.substr(-3), this.encryptionKey).toString()
+        dataItem.encrypted = true
+      }
+
+      this.fullNode.miner.addData(this.selectedBranch, dataItem)
       let mineResult = await this.fullNode.miner.mineData(miningDifficulty, 30)
       this.log(`mine result: ${JSON.stringify(mineResult)}`)
     }
