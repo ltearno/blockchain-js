@@ -32,7 +32,7 @@ export class AppComponent {
   p2pBroker: PeerToPeer.PeerToPeerBrokering
   isMining = false
 
-  desiredNbPeers = 7
+  desiredNbPeers = 5
 
   selectedTab = 1
   selectedBranch = Blockchain.MASTER_BRANCH
@@ -97,6 +97,15 @@ export class AppComponent {
     this.p2pBroker.createSignalingSocket()
 
     setInterval(() => {
+      if (this.fullNode.peerInfos && this.fullNode.peerInfos.length >= this.desiredNbPeers) {
+        let toRemove = this.fullNode.peerInfos[Math.floor(this.fullNode.peerInfos.length * Math.random())]
+        this.fullNode.removePeer(toRemove)
+
+        this.log(`removed random node ${toRemove.id}:${toRemove.description}`)
+      }
+    }, 15000 + Math.random() * 45000)
+
+    setInterval(() => {
       if (this.autoP2P && this.p2pBroker.ready)
         this.maybeOfferP2PChannel()
     }, 10000)
@@ -153,12 +162,16 @@ export class AppComponent {
 
   maybeOfferP2PChannel() {
     if (this.autoP2P && this.p2pBroker.ready && this.fullNode.peerInfos.length < this.desiredNbPeers) {
-      let offerId = this.p2pBroker.offerChannel(this.pseudo)
-      this.log(`offered channel ${offerId}`)
+      this.offerP2PChannel()
     }
 
     // todo remove when too much peers ?
     // todo remove unconnected peers ?
+  }
+
+  offerP2PChannel() {
+    let offerId = this.p2pBroker.offerChannel(this.pseudo)
+    this.log(`offered channel ${offerId}`)
   }
 
   addEncryptionKey(newEncryptionKey: string) {

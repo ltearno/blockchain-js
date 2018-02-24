@@ -29,8 +29,14 @@ class FakeWebSocket implements SocketAPI {
 
     close() {
         if (this.signalingSocket) {
-            this.signalingSocket.send(JSON.stringify({ type: 'close', data: { offerId: this.offerId } }))
-            this.signalingSocket = null
+            try {
+                this.signalingSocket.send(JSON.stringify({ type: 'close', data: { offerId: this.offerId } }))
+                this.signalingSocket = null
+            }
+            catch (e) {
+                console.log(`error close ${e}`)
+            }
+
             this.broadcast('close')
         }
     }

@@ -73,7 +73,7 @@ class OffersIndex {
     removeSocketOffers(ws: WebSocket) {
         let toBeRemoved = []
         for (let offer of this.offers.values())
-            if (ws !== offer.answererSocket && ws !== offer.offererSocket)
+            if (ws === offer.answererSocket || ws === offer.offererSocket)
                 toBeRemoved.push(offer)
 
         toBeRemoved.forEach(offer => this.offers.delete(offer.id))

@@ -63,17 +63,17 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         if (!blockId || !block) {
             console.error(`invalid block`)
-            return
+            return null
         }
 
         if (!block.branch) {
             console.error(`invalid block ! Aborting registration`)
-            return
+            return null
         }
 
         if (this.knownBlocksData.has(blockId)) {
             console.log(`already registered block ${blockId && blockId.substring(0, 5)}`)
-            return
+            return this.knownBlocks.get(blockId)
         }
 
         let fixedId = await Block.idOfBlock(block)
@@ -84,7 +84,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         if (this.knownBlocksData.has(blockId)) {
             console.log(`already registered block ${blockId && blockId.substring(0, 5)} after processing the id`)
-            return
+            return this.knownBlocks.get(blockId)
         }
 
         this.knownBlocksData.set(blockId, block)

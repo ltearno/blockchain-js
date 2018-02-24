@@ -112,7 +112,7 @@ export class NodeTransfer {
     private async processBlockLoad() {
         if (this.fetchingItem) {
             console.log(`already fetching`)
-            return null
+            return
         }
 
         // to mark that we are searching for an item to load
@@ -161,19 +161,13 @@ export class NodeTransfer {
             let fetchedBlockId = this.fetchingItem.blockId
             this.fetchingItem = null
             this.fetchList.delete(fetchedBlockId)
+
             loadedBlock.previousBlockIds && loadedBlock.previousBlockIds.forEach(blockId => this.registerBlockInFetchList(blockId, nodeToFetchFrom))
 
-            let blockMetadata = await this.node.registerBlock(fetchedBlockId, loadedBlock)
-            if (!blockMetadata || !blockMetadata.isValid) {
-                // TODO maybe remove the cheating node
-                console.log(`no metadata, maybe remove the cheating node !`)
-            }
+            this.node.registerBlock(fetchedBlockId, loadedBlock)
         }
         finally {
-            setTimeout(() => {
-                console.log(`trying again`)
-                this.processBlockLoad()
-            }, 0)
+            this.processBlockLoad()
         }
     }
 
