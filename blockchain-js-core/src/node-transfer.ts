@@ -1,6 +1,11 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
 
+interface FetchItem {
+    blockId: string
+    nodes: NodeApi.NodeApi[]
+}
+
 /**
  * Interaction between a node and a set of remote nodes
  * 
@@ -10,6 +15,10 @@ import * as NodeApi from './node-api'
 export class NodeTransfer {
     private listeners: any[] = undefined
     private knownNodes: NodeApi.NodeApi[] = undefined
+
+    private fetchingItem: FetchItem = null
+    private fetchList = new Map<string, FetchItem>()
+
 
     constructor(public node: NodeApi.NodeApi) {
     }
@@ -88,58 +97,118 @@ export class NodeTransfer {
     }
 
     private async fetchFromNode(remoteNode: NodeApi.NodeApi, branch: string) {
-        const BATCH_SIZE = 10
+        try {
+            let remoteHead = await remoteNode.blockChainHead(branch)
 
-        let remoteHead = await remoteNode.blockChainHead(branch)
+            await this.registerBlockInFetchList(remoteHead, remoteNode)
 
-        // TODO : have a global context to do that :
+            this.processBlockLoad()
+        }
+        catch (e) {
+            console.log(`error : ${e}`)
+        }
+    }
 
-        // - plan de rapatriement de blockId (quel bloc id par quel(s) peer(s))
-        // - plan de rapatriement de block (quel bloc par quel(s) peer(s))
-        // faire cela dans un timer. Objectif : 
-        // - même si le réseau bouge beaucoup, se synchroniser petit à petit
-        // - minimiser le flux réseau (ne pas demander le même block à plusieurs noeuds)
+    private async processBlockLoad() {
+        if (this.fetchingItem) {
+            console.log(`already fetching`)
+            return null
+        }
 
-        // enregistrer que tel block est en provenance de tel(s) peer(s)
-        // avoir un plan global de rapatriement
-        // remonter par block-ids jusqu'à un block connu de notre noeud
-        // alimenter plan de rapatriement de blocks
+        // to mark that we are searching for an item to load
+        this.fetchingItem = {
+            blockId: null,
+            nodes: null
+        }
 
-        // TODO load first the IDs then the blocks in batch and reverse size, so update is quicker on client
+        this.fetchingItem = await this.chooseFetchItemToLoad()
+        if (!this.fetchingItem) {
+            console.log(`no item to fetch`)
+            return
+        }
 
-        let fetchList = [remoteHead]
-        while (fetchList.length) {
-            let toMaybeFetch = fetchList.shift()
-            if (await this.node.knowsBlock(toMaybeFetch))
-                continue
+        try {
+            if (this.fetchingItem.nodes.length == 0 || !this.fetchingItem.blockId) {
+                this.fetchList.delete(this.fetchingItem.blockId)
+                this.fetchingItem = null
+                console.log(`no nodes or no blockId`)
+                return
+            }
 
-            let blockIds = await remoteNode.blockChainBlockIds(toMaybeFetch, BATCH_SIZE)
-            if (!blockIds)
-                continue
+            // fetch the block from this first available node and remove this node from the list,
+            let nodeToFetchFrom = this.fetchingItem.nodes.shift()
 
-            console.log(`fetched ${blockIds.length} block ids from ${toMaybeFetch} on`)
+            let loadedBlock: Block.Block = null
+            try {
+                let loadedBlocks = await nodeToFetchFrom.blockChainBlockData(this.fetchingItem.blockId, 1)
+                loadedBlock = loadedBlocks && loadedBlocks.length && loadedBlocks[0]
+            }
+            catch (e) {
+                console.log(`error fetching ${e}`)
+            }
 
-            for (let i = 0; i < blockIds.length; i++) {
-                let blockId = blockIds[i]
+            // if error, push the node at the end of fetchList (for a later try)
+            if (!loadedBlock) {
+                this.fetchingItem.nodes.push(nodeToFetchFrom)
+                this.fetchingItem = null
+                console.log(`block not loaded`)
+                return
+            }
 
-                if (await this.node.knowsBlock(blockId)) {
-                    console.log(`finished transfer batch early`)
-                    continue
-                }
+            // remove the block from the fetch list and register the parent blocks for loading on that node
+            let fetchedBlockId = this.fetchingItem.blockId
+            this.fetchingItem = null
+            this.fetchList.delete(fetchedBlockId)
+            loadedBlock.previousBlockIds && loadedBlock.previousBlockIds.forEach(blockId => this.registerBlockInFetchList(blockId, nodeToFetchFrom))
 
-                let blocks = await remoteNode.blockChainBlockData(blockId, 1)
-                if (!blocks || !blocks.length) {
-                    console.log(`error fetching block ${blockId}`)
-                    continue
-                }
-                let block = blocks[0]
-
-                console.log(`transfer block ${blockId.substring(0, 9)}`)
-
-                await this.node.registerBlock(blockId, block)
-
-                block.previousBlockIds && block.previousBlockIds.forEach(previous => fetchList.push(previous))
+            let blockMetadata = await this.node.registerBlock(fetchedBlockId, loadedBlock)
+            if (!blockMetadata || !blockMetadata.isValid) {
+                // TODO maybe remove the cheating node
+                console.log(`no metadata, maybe remove the cheating node !`)
             }
         }
+        finally {
+            setTimeout(() => {
+                console.log(`trying again`)
+                this.processBlockLoad()
+            }, 0)
+        }
+    }
+
+    private async registerBlockInFetchList(id: string, node: NodeApi.NodeApi) {
+        if (await this.node.knowsBlock(id))
+            return
+
+        if (this.fetchList.has(id)) {
+            if (!this.fetchList.get(id).nodes.includes(node))
+                this.fetchList.get(id).nodes.push(node)
+        }
+        else {
+            let fetchItem = {
+                blockId: id,
+                nodes: [node]
+            }
+            this.fetchList.set(id, fetchItem)
+        }
+    }
+
+    private async chooseFetchItemToLoad() {
+        // choose a block and clean blocks with no node in fetchList
+        let toRemove = []
+        let toProcess: FetchItem = null
+
+        for (let fetchItem of this.fetchList.values()) {
+            if (fetchItem.nodes.length == 0 || await this.node.knowsBlock(fetchItem.blockId)) {
+                toRemove.push()
+            }
+            else {
+                toProcess = fetchItem
+                break
+            }
+        }
+
+        toRemove.forEach(blockId => this.fetchList.delete(blockId))
+
+        return toProcess
     }
 }
