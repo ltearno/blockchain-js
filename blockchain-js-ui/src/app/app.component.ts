@@ -247,7 +247,9 @@ export class AppComponent {
     this.addPeerBySocket(ws, `direct peer ${peerHost}:${peerPort}`)
   }
 
-  private async addPeerBySocket(ws, description: string) {
+  private peersSockets = new Map<Blockchain.PeerInfo, Blockchain.WebSocket>()
+
+  private async addPeerBySocket(ws: Blockchain.WebSocket, description: string) {
     let peerInfo: Blockchain.PeerInfo = null
     let connector = null
 
@@ -257,6 +259,7 @@ export class AppComponent {
       connector = new Blockchain.WebSocketConnector(this.fullNode.node, ws)
 
       peerInfo = this.fullNode.addPeer(connector, description)
+      this.peersSockets.set(peerInfo, ws)
     })
 
     ws.on('error', (err) => {
@@ -273,8 +276,11 @@ export class AppComponent {
     })
   }
 
-  disconnectPeer(peerInfo) {
+  disconnectPeer(peerInfo: Blockchain.PeerInfo) {
     this.fullNode.removePeer(peerInfo.id)
+    let ws = this.peersSockets.get(peerInfo)
+    ws && ws.close()
+    this.peersSockets.delete(peerInfo)
   }
 
   guid() {
