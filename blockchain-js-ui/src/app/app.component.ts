@@ -32,7 +32,7 @@ export class AppComponent {
   p2pBroker: PeerToPeer.PeerToPeerBrokering
   isMining = false
 
-  desiredNbPeers = 3
+  desiredNbPeers = 7
 
   selectedTab = 1
   selectedBranch = Blockchain.MASTER_BRANCH
@@ -45,6 +45,7 @@ export class AppComponent {
     return Object.getOwnPropertyNames(this.state)
   }
 
+  accepting = new Map<string, { offerId: string; offerMessage: string }>()
   knownAcceptedMessages = new Set<string>()
 
   autoMining = false
@@ -63,10 +64,18 @@ export class AppComponent {
           return { accepted: false, message: `nope` }
         }
 
-        if (this.knownAcceptedMessages.has(offerMessage)) {
+        if (this.fullNode.peerInfos.length >= this.desiredNbPeers) {
+          this.log(`declined offer ${offerId}:${offerMessage}, enough`)
+          return { accepted: false, message: `nope` }
+        }
+
+        if (this.knownAcceptedMessages.has(offerMessage) || this.accepting.has(offerMessage)) {
           this.log(`declined offer ${offerId}:${offerMessage}`)
           return { accepted: false, message: `i know you` }
         }
+
+        this.accepting.set(offerMessage, { offerId, offerMessage })
+        setTimeout(() => this.accepting.delete(offerMessage), 5000)
 
         this.log(`accepted offer ${offerId}:${offerMessage}`)
 
@@ -81,7 +90,7 @@ export class AppComponent {
 
         this.addPeerBySocket(channel, `p2p with ${counterPartyMessage} on channel ${description.offerId.substr(0, 5)} (as '${this.pseudo}')`)
 
-        this.maybeOfferP2PChannel()
+        setTimeout(() => this.maybeOfferP2PChannel(), 500)
       }
     )
 
