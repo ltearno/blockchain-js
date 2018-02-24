@@ -112,42 +112,41 @@ export class AppComponent {
 
     this.fullNode = new Blockchain.FullNode(NETWORK_CLIENT_IMPL)
 
-    this.fullNode.node.addEventListener('head', async branch => {
-      this.log(`new head on branch ${branch} : ${await this.fullNode.node.blockChainHead(branch)}`)
+    this.fullNode.node.addEventListener('head', async (event) => {
+      this.log(`new head on branch ${event.branch} : ${event.headBlockId}`)
 
       let state = {}
 
-      for (let branch of await this.fullNode.node.branches()) {
-        let toFetch = await this.fullNode.node.blockChainHead(branch)
+      let branch = event.branch
+      let toFetch = event.headBlockId
 
-        let branchState = {
-          branch: branch,
-          head: toFetch,
-          blocks: []
-        }
-
-        let count = 0
-
-        let toFetchs = [toFetch]
-        while (toFetchs.length) {
-          let fetching = toFetchs.shift()
-
-          let blockMetadatas = await this.fullNode.node.blockChainBlockMetadata(fetching, 1)
-          let blockMetadata = blockMetadatas && blockMetadatas[0]
-          let blockDatas = await this.fullNode.node.blockChainBlockData(fetching, 1)
-          let blockData = blockDatas && blockDatas[0]
-
-          branchState.blocks.push({ blockMetadata, blockData })
-
-          blockData && blockData.previousBlockIds && blockData.previousBlockIds.forEach(b => !toFetchs.some(bid => bid == b) && toFetchs.push(b))
-
-          count++
-          if (count > 10)
-            break
-        }
-
-        state[branch] = branchState
+      let branchState = {
+        branch: branch,
+        head: toFetch,
+        blocks: []
       }
+
+      let count = 0
+
+      let toFetchs = [toFetch]
+      while (toFetchs.length) {
+        let fetching = toFetchs.shift()
+
+        let blockMetadatas = await this.fullNode.node.blockChainBlockMetadata(fetching, 1)
+        let blockMetadata = blockMetadatas && blockMetadatas[0]
+        let blockDatas = await this.fullNode.node.blockChainBlockData(fetching, 1)
+        let blockData = blockDatas && blockDatas[0]
+
+        branchState.blocks.push({ blockMetadata, blockData })
+
+        blockData && blockData.previousBlockIds && blockData.previousBlockIds.forEach(b => !toFetchs.some(bid => bid == b) && toFetchs.push(b))
+
+        count++
+        if (count > 50)
+          break
+      }
+
+      state[branch] = branchState
 
       this.state = state
     })

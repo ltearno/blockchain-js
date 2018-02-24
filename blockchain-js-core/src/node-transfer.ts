@@ -58,55 +58,20 @@ export class NodeTransfer {
     private initRemoteNode(remoteNode: NodeApi.NodeApi) {
         this.knownNodes.push(remoteNode)
 
-        let listener = (branch: string) => {
-            console.log(`receive branch ${branch} change`)
+        let listener: NodeApi.NodeEventListener = async (event) => {
+            console.log(`receive branch ${event.branch} change`)
             try {
-                this.fetchFromNode(remoteNode, branch)
+                await this.registerBlockInFetchList(event.headBlockId, remoteNode)
+                this.processBlockLoad()
             }
             catch (err) {
-                console.error(`error when fetchAllBranchesFromNode for node: ${err}`)
+                console.error(`error when fetching branch ${event.branch}:${event.headBlockId} for node: ${err}`)
             }
         }
 
         remoteNode.addEventListener('head', listener)
 
         this.listeners.push(listener)
-
-        this.fetchAllBranchesFromNode(remoteNode)
-    }
-
-    private async fetchAllBranchesFromNode(remoteNode: NodeApi.NodeApi) {
-        try {
-            let branches = await remoteNode.branches()
-            if (!branches) {
-                console.log(`empty branch set, nothing to do...`)
-                return
-            }
-            for (let branch of branches) {
-                try {
-                    await this.fetchFromNode(remoteNode, branch)
-                }
-                catch (err) {
-                    console.log(`error when fetchAllBranchesFromNode for node: ${err}`)
-                }
-            }
-        }
-        catch (err) {
-            console.log(`error when fetchAllBranchesFromNode for node: ${err}`)
-        }
-    }
-
-    private async fetchFromNode(remoteNode: NodeApi.NodeApi, branch: string) {
-        try {
-            let remoteHead = await remoteNode.blockChainHead(branch)
-
-            await this.registerBlockInFetchList(remoteHead, remoteNode)
-
-            this.processBlockLoad()
-        }
-        catch (e) {
-            console.log(`error : ${e}`)
-        }
     }
 
     private async processBlockLoad() {
@@ -124,16 +89,22 @@ export class NodeTransfer {
         this.fetchingItem = await this.chooseFetchItemToLoad()
         if (!this.fetchingItem) {
             this.isLoading = false
+            console.log(`cannot choose an item to load`)
+
             return
         }
 
         this.isLoading = true
+
+        console.log(`fetching ${this.fetchingItem.blockId}`)
 
         try {
             if (this.fetchingItem.nodes.length == 0 || !this.fetchingItem.blockId) {
                 this.fetchList.delete(this.fetchingItem.blockId)
                 this.fetchingItem = null
                 console.log(`no nodes or no blockId`)
+
+                this.processBlockLoad()
                 return
             }
 
@@ -154,6 +125,8 @@ export class NodeTransfer {
                 this.fetchingItem.nodes.push(nodeToFetchFrom)
                 this.fetchingItem = null
                 console.log(`block not loaded`)
+
+                this.processBlockLoad()
                 return
             }
 
@@ -162,11 +135,23 @@ export class NodeTransfer {
             this.fetchingItem = null
             this.fetchList.delete(fetchedBlockId)
 
-            loadedBlock.previousBlockIds && loadedBlock.previousBlockIds.forEach(blockId => this.registerBlockInFetchList(blockId, nodeToFetchFrom))
+            if (loadedBlock.previousBlockIds) {
+                for (let blockId of loadedBlock.previousBlockIds) {
+                    console.log(`adding block ${blockId} to fetch list`)
+
+                    await this.registerBlockInFetchList(blockId, nodeToFetchFrom)
+                }
+            }
+
+            console.log(`block fetched, sending to local node`)
 
             this.node.registerBlock(fetchedBlockId, loadedBlock)
+
+            this.processBlockLoad()
         }
-        finally {
+        catch (e) {
+            console.log(`error fetching ${e}`)
+
             this.processBlockLoad()
         }
     }
@@ -175,6 +160,7 @@ export class NodeTransfer {
         if (await this.node.knowsBlock(id))
             return
 
+        console.log(`register ${id}`)
         // TODO insert the block at random place in the list
 
         if (this.fetchList.has(id)) {
@@ -195,8 +181,12 @@ export class NodeTransfer {
         let toRemove = []
         let toProcess: FetchItem = null
 
+        console.log(`fetchList size ${this.fetchList.size}`)
+
         for (let fetchItem of this.fetchList.values()) {
-            if (fetchItem.nodes.length == 0 || await this.node.knowsBlock(fetchItem.blockId)) {
+            console.log(`test ${fetchItem.blockId}`)
+
+            if (await this.node.knowsBlock(fetchItem.blockId)) {
                 toRemove.push()
             }
             else {

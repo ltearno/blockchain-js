@@ -1,7 +1,7 @@
 import * as Block from './block'
 
 export interface NodeEventListener {
-    (branch: string): void
+    (event: { branch: string; headBlockId: string }): void
 }
 
 export interface NodeApi {

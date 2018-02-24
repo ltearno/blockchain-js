@@ -10,7 +10,7 @@ async function run() {
     console.log(`initializing full node`)
     let fullNode = new FullNode.FullNode(NETWORK_CLIENT_API)
 
-    fullNode.node.addEventListener('head', async () => console.log(`event : node has new head (${await fullNode.node.blockChainHead(Block.MASTER_BRANCH)})`))
+    fullNode.node.addEventListener('head', async (info) => console.log(`event : node has new head : ${info.branch} as ${info.headBlockId}`))
 
     console.log(`mine a hello world data`)
     fullNode.miner.addData(Block.MASTER_BRANCH, "Hello my friend !")

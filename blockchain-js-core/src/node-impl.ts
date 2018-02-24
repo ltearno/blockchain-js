@@ -30,6 +30,10 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     async blockChainHead(branch: string) {
+        return this.blockChainHeadSync(branch)
+    }
+
+    private blockChainHeadSync(branch: string) {
         let headLog = this.getBranchHead(branch)
         if (headLog && headLog.length)
             return headLog[headLog.length - 1]
@@ -221,7 +225,7 @@ export class NodeImpl implements NodeApi.NodeApi {
         this.listeners.push(eventListener)
 
         for (let branch of this.headLog.keys())
-            eventListener(branch)
+            eventListener({ branch, headBlockId: this.blockChainHeadSync(branch) })
     }
 
     removeEventListener(eventListener: NodeApi.NodeEventListener): void {
@@ -285,7 +289,12 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         console.log(`new head on branch ${branch} : ${blockId.substring(0, 5)}`)
 
-        this.listeners.forEach(listener => listener(branch))
+        let event = {
+            branch,
+            headBlockId: blockId
+        }
+
+        this.listeners.forEach(listener => listener(event))
     }
 
     /**
