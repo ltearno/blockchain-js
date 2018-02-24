@@ -18,7 +18,7 @@ export class NodeTransfer {
 
     private fetchingItem: FetchItem = null
     private fetchList = new Map<string, FetchItem>()
-
+    isLoading: boolean = false
 
     constructor(public node: NodeApi.NodeApi) {
     }
@@ -123,9 +123,11 @@ export class NodeTransfer {
 
         this.fetchingItem = await this.chooseFetchItemToLoad()
         if (!this.fetchingItem) {
-            console.log(`no item to fetch`)
+            this.isLoading = false
             return
         }
+
+        this.isLoading = true
 
         try {
             if (this.fetchingItem.nodes.length == 0 || !this.fetchingItem.blockId) {
@@ -178,6 +180,8 @@ export class NodeTransfer {
     private async registerBlockInFetchList(id: string, node: NodeApi.NodeApi) {
         if (await this.node.knowsBlock(id))
             return
+
+        // TODO insert the block at random place in the list
 
         if (this.fetchList.has(id)) {
             if (!this.fetchList.get(id).nodes.includes(node))
