@@ -5,6 +5,7 @@ async function run() {
         let nbChannels = 0
 
         let broker = new Client.PeerToPeerBrokering(`ws://${window.location.hostname}:8999/signal`,
+            () => { },
             () => ({ accepted: true, message: 'hello!' }),
             (channelDescription, channel) => {
                 console.log(`NEW CHANNEL ${JSON.stringify(channelDescription)}`)

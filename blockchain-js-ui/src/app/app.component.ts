@@ -52,19 +52,41 @@ export class AppComponent {
   autoP2P = false
 
   constructor() {
-    this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`wss://${window.location.hostname}:8999/signal`, (offerId, offerMessage) => {
-      if (!this.autoP2P || this.knownAcceptedMessages.has(offerMessage))
-        return { accepted: false, message: `i know you` }
+    this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`wss://${window.location.hostname}:8999/signal`,
+      () => {
+        this.maybeOfferP2PChannel()
+      },
 
-      return { accepted: true, message: this.pseudo }
-    }, (description, channel) => {
-      let counterPartyMessage = description.counterPartyMessage
-      this.knownAcceptedMessages.add(counterPartyMessage)
-      channel.on('close', () => this.knownAcceptedMessages.delete(counterPartyMessage))
+      (offerId, offerMessage) => {
+        if (!this.autoP2P) {
+          this.log(`declined offer ${offerId}:${offerMessage}, no p2p`)
+          return { accepted: false, message: `nope` }
+        }
 
-      this.addPeerBySocket(channel, `p2p with ${counterPartyMessage} (as '${this.pseudo}') on channel ${description.offerId.substr(0, 5)}`)
-    })
+        if (this.knownAcceptedMessages.has(offerMessage)) {
+          this.log(`declined offer ${offerId}:${offerMessage}`)
+          return { accepted: false, message: `i know you` }
+        }
+
+        this.log(`accepted offer ${offerId}:${offerMessage}`)
+
+        return { accepted: true, message: this.pseudo }
+      },
+
+      (description, channel) => {
+        let counterPartyMessage = description.counterPartyMessage
+        this.knownAcceptedMessages.add(counterPartyMessage)
+
+        channel.on('close', () => this.knownAcceptedMessages.delete(counterPartyMessage))
+
+        this.addPeerBySocket(channel, `p2p with ${counterPartyMessage} on channel ${description.offerId.substr(0, 5)} (as '${this.pseudo}')`)
+
+        this.maybeOfferP2PChannel()
+      }
+    )
+
     this.p2pBroker.createSignalingSocket()
+
     setInterval(() => {
       if (this.autoP2P && this.p2pBroker.ready)
         this.maybeOfferP2PChannel()
@@ -116,19 +138,18 @@ export class AppComponent {
   setPseudo(pseudo, peerToPeer) {
     this.pseudo = pseudo
     this.autoP2P = peerToPeer
+
+    this.maybeOfferP2PChannel()
   }
 
   maybeOfferP2PChannel() {
-    if (this.p2pBroker.ready && this.fullNode.peerInfos.length < this.desiredNbPeers) {
-      this.offerP2PChannel()
+    if (this.autoP2P && this.p2pBroker.ready && this.fullNode.peerInfos.length < this.desiredNbPeers) {
+      let offerId = this.p2pBroker.offerChannel(this.pseudo)
+      this.log(`offered channel ${offerId}`)
     }
 
     // todo remove when too much peers ?
     // todo remove unconnected peers ?
-  }
-
-  async offerP2PChannel() {
-    let offerId = await this.p2pBroker.offerChannel(this.pseudo)
   }
 
   addEncryptionKey(newEncryptionKey: string) {

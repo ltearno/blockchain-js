@@ -47,6 +47,7 @@ export class PeerToPeerBrokering {
     private fakeSockets = new Map<string, FakeWebSocket>()
 
     constructor(private url: string,
+        private onReady: () => void,
         private acceptOffer: (offerId: string, offerMessage: string) => { accepted: boolean; message: string },
         private onChannelOpened: (channelDescription: { offerId: string; counterPartyMessage: string; }, channel: SocketAPI) => void) { }
 
@@ -94,6 +95,8 @@ export class PeerToPeerBrokering {
                     console.log(`error processing message ${message} ${error}`)
                 }
             })
+
+            this.onReady()
         })
 
         this.signalingSocket.addEventListener('error', error => {
@@ -113,16 +116,16 @@ export class PeerToPeerBrokering {
         })
     }
 
-    async offerChannel(message: string) {
+    offerChannel(message: string) {
         if (!this.ready) {
             console.log(`ERROR not ready to send offer !`)
             return null
         }
 
-        return await this.sendOffer(message)
+        return this.sendOffer(message)
     }
 
-    private async sendOffer(offerMessage: string) {
+    private sendOffer(offerMessage: string) {
         try {
             let offerId = guid()
 
@@ -134,6 +137,7 @@ export class PeerToPeerBrokering {
         }
         catch (error) {
             console.log(`error sending offer ${error}`)
+            return null
         }
     }
 
