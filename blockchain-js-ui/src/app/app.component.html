@@ -177,6 +177,23 @@
     <br/>
     <div class="container is-fluid">
       <div class="box">
+        <h2 class='subtitle'>Local storage</h2>
+        <p>This page can save known blocks on your device. It will provide faster start-up time when reloaded.</p>
+        <div class="field">
+          <label for='autoSave' class="label">Auto save</label>
+          <input id='autoSave' type="checkbox" [(ngModel)]='autoSave'>
+        </div>
+        <div class="field">
+          <button class="button is-primary" (click)='saveBlocks()'>Save blocks</button>
+        </div>
+        <div class="field">
+          <button class="button" (click)='resetLocalStorage()'>Clear saved data</button>
+        </div>
+      </div>
+    </div>
+    <br/>
+    <div class="container is-fluid">
+      <div class="box">
         <h2 class='subtitle'>Automining</h2>
         <div class="field">
           <label class='label'>Message</label>

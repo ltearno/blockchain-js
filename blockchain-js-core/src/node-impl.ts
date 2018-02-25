@@ -30,6 +30,10 @@ export class NodeImpl implements NodeApi.NodeApi {
         return this.knownBlocksData.size
     }
 
+    blocks() {
+        return this.knownBlocksData
+    }
+
     async branches(): Promise<string[]> {
         let res = []
         for (let branch of this.headLog.keys())

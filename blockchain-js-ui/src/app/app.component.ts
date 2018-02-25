@@ -7,6 +7,14 @@ import Base64 from 'crypto-js/enc-base64'
 import * as CryptoJS from 'crypto-js'
 
 const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
+const STORAGE_BLOCKS = 'blocks'
+
+function sleep(time: number) {
+  return new Promise((resolve, reject) => setTimeout(resolve, time))
+}
+
+// TODO sauvegarde et chargement des blocks et des préférences
+// TODO clean
 
 @Component({
   selector: 'body',
@@ -51,8 +59,25 @@ export class AppComponent {
   autoMining = false
   autoMiningIteration = 1
   autoP2P = false
+  autoSave = true
+
+  saveBlocks() {
+    this.log(`saving blocks`)
+    let toSave = []
+    let blocks: Map<string, Blockchain.Block> = this.fullNode.node.blocks()
+    blocks.forEach((block, blockId) => toSave.push({ blockId, block }))
+    localStorage.setItem(STORAGE_BLOCKS, JSON.stringify(toSave))
+    this.log(`saved blocks`)
+  }
+
+  resetLocalStorage() {
+    localStorage.clear()
+    this.log(`cleared local storage`)
+  }
 
   constructor() {
+    this.initFullNode()
+
     this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`wss://${window.location.hostname}:8999/signal`,
       () => {
         this.maybeOfferP2PChannel()
@@ -109,8 +134,16 @@ export class AppComponent {
       if (this.autoP2P && this.p2pBroker.ready)
         this.maybeOfferP2PChannel()
     }, 10000)
+  }
 
+  private initFullNode() {
     this.fullNode = new Blockchain.FullNode(NETWORK_CLIENT_IMPL)
+
+    this.tryLoadBlocksFromLocalStorage()
+    window.onbeforeunload = (e) => {
+      if (this.autoSave)
+        this.saveBlocks()
+    }
 
     this.fullNode.node.addEventListener('head', async (event) => {
       this.log(`new head on branch ${event.branch} : ${event.headBlockId}`)
@@ -150,6 +183,28 @@ export class AppComponent {
 
       this.state = state
     })
+  }
+
+  private async tryLoadBlocksFromLocalStorage() {
+    let storageBlocksString = localStorage.getItem(STORAGE_BLOCKS)
+    if (storageBlocksString) {
+      try {
+        let storageBlocks = JSON.parse(storageBlocksString)
+        if (Array.isArray(storageBlocks)) {
+          this.log(`loading blocks from local storage`)
+          let i = 0
+          for (let { blockId, block } of storageBlocks) {
+            this.fullNode.node.registerBlock(blockId, block)
+            i++
+            if (i % 10 == 0)
+              await sleep(1)
+          }
+        }
+      }
+      catch (e) {
+        this.log(`error loading from local storage : ${e}`)
+      }
+    }
   }
 
   setPseudo(pseudo, peerToPeer) {
