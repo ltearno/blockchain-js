@@ -136,17 +136,11 @@ export class AppComponent {
     }, 10000)
   }
 
-  private loadTimers = new Map<string, any>()
+  private nextLoad: { branch, blockId } = { branch: null, blockId: null }
+  private lastLoaded = { branch: null, blockId: null }
 
   private triggerLoad(branch: string, blockId: string) {
-    if (this.loadTimers.has(branch)) {
-      clearTimeout(this.loadTimers.get(branch))
-    }
-
-    this.loadTimers.set(branch, setTimeout(() => {
-      this.loadTimers.delete(branch)
-      this.loadState(branch, blockId)
-    }, 100))
+    this.nextLoad = { branch, blockId }
   }
 
   private async loadState(branch: string, blockId: string) {
@@ -187,6 +181,13 @@ export class AppComponent {
 
   private initFullNode() {
     this.fullNode = new Blockchain.FullNode(NETWORK_CLIENT_IMPL)
+
+    setInterval(() => {
+      if (this.lastLoaded.blockId != this.nextLoad.blockId || this.lastLoaded.branch != this.nextLoad.branch) {
+        this.lastLoaded = { branch: this.nextLoad.branch, blockId: this.nextLoad.blockId }
+        this.loadState(this.lastLoaded.branch, this.lastLoaded.blockId)
+      }
+    }, 500)
 
     this.tryLoadBlocksFromLocalStorage()
     window.onbeforeunload = (e) => {
