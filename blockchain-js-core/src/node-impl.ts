@@ -22,6 +22,14 @@ export class NodeImpl implements NodeApi.NodeApi {
         return this.headLog.get(branch)
     }
 
+    get blockMetadataCount() {
+        return this.knownBlocks.size
+    }
+
+    get blockCount() {
+        return this.knownBlocksData.size
+    }
+
     async branches(): Promise<string[]> {
         let res = []
         for (let branch of this.headLog.keys())

@@ -242,7 +242,8 @@
       <p *ngIf='pseudo'>
         <span>{{fullNode.peerInfos.length}} peers connected</span>
         <span *ngIf='!p2pBroker.ready' style='color:red;'> - peer to peer connectivity is not ready</span>
-        <span *ngIf='fullNode.transfer.isLoading' style='color:green;'>- loading</span>
+        <span *ngIf='fullNode.transfer.isLoading' style='color:green;'> - loading</span>
+        <span> - {{fullNode.node.blockCount}} blocks</span>
         <span *ngIf='autoMining' style='color:green;'> - auto-mining enabled</span>
       </p>
     </div>
