@@ -161,7 +161,7 @@
             <input #newEncryptionKey class='input' type="text" placeholder='New key' (keyup.enter)='addEncryptionKey(newEncryptionKey.value) && newEncryptionKey.value=""'>
           </div>
           <div class="control">
-            <button (click)='addEncryptionKey(newEncryptionKey.value) && newEncryptionKey.value=""' class="button is-primary">Search</button>
+            <button (click)='addEncryptionKey(newEncryptionKey.value) && newEncryptionKey.value=""' class="button is-primary">Add</button>
           </div>
         </div>
         <div *ngFor='let key of otherEncryptionKeys'>
