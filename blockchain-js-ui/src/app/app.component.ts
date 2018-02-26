@@ -8,6 +8,7 @@ import * as CryptoJS from 'crypto-js'
 
 const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
 const STORAGE_BLOCKS = 'blocks'
+const STORAGE_SETTINGS = 'blocks'
 
 function sleep(time: number) {
   return new Promise((resolve, reject) => setTimeout(resolve, time))
@@ -74,12 +75,64 @@ export class AppComponent {
     this.log(`blocks saved`)
   }
 
-  resetLocalStorage() {
+  clearSavedBlocks() {
     localStorage.clear()
     this.log(`cleared local storage`)
   }
 
+  loadPreferencesFromLocalStorage() {
+    try {
+      let settingsString = localStorage.getItem(STORAGE_SETTINGS)
+      if (!settingsString || settingsString == '')
+        return
+
+      let settings = JSON.parse(settingsString)
+      if (!settings)
+        return
+
+      if (settings.pseudo)
+        this.proposedPseudo = settings.pseudo || this.guid()
+
+      if (settings.encryptMessages)
+        this.encryptMessages = settings.encryptMessages || false
+
+      if (settings.encryptionKey)
+        this.encryptionKey = settings.encryptionKey || this.guid()
+
+      if (settings.otherEncryptionKeys && Array.isArray(this.otherEncryptionKeys))
+        settings.otherEncryptionKeys.forEach(element => this.otherEncryptionKeys.push(element))
+
+      if (settings.desiredNbPeers)
+        this.desiredNbPeers = settings.desiredNbPeers || 5
+
+      if (settings.autoP2P)
+        this.autoP2P = !!settings.autoP2P
+
+      if (settings.autoSave)
+        this.autoSave = !!settings.autoSave
+    }
+    catch (e) {
+      this.log(`error loading preferences`)
+    }
+  }
+
+  savePreferences() {
+    let settings = {
+      pseudo: this.pseudo,
+      encryptMessages: this.encryptMessages,
+      encryptionKey: this.encryptionKey,
+      otherEncryptionKeys: this.otherEncryptionKeys,
+      desiredNbPeers: this.desiredNbPeers,
+      autoP2P: this.autoP2P,
+      autoSave: this.autoSave
+    }
+
+    localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings))
+  }
+
   constructor() {
+    this.loadPreferencesFromLocalStorage()
+
     this.initFullNode()
 
     this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`wss://${window.location.hostname}:8999/signal`,
@@ -192,8 +245,10 @@ export class AppComponent {
 
     this.tryLoadBlocksFromLocalStorage()
     window.onbeforeunload = (e) => {
-      if (this.autoSave)
+      if (this.autoSave) {
         this.saveBlocks()
+        this.savePreferences()
+      }
     }
 
     this.fullNode.node.addEventListener('head', async (event) => {
