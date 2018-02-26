@@ -23,10 +23,16 @@ function sleep(time: number) {
 })
 export class AppComponent {
   proposedPseudo = this.guid()
+
+  // To save
   pseudo = null
   encryptMessages = false
   encryptionKey = this.guid()
   otherEncryptionKeys: string[] = []
+  desiredNbPeers = 5
+
+  selectedTab = 1
+  selectedBranch = Blockchain.MASTER_BRANCH
 
   fullNode: Blockchain.FullNode = null
   logs: string[] = []
@@ -40,10 +46,7 @@ export class AppComponent {
   p2pBroker: PeerToPeer.PeerToPeerBrokering
   isMining = false
 
-  desiredNbPeers = 5
-
-  selectedTab = 1
-  selectedBranch = Blockchain.MASTER_BRANCH
+  
 
   selectTab(i) {
     this.selectedTab = i
@@ -62,12 +65,12 @@ export class AppComponent {
   autoSave = true
 
   saveBlocks() {
-    this.log(`saving blocks`)
+    this.log(`saving blocks locally`)
     let toSave = []
     let blocks: Map<string, Blockchain.Block> = this.fullNode.node.blocks()
     blocks.forEach((block, blockId) => toSave.push({ blockId, block }))
     localStorage.setItem(STORAGE_BLOCKS, JSON.stringify(toSave))
-    this.log(`saved blocks`)
+    this.log(`blocks saved`)
   }
 
   resetLocalStorage() {
@@ -85,24 +88,21 @@ export class AppComponent {
 
       (offerId, offerMessage) => {
         if (!this.autoP2P) {
-          this.log(`declined offer ${offerId}:${offerMessage}, no p2p`)
           return { accepted: false, message: `nope` }
         }
 
         if (this.fullNode.peerInfos.length >= this.desiredNbPeers) {
-          this.log(`declined offer ${offerId}:${offerMessage}, enough`)
           return { accepted: false, message: `nope` }
         }
 
         if (this.knownAcceptedMessages.has(offerMessage) || this.accepting.has(offerMessage)) {
-          this.log(`declined offer ${offerId}:${offerMessage}`)
           return { accepted: false, message: `i know you` }
         }
 
         this.accepting.set(offerMessage, { offerId, offerMessage })
         setTimeout(() => this.accepting.delete(offerMessage), 5000)
 
-        this.log(`accepted offer ${offerId}:${offerMessage}`)
+        this.log(`accepted offer ${offerId.substr(0, 7)}:${offerMessage}`)
 
         return { accepted: true, message: this.pseudo }
       },
@@ -128,7 +128,7 @@ export class AppComponent {
 
         this.log(`removed random node ${toRemove.id}:${toRemove.description}`)
       }
-    }, 15000 + Math.random() * 45000)
+    }, 30000 + Math.random() * 45000)
 
     setInterval(() => {
       if (this.autoP2P && this.p2pBroker.ready)
@@ -196,7 +196,7 @@ export class AppComponent {
     }
 
     this.fullNode.node.addEventListener('head', async (event) => {
-      this.log(`new head on branch ${event.branch} : ${event.headBlockId}`)
+      this.log(`new head on branch '${event.branch}': ${event.headBlockId.substr(0, 7)}`)
       this.triggerLoad(event.branch, event.headBlockId)
     })
   }
@@ -215,6 +215,7 @@ export class AppComponent {
             if (i % 2 == 0)
               await sleep(20)
           }
+          this.log(`blocks restored from local storage`)
         }
       }
       catch (e) {
@@ -241,7 +242,6 @@ export class AppComponent {
 
   offerP2PChannel() {
     let offerId = this.p2pBroker.offerChannel(this.pseudo)
-    this.log(`offered channel ${offerId}`)
   }
 
   addEncryptionKey(newEncryptionKey: string) {
@@ -308,9 +308,11 @@ export class AppComponent {
         dataItem.encrypted = true
       }
 
+      this.log(`start mining...`)
+
       this.fullNode.miner.addData(this.selectedBranch, dataItem)
       let mineResult = await this.fullNode.miner.mineData(miningDifficulty, 30)
-      this.log(`mine result: ${JSON.stringify(mineResult)}`)
+      this.log(`finished mining: ${JSON.stringify(mineResult)}`)
     }
     catch (error) {
       this.log(`error mining: ${JSON.stringify(error)}`)

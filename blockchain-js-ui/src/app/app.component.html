@@ -109,41 +109,76 @@
   </div>
 
   <div *ngIf='pseudo && selectedTab==2'>
-    <div class="container is-fluid box">
-      <div *ngIf='p2pBroker.ready'>
-        <div *ngIf='autoP2P' class='level'>Peer to peer connectivity is enabled
-          <button (click)='toggleAutoP2P()' class='button'>disable</button>
-          <button (click)='offerP2PChannel()' class='button'>offer channel</button>
+    <div class="container is-fluid">
+      <div *ngIf='p2pBroker.ready' class='box'>
+        <h2 class="subtitle">Peer to peer connectivity</h2>
+        <div *ngIf='autoP2P' class="field">
+          <label class="label">Peer to peer connectivity is enabled</label>
+          <button (click)='toggleAutoP2P()' class='button is-warning'>disable</button>
         </div>
-        <div *ngIf='!autoP2P' class='level'>Peer to peer connectivity is disabled
-          <button (click)='toggleAutoP2P()' class='button'>enable</button>
-          <button (click)='offerP2PChannel()' class='button'>offer channel</button>
+
+        <div *ngIf='!autoP2P' class='field'>
+          <label class="label">Peer to peer connectivity is disabled</label>
+          <button (click)='toggleAutoP2P()' class='button is-primary'>enable</button>
         </div>
-        <div *ngIf='knownAcceptedMessages.length'>
-          <span>known p2p presentation messages:</span>
-          <ul>
-            <li *ngFor='let m of knownAcceptedMessages'>{{m | json}}</li>
-          </ul>
+
+        <div class='field'>
+          <label class="label">You can manually propose a communication channel on the peer to peer network.</label>
+          <button (click)='offerP2PChannel()' class='button'>offer channel</button>
         </div>
       </div>
-      <div *ngIf='!p2pBroker.ready' class='box' style='color:red;'>Peer to peer connectivity is not ready</div>
 
-      <span *ngIf="fullNode.peerInfos.length">Connected peers :</span>
-      <ul>
-        <li *ngFor='let peerInfo of fullNode.peerInfos'>
-          <span>{{peerInfo.description}}</span>
-          <button class='button has-icon-left' (click)='disconnectPeer(peerInfo)'>
-            <span class="icon">
-              <i class="mdi mdi-star"></i>
-            </span>
-            <span>disconnect</span>
-          </button>
-        </li>
-      </ul>
-      <span>add a peer :</span>
-      <input type="text" #peerHost value="localhost">
-      <input type="text" #peerPort value="9091">
-      <button (click)='addPeer(peerHost.value, peerPort.value)' class='button'>connect</button>
+      <div *ngIf='knownAcceptedMessages.length' class='box'>
+        <span>known p2p presentation messages:</span>
+        <ul>
+          <li *ngFor='let m of knownAcceptedMessages'>{{m | json}}</li>
+        </ul>
+      </div>
+
+      <br/>
+    </div>
+
+    <div class="container is-fluid" *ngIf='!p2pBroker.ready'>
+      <div class='box' style='color:red;'>Peer to peer connectivity is not ready</div>
+
+      <br/>
+    </div>
+
+    <div class="container is-fluid" *ngIf="fullNode.peerInfos.length">
+      <div class="box">
+        <h2 class='subtitle'>Connected peers</h2>
+        <ul>
+          <li *ngFor='let peerInfo of fullNode.peerInfos'>
+            <span>{{peerInfo.description}}</span>
+            <button class='button has-icon-left' (click)='disconnectPeer(peerInfo)'>
+              <span class="icon">
+                <i class="mdi mdi-delete"></i>
+              </span>
+              <span>disconnect</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <br/>
+    </div>
+
+    <div class="container is-fluid">
+      <div class="box">
+        <h2 class="subtitle">Manual connection</h2>
+        <h2 class='subtitle'>Add a peer</h2>
+        <div class="field">
+          <label class="label">Host name</label>
+          <input type="text" class='input' #peerHost value="localhost">
+        </div>
+        <div class="field">
+          <label class="label">Port</label>
+          <input type="text" class='input' #peerPort value="9091">
+        </div>
+        <div class="field">
+          <button (click)='addPeer(peerHost.value, peerPort.value)' class='button'>connect</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -174,6 +209,7 @@
         </div>
       </div>
     </div>
+
     <br/>
     <div class="container is-fluid">
       <div class="box">
