@@ -30,6 +30,8 @@ export class AppComponent {
   encryptionKey = this.guid()
   otherEncryptionKeys: string[] = []
   desiredNbPeers = 5
+  autoP2P = false
+  autoSave = true
 
   selectedTab = 1
   selectedBranch = Blockchain.MASTER_BRANCH
@@ -43,10 +45,15 @@ export class AppComponent {
       blocks: any[]
     }
   } = { "master": { branch: Blockchain.MASTER_BRANCH, head: null, blocks: [] } }
-  p2pBroker: PeerToPeer.PeerToPeerBrokering
-  isMining = false
 
-  
+  p2pBroker: PeerToPeer.PeerToPeerBrokering
+
+  isMining = false
+  autoMining = false
+  autoMiningIteration = 1
+
+  accepting = new Map<string, { offerId: string; offerMessage: string }>()
+  knownAcceptedMessages = new Set<string>()
 
   selectTab(i) {
     this.selectedTab = i
@@ -55,14 +62,6 @@ export class AppComponent {
   get branches() {
     return Object.getOwnPropertyNames(this.state)
   }
-
-  accepting = new Map<string, { offerId: string; offerMessage: string }>()
-  knownAcceptedMessages = new Set<string>()
-
-  autoMining = false
-  autoMiningIteration = 1
-  autoP2P = false
-  autoSave = true
 
   saveBlocks() {
     this.log(`saving blocks locally`)

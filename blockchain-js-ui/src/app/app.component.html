@@ -126,6 +126,11 @@
           <label class="label">You can manually propose a communication channel on the peer to peer network.</label>
           <button (click)='offerP2PChannel()' class='button'>offer channel</button>
         </div>
+
+        <div class="field">
+          <label class="label">Desired number of peers</label>
+          <input type="number" min="1" max="20" class="input" [(ngModel)]='desiredNbPeers'>
+        </div>
       </div>
 
       <div *ngIf='knownAcceptedMessages.length' class='box'>
