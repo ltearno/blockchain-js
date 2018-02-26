@@ -15,6 +15,8 @@ function sleep(time: number) {
 
 // TODO sauvegarde et chargement des blocks et des préférences
 // TODO clean
+// TODO pool de peers accepted
+// TODO affichage tous messages
 
 @Component({
   selector: 'body',
