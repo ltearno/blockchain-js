@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, OnInit } from '@angular/core'
 import * as Blockchain from 'blockchain-js-core'
 import * as PeerToPeer from 'rencontres'
 import sha256 from 'crypto-js/sha256'
@@ -8,7 +8,7 @@ import * as CryptoJS from 'crypto-js'
 
 const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
 const STORAGE_BLOCKS = 'blocks'
-const STORAGE_SETTINGS = 'blocks'
+const STORAGE_SETTINGS = 'settings'
 
 function sleep(time: number) {
   return new Promise((resolve, reject) => setTimeout(resolve, time))
@@ -66,18 +66,19 @@ export class AppComponent {
     return Object.getOwnPropertyNames(this.state)
   }
 
-  saveBlocks() {
-    this.log(`saving blocks locally`)
-    let toSave = []
-    let blocks: Map<string, Blockchain.Block> = this.fullNode.node.blocks()
-    blocks.forEach((block, blockId) => toSave.push({ blockId, block }))
-    localStorage.setItem(STORAGE_BLOCKS, JSON.stringify(toSave))
-    this.log(`blocks saved`)
-  }
+  savePreferences() {
+    let settings = {
+      pseudo: this.pseudo,
+      encryptMessages: this.encryptMessages,
+      encryptionKey: this.encryptionKey,
+      otherEncryptionKeys: this.otherEncryptionKeys,
+      desiredNbPeers: this.desiredNbPeers,
+      autoP2P: this.autoP2P,
+      autoSave: this.autoSave
+    }
 
-  clearSavedBlocks() {
-    localStorage.clear()
-    this.log(`cleared local storage`)
+    localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings))
+    this.log(`preferences saved`)
   }
 
   loadPreferencesFromLocalStorage() {
@@ -116,21 +117,50 @@ export class AppComponent {
     }
   }
 
-  savePreferences() {
-    let settings = {
-      pseudo: this.pseudo,
-      encryptMessages: this.encryptMessages,
-      encryptionKey: this.encryptionKey,
-      otherEncryptionKeys: this.otherEncryptionKeys,
-      desiredNbPeers: this.desiredNbPeers,
-      autoP2P: this.autoP2P,
-      autoSave: this.autoSave
+  private async tryLoadBlocksFromLocalStorage() {
+    let storageBlocksString = localStorage.getItem(STORAGE_BLOCKS)
+    if (storageBlocksString) {
+      try {
+        let storageBlocks = JSON.parse(storageBlocksString)
+        if (Array.isArray(storageBlocks)) {
+          this.log(`loading blocks from local storage`)
+          let i = 0
+          for (let { blockId, block } of storageBlocks) {
+            this.fullNode.node.registerBlock(blockId, block)
+            i++
+            if (i % 2 == 0)
+              await sleep(20)
+          }
+          this.log(`blocks restored from local storage`)
+        }
+      }
+      catch (e) {
+        this.log(`error loading from local storage : ${e}`)
+      }
     }
+  }
 
-    localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings))
+  saveBlocks() {
+    let toSave = []
+    let blocks: Map<string, Blockchain.Block> = this.fullNode.node.blocks()
+    blocks.forEach((block, blockId) => toSave.push({ blockId, block }))
+    localStorage.setItem(STORAGE_BLOCKS, JSON.stringify(toSave))
+    this.log(`blocks saved`)
+  }
+
+  clearSavedBlocks() {
+    localStorage.setItem(STORAGE_BLOCKS, JSON.stringify([]))
+    this.log(`cleared stored blocks`)
   }
 
   constructor() {
+    window.addEventListener('beforeunload', event => {
+      if (this.autoSave) {
+        this.saveBlocks()
+        this.savePreferences()
+      }
+    })
+
     this.loadPreferencesFromLocalStorage()
 
     this.initFullNode()
@@ -244,40 +274,11 @@ export class AppComponent {
     }, 500)
 
     this.tryLoadBlocksFromLocalStorage()
-    window.onbeforeunload = (e) => {
-      if (this.autoSave) {
-        this.saveBlocks()
-        this.savePreferences()
-      }
-    }
 
     this.fullNode.node.addEventListener('head', async (event) => {
       this.log(`new head on branch '${event.branch}': ${event.headBlockId.substr(0, 7)}`)
       this.triggerLoad(event.branch, event.headBlockId)
     })
-  }
-
-  private async tryLoadBlocksFromLocalStorage() {
-    let storageBlocksString = localStorage.getItem(STORAGE_BLOCKS)
-    if (storageBlocksString) {
-      try {
-        let storageBlocks = JSON.parse(storageBlocksString)
-        if (Array.isArray(storageBlocks)) {
-          this.log(`loading blocks from local storage`)
-          let i = 0
-          for (let { blockId, block } of storageBlocks) {
-            this.fullNode.node.registerBlock(blockId, block)
-            i++
-            if (i % 2 == 0)
-              await sleep(20)
-          }
-          this.log(`blocks restored from local storage`)
-        }
-      }
-      catch (e) {
-        this.log(`error loading from local storage : ${e}`)
-      }
-    }
   }
 
   setPseudo(pseudo, peerToPeer) {
