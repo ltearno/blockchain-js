@@ -14,10 +14,9 @@ function sleep(time: number) {
   return new Promise((resolve, reject) => setTimeout(resolve, time))
 }
 
-// TODO sauvegarde et chargement des blocks et des préférences
-// TODO clean
 // TODO pool de peers accepted
 // TODO affichage tous messages
+// TODO clean
 
 @Component({
   selector: 'body',
@@ -67,99 +66,6 @@ export class AppComponent {
 
   get branches() {
     return Object.getOwnPropertyNames(this.state)
-  }
-
-  savePreferencesToLocalStorage() {
-    let settings = {
-      pseudo: this.pseudo,
-      encryptMessages: this.encryptMessages,
-      encryptionKey: this.encryptionKey,
-      otherEncryptionKeys: this.otherEncryptionKeys,
-      desiredNbPeers: this.desiredNbPeers,
-      autoP2P: this.autoP2P,
-      autoSave: this.autoSave,
-      autoStart: this.autoStart
-    }
-
-    localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings))
-    this.log(`preferences saved`)
-  }
-
-  loadPreferencesFromLocalStorage() {
-    try {
-      let settingsString = localStorage.getItem(STORAGE_SETTINGS)
-      if (!settingsString || settingsString == '')
-        return
-
-      let settings = JSON.parse(settingsString)
-      if (!settings)
-        return
-
-      if (settings.pseudo)
-        this.proposedPseudo = this.pseudo = settings.pseudo || this.guid()
-
-      if (settings.encryptMessages)
-        this.encryptMessages = settings.encryptMessages || false
-
-      if (settings.encryptionKey)
-        this.encryptionKey = settings.encryptionKey || this.guid()
-
-      if (settings.otherEncryptionKeys && Array.isArray(this.otherEncryptionKeys))
-        settings.otherEncryptionKeys.forEach(element => this.otherEncryptionKeys.push(element))
-
-      if (settings.desiredNbPeers)
-        this.desiredNbPeers = settings.desiredNbPeers || 5
-
-      this.autoP2P = !!settings.autoP2P
-      this.autoSave = !!settings.autoSave
-      this.autoStart = !!settings.autoStart
-
-      this.log(`preferences loaded`)
-    }
-    catch (e) {
-      this.log(`error loading preferences`)
-    }
-  }
-
-  clearPreferencesFromLocalStorage() {
-    localStorage.setItem(STORAGE_SETTINGS, JSON.stringify({}))
-    this.log(`preferences cleared`)
-  }
-
-  private async tryLoadBlocksFromLocalStorage() {
-    let storageBlocksString = localStorage.getItem(STORAGE_BLOCKS)
-    if (storageBlocksString) {
-      try {
-        let storageBlocks = JSON.parse(storageBlocksString)
-        if (Array.isArray(storageBlocks)) {
-          this.log(`loading blocks from local storage`)
-          let i = 0
-          for (let { blockId, block } of storageBlocks) {
-            this.fullNode.node.registerBlock(blockId, block)
-            i++
-            if (i % 2 == 0)
-              await sleep(20)
-          }
-          this.log(`blocks restored from local storage`)
-        }
-      }
-      catch (e) {
-        this.log(`error loading from local storage : ${e}`)
-      }
-    }
-  }
-
-  saveBlocks() {
-    let toSave = []
-    let blocks: Map<string, Blockchain.Block> = this.fullNode.node.blocks()
-    blocks.forEach((block, blockId) => toSave.push({ blockId, block }))
-    localStorage.setItem(STORAGE_BLOCKS, JSON.stringify(toSave))
-    this.log(`blocks saved`)
-  }
-
-  clearSavedBlocks() {
-    localStorage.setItem(STORAGE_BLOCKS, JSON.stringify([]))
-    this.log(`cleared stored blocks`)
   }
 
   constructor() {
@@ -478,5 +384,98 @@ export class AppComponent {
 
       return v.toString(16)
     })
+  }
+
+  savePreferencesToLocalStorage() {
+    let settings = {
+      pseudo: this.pseudo,
+      encryptMessages: this.encryptMessages,
+      encryptionKey: this.encryptionKey,
+      otherEncryptionKeys: this.otherEncryptionKeys,
+      desiredNbPeers: this.desiredNbPeers,
+      autoP2P: this.autoP2P,
+      autoSave: this.autoSave,
+      autoStart: this.autoStart
+    }
+
+    localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings))
+    this.log(`preferences saved`)
+  }
+
+  loadPreferencesFromLocalStorage() {
+    try {
+      let settingsString = localStorage.getItem(STORAGE_SETTINGS)
+      if (!settingsString || settingsString == '')
+        return
+
+      let settings = JSON.parse(settingsString)
+      if (!settings)
+        return
+
+      if (settings.pseudo)
+        this.proposedPseudo = this.pseudo = settings.pseudo || this.guid()
+
+      if (settings.encryptMessages)
+        this.encryptMessages = settings.encryptMessages || false
+
+      if (settings.encryptionKey)
+        this.encryptionKey = settings.encryptionKey || this.guid()
+
+      if (settings.otherEncryptionKeys && Array.isArray(this.otherEncryptionKeys))
+        settings.otherEncryptionKeys.forEach(element => this.otherEncryptionKeys.push(element))
+
+      if (settings.desiredNbPeers)
+        this.desiredNbPeers = settings.desiredNbPeers || 5
+
+      this.autoP2P = !!settings.autoP2P
+      this.autoSave = !!settings.autoSave
+      this.autoStart = !!settings.autoStart
+
+      this.log(`preferences loaded`)
+    }
+    catch (e) {
+      this.log(`error loading preferences`)
+    }
+  }
+
+  clearPreferencesFromLocalStorage() {
+    localStorage.setItem(STORAGE_SETTINGS, JSON.stringify({}))
+    this.log(`preferences cleared`)
+  }
+
+  private async tryLoadBlocksFromLocalStorage() {
+    let storageBlocksString = localStorage.getItem(STORAGE_BLOCKS)
+    if (storageBlocksString) {
+      try {
+        let storageBlocks = JSON.parse(storageBlocksString)
+        if (Array.isArray(storageBlocks)) {
+          this.log(`loading blocks from local storage`)
+          let i = 0
+          for (let { blockId, block } of storageBlocks) {
+            this.fullNode.node.registerBlock(blockId, block)
+            i++
+            if (i % 2 == 0)
+              await sleep(20)
+          }
+          this.log(`blocks restored from local storage`)
+        }
+      }
+      catch (e) {
+        this.log(`error loading from local storage : ${e}`)
+      }
+    }
+  }
+
+  saveBlocks() {
+    let toSave = []
+    let blocks: Map<string, Blockchain.Block> = this.fullNode.node.blocks()
+    blocks.forEach((block, blockId) => toSave.push({ blockId, block }))
+    localStorage.setItem(STORAGE_BLOCKS, JSON.stringify(toSave))
+    this.log(`blocks saved`)
+  }
+
+  clearSavedBlocks() {
+    localStorage.setItem(STORAGE_BLOCKS, JSON.stringify([]))
+    this.log(`cleared stored blocks`)
   }
 }
