@@ -231,7 +231,10 @@
           <button class="button" (click)='clearSavedBlocks()'>Clear saved blocks</button>
         </div>
         <div class="field">
-          <button class="button" (click)='clearSavedPreferences()'>Clear user preferences</button>
+          <button class="button" (click)='savePreferencesToLocalStorage()'>Save preferences</button>
+        </div>
+        <div class="field">
+          <button class="button" (click)='clearPreferencesFromLocalStorage()'>Clear user preferences</button>
         </div>
       </div>
     </div>
@@ -295,7 +298,6 @@
 <footer id='blockchain-footer' class="footer">
   <div class="container">
     <div class="content has-text-centered">
-      {{autoSave}}
       <p>
         <strong>Blockchain JS</strong> by
         <a href='https://github.com/ltearno'>Arnaud Tournier</a> at

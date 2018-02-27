@@ -66,7 +66,7 @@ export class AppComponent {
     return Object.getOwnPropertyNames(this.state)
   }
 
-  savePreferences() {
+  savePreferencesToLocalStorage() {
     let settings = {
       pseudo: this.pseudo,
       encryptMessages: this.encryptMessages,
@@ -111,10 +111,17 @@ export class AppComponent {
 
       if (settings.autoSave)
         this.autoSave = !!settings.autoSave
+
+      this.log(`preferences loaded`)
     }
     catch (e) {
       this.log(`error loading preferences`)
     }
+  }
+
+  clearPreferencesFromLocalStorage() {
+    localStorage.setItem(STORAGE_SETTINGS, JSON.stringify({}))
+    this.log(`preferences cleared`)
   }
 
   private async tryLoadBlocksFromLocalStorage() {
@@ -157,7 +164,7 @@ export class AppComponent {
     window.addEventListener('beforeunload', event => {
       if (this.autoSave) {
         this.saveBlocks()
-        this.savePreferences()
+        this.savePreferencesToLocalStorage()
       }
     })
 
