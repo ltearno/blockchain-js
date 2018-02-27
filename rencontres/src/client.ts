@@ -6,44 +6,10 @@ export interface SocketAPI {
     close()
 }
 
-class FakeWebSocket implements SocketAPI {
-    constructor(private offerId: string, private signalingSocket: WebSocket) { }
-
-    private listeners = new Map<string, { (event): void }[]>()
-
-    on(eventType: string, listener: (data: any) => any) {
-        if (eventType == 'open') {
-            listener(undefined)
-            return
-        }
-
-        if (this.listeners.has(eventType))
-            this.listeners.get(eventType).push(listener)
-        else
-            this.listeners.set(eventType, [listener])
-    }
-
-    async send(data: string) {
-        this.signalingSocket && await this.signalingSocket.send(JSON.stringify({ type: 'dataMessage', data: { offerId: this.offerId, payload: data } }))
-    }
-
-    close() {
-        if (this.signalingSocket) {
-            try {
-                this.signalingSocket.send(JSON.stringify({ type: 'close', data: { offerId: this.offerId } }))
-                this.signalingSocket = null
-            }
-            catch (e) {
-                console.log(`error close ${e}`)
-            }
-
-            this.broadcast('close')
-        }
-    }
-
-    broadcast(eventType: string, data?) {
-        this.listeners.has(eventType) && this.listeners.get(eventType).forEach(h => h(data))
-    }
+export interface ChannelDescription {
+    offerId: string
+    counterPartyMessage: string
+    isSelfInitiated: boolean
 }
 
 export class PeerToPeerBrokering {
@@ -55,7 +21,7 @@ export class PeerToPeerBrokering {
     constructor(private url: string,
         private onReady: () => void,
         private acceptOffer: (offerId: string, offerMessage: string) => { accepted: boolean; message: string },
-        private onChannelOpened: (channelDescription: { offerId: string; counterPartyMessage: string; }, channel: SocketAPI) => void) { }
+        private onChannelOpened: (channelDescription: ChannelDescription, channel: SocketAPI) => void) { }
 
     createSignalingSocket() {
         if (this.signalingSocket)
@@ -156,7 +122,7 @@ export class PeerToPeerBrokering {
         let fakeSocket = new FakeWebSocket(answer.offerId, this.signalingSocket)
         this.fakeSockets.set(answer.offerId, fakeSocket)
 
-        this.onChannelOpened({ offerId: answer.offerId, counterPartyMessage: answer.answerMessage }, fakeSocket)
+        this.onChannelOpened({ offerId: answer.offerId, counterPartyMessage: answer.answerMessage, isSelfInitiated: true }, fakeSocket)
     }
 
     private async processOffer(offer: Messages.OfferDto) {
@@ -182,9 +148,49 @@ export class PeerToPeerBrokering {
         let fakeSocket = new FakeWebSocket(confirmation.offerId, this.signalingSocket)
         this.fakeSockets.set(confirmation.offerId, fakeSocket)
 
-        this.onChannelOpened({ offerId: confirmation.offerId, counterPartyMessage: confirmation.offerMessage }, fakeSocket)
+        this.onChannelOpened({ offerId: confirmation.offerId, counterPartyMessage: confirmation.offerMessage, isSelfInitiated: false }, fakeSocket)
 
         return
+    }
+}
+
+class FakeWebSocket implements SocketAPI {
+    constructor(private offerId: string, private signalingSocket: WebSocket) { }
+
+    private listeners = new Map<string, { (event): void }[]>()
+
+    on(eventType: string, listener: (data: any) => any) {
+        if (eventType == 'open') {
+            listener(undefined)
+            return
+        }
+
+        if (this.listeners.has(eventType))
+            this.listeners.get(eventType).push(listener)
+        else
+            this.listeners.set(eventType, [listener])
+    }
+
+    async send(data: string) {
+        this.signalingSocket && await this.signalingSocket.send(JSON.stringify({ type: 'dataMessage', data: { offerId: this.offerId, payload: data } }))
+    }
+
+    close() {
+        if (this.signalingSocket) {
+            try {
+                this.signalingSocket.send(JSON.stringify({ type: 'close', data: { offerId: this.offerId } }))
+                this.signalingSocket = null
+            }
+            catch (e) {
+                console.log(`error close ${e}`)
+            }
+
+            this.broadcast('close')
+        }
+    }
+
+    broadcast(eventType: string, data?) {
+        this.listeners.has(eventType) && this.listeners.get(eventType).forEach(h => h(data))
     }
 }
 

@@ -33,7 +33,8 @@ export class AppComponent {
   encryptMessages = false
   encryptionKey = this.guid()
   otherEncryptionKeys: string[] = []
-  desiredNbPeers = 5
+  desiredNbIncomingPeers = 3
+  desiredNbOutgoingPeers = 3
   autoP2P = false
   autoSave = true
   autoStart = false
@@ -60,6 +61,12 @@ export class AppComponent {
   accepting = new Map<string, { offerId: string; offerMessage: string }>()
   knownAcceptedMessages = new Set<string>()
 
+  private peersSockets = new Map<Blockchain.PeerInfo, { ws: Blockchain.WebSocket, isSelfInitiated: boolean, counterpartyId: string }>()
+
+  private decypherCache = new Map<string, string>()
+
+  private onUnloadListener
+
   selectTab(i) {
     this.selectedTab = i
   }
@@ -68,13 +75,37 @@ export class AppComponent {
     return Object.getOwnPropertyNames(this.state)
   }
 
+  get incomingPeersCount() {
+    let count = 0
+    this.fullNode.peerInfos.forEach(peer => {
+      if (this.peersSockets.has(peer) && !this.peersSockets.get(peer).isSelfInitiated)
+        count++
+    })
+    return count
+  }
+
+  get outgoingPeersCount() {
+    let count = 0
+    this.fullNode.peerInfos.forEach(peer => {
+      if (this.peersSockets.has(peer) && this.peersSockets.get(peer).isSelfInitiated)
+        count++
+    })
+    return count
+  }
+
   constructor() {
-    window.addEventListener('beforeunload', event => {
+    this.onUnloadListener = event => {
       if (this.autoSave) {
         this.saveBlocks()
+
         this.savePreferencesToLocalStorage()
       }
-    })
+      else {
+        this.resetStorage()
+      }
+    }
+
+    window.addEventListener('beforeunload', this.onUnloadListener)
 
     this.loadPreferencesFromLocalStorage()
 
@@ -90,7 +121,7 @@ export class AppComponent {
           return { accepted: false, message: `nope` }
         }
 
-        if (this.fullNode.peerInfos.length >= this.desiredNbPeers) {
+        if (this.incomingPeersCount >= this.desiredNbIncomingPeers) {
           return { accepted: false, message: `nope` }
         }
 
@@ -108,31 +139,18 @@ export class AppComponent {
 
       (description, channel) => {
         let counterPartyMessage = description.counterPartyMessage
+
         this.knownAcceptedMessages.add(counterPartyMessage)
 
         channel.on('close', () => this.knownAcceptedMessages.delete(counterPartyMessage))
 
-        this.addPeerBySocket(channel, `p2p with ${counterPartyMessage} on channel ${description.offerId.substr(0, 5)} (as '${this.pseudo}')`)
+        this.addPeerBySocket(channel, counterPartyMessage, description.isSelfInitiated, `p2p with ${counterPartyMessage} on channel ${description.offerId.substr(0, 5)} ${description.isSelfInitiated ? '[OUT]' : '[IN]'} (as '${this.pseudo}')`)
 
         setTimeout(() => this.maybeOfferP2PChannel(), 500)
       }
     )
 
     this.p2pBroker.createSignalingSocket()
-
-    let scheduleRemoveRandomPeer = () => {
-      setTimeout(() => {
-        if (this.fullNode.peerInfos && this.fullNode.peerInfos.length >= this.desiredNbPeers) {
-          let toRemove = this.fullNode.peerInfos[Math.floor(this.fullNode.peerInfos.length * Math.random())]
-          this.fullNode.removePeer(toRemove)
-
-          this.log(`removed random node ${toRemove.id}:${toRemove.description}`)
-        }
-
-        scheduleRemoveRandomPeer()
-      }, 30000 + Math.random() * 180000)
-    }
-    scheduleRemoveRandomPeer()
 
     setInterval(() => {
       if (this.autoP2P && this.p2pBroker.ready)
@@ -215,9 +233,11 @@ export class AppComponent {
   }
 
   maybeOfferP2PChannel() {
-    if (this.autoP2P && this.p2pBroker.ready && this.fullNode.peerInfos.length < this.desiredNbPeers) {
+    if (this.autoP2P && this.p2pBroker.ready && this.outgoingPeersCount < this.desiredNbOutgoingPeers) {
       this.offerP2PChannel()
     }
+
+    // CHECK ONLY ONE PEER BY COUNTERPARTYID
 
     // todo remove when too much peers ?
     // todo remove unconnected peers ?
@@ -239,8 +259,6 @@ export class AppComponent {
   removeEncryptionKey(key) {
     this.otherEncryptionKeys = this.otherEncryptionKeys.filter(k => k != key)
   }
-
-  private decypherCache = new Map<string, string>()
 
   decypher(message: string) {
     if (!message || message.length < 5)
@@ -342,12 +360,10 @@ export class AppComponent {
 
     let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`wss://${peerHost}:${peerPort}/events`)
 
-    this.addPeerBySocket(ws, `direct peer ${peerHost}:${peerPort}`)
+    this.addPeerBySocket(ws, `${peerHost}:${peerPort}`, true, `direct peer ${peerHost}:${peerPort}`)
   }
 
-  private peersSockets = new Map<Blockchain.PeerInfo, Blockchain.WebSocket>()
-
-  private async addPeerBySocket(ws: Blockchain.WebSocket, description: string) {
+  private addPeerBySocket(ws: Blockchain.WebSocket, counterpartyId: string, isSelfInitiated: boolean, description: string) {
     let peerInfo: Blockchain.PeerInfo = null
     let connector = null
 
@@ -357,7 +373,7 @@ export class AppComponent {
       connector = new Blockchain.WebSocketConnector(this.fullNode.node, ws)
 
       peerInfo = this.fullNode.addPeer(connector, description)
-      this.peersSockets.set(peerInfo, ws)
+      this.peersSockets.set(peerInfo, { ws, counterpartyId, isSelfInitiated })
     })
 
     ws.on('error', (err) => {
@@ -369,6 +385,7 @@ export class AppComponent {
       connector && connector.terminate()
       connector = null
       this.fullNode.removePeer(peerInfo.id)
+      this.peersSockets.delete(peerInfo)
 
       console.log('peer disconnected')
     })
@@ -377,7 +394,7 @@ export class AppComponent {
   disconnectPeer(peerInfo: Blockchain.PeerInfo) {
     this.fullNode.removePeer(peerInfo.id)
     let ws = this.peersSockets.get(peerInfo)
-    ws && ws.close()
+    ws && ws.ws.close()
     this.peersSockets.delete(peerInfo)
   }
 
@@ -391,13 +408,30 @@ export class AppComponent {
     })
   }
 
+  clearStorage() {
+    localStorage.clear()
+    window.removeEventListener('beforeunload', this.onUnloadListener)
+    window.location.reload(true)
+  }
+
+  resetStorage() {
+    localStorage.setItem(STORAGE_BLOCKS, JSON.stringify([]))
+
+    let settings = {
+      autoSave: false
+    }
+
+    localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings))
+  }
+
   savePreferencesToLocalStorage() {
     let settings = {
       pseudo: this.pseudo,
       encryptMessages: this.encryptMessages,
       encryptionKey: this.encryptionKey,
       otherEncryptionKeys: this.otherEncryptionKeys,
-      desiredNbPeers: this.desiredNbPeers,
+      desiredNbIncomingPeers: this.desiredNbIncomingPeers,
+      desiredNbOutgoingPeers: this.desiredNbOutgoingPeers,
       autoP2P: this.autoP2P,
       autoSave: this.autoSave,
       autoStart: this.autoStart
@@ -429,8 +463,11 @@ export class AppComponent {
       if (settings.otherEncryptionKeys && Array.isArray(this.otherEncryptionKeys))
         settings.otherEncryptionKeys.forEach(element => this.otherEncryptionKeys.push(element))
 
-      if (settings.desiredNbPeers)
-        this.desiredNbPeers = settings.desiredNbPeers || 5
+      if (settings.desiredNbIncomingPeers)
+        this.desiredNbIncomingPeers = settings.desiredNbIncomingPeers || 3
+
+      if (settings.desiredNbOutgoingPeers)
+        this.desiredNbOutgoingPeers = settings.desiredNbOutgoingPeers || 3
 
       this.autoP2P = !!settings.autoP2P
       this.autoSave = !!settings.autoSave
@@ -441,11 +478,6 @@ export class AppComponent {
     catch (e) {
       this.log(`error loading preferences`)
     }
-  }
-
-  clearPreferencesFromLocalStorage() {
-    localStorage.setItem(STORAGE_SETTINGS, JSON.stringify({}))
-    this.log(`preferences cleared`)
   }
 
   private async tryLoadBlocksFromLocalStorage() {
@@ -472,15 +504,11 @@ export class AppComponent {
   }
 
   saveBlocks() {
+    // TODO only save blocks that are in branches...
     let toSave = []
     let blocks: Map<string, Blockchain.Block> = this.fullNode.node.blocks()
     blocks.forEach((block, blockId) => toSave.push({ blockId, block }))
     localStorage.setItem(STORAGE_BLOCKS, JSON.stringify(toSave))
     this.log(`blocks saved`)
-  }
-
-  clearSavedBlocks() {
-    localStorage.setItem(STORAGE_BLOCKS, JSON.stringify([]))
-    this.log(`cleared stored blocks`)
   }
 }

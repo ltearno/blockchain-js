@@ -128,18 +128,15 @@
         </div>
 
         <div class="field">
-          <label class="label">Desired number of peers</label>
-          <input type="number" min="1" max="20" class="input" [(ngModel)]='desiredNbPeers'>
+          <label class="label">Desired number of incoming peers (actually {{incomingPeersCount}})</label>
+          <input type="number" min="1" max="20" class="input" [(ngModel)]='desiredNbIncomingPeers'>
+        </div>
+
+        <div class="field">
+          <label class="label">Desired number of outgoing peers (actually {{outgoingPeersCount}})</label>
+          <input type="number" min="1" max="20" class="input" [(ngModel)]='desiredNbOutgoingPeers'>
         </div>
       </div>
-
-      <div *ngIf='knownAcceptedMessages.length' class='box'>
-        <span>known p2p presentation messages:</span>
-        <ul>
-          <li *ngFor='let m of knownAcceptedMessages'>{{m | json}}</li>
-        </ul>
-      </div>
-
       <br/>
     </div>
 
@@ -219,22 +216,12 @@
     <div class="container is-fluid">
       <div class="box">
         <h2 class='subtitle'>Local storage</h2>
-        <p>This page can save known blocks on your device. It will provide faster start-up time when reloaded.</p>
         <div class="field">
-          <label for='autoSave' class="label">Auto save</label>
+          <label for='autoSave' class="label">Auto save blocks and parameters</label>
           <input id='autoSave' type="checkbox" [(ngModel)]='autoSave'>
         </div>
         <div class="field">
-          <button class="button is-primary" (click)='saveBlocks()'>Save blocks</button>
-        </div>
-        <div class="field">
-          <button class="button" (click)='clearSavedBlocks()'>Clear saved blocks</button>
-        </div>
-        <div class="field">
-          <button class="button" (click)='savePreferencesToLocalStorage()'>Save preferences</button>
-        </div>
-        <div class="field">
-          <button class="button" (click)='clearPreferencesFromLocalStorage()'>Clear user preferences</button>
+          <button class="button" (click)='clearStorage()'>Clear data and reload</button>
         </div>
       </div>
     </div>
