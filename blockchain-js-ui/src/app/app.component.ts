@@ -302,7 +302,9 @@ export class AppComponent {
         encrypted: false
       }
 
-      if (this.encryptMessages && this.encryptionKey && dataItem.message.length >= 3) {
+      if (this.encryptMessages && this.encryptionKey) {
+        dataItem.message = dataItem.message.padStart(3, '=')
+
         this.addEncryptionKey(this.encryptionKey)
         dataItem.message = CryptoJS.AES.encrypt(dataItem.message + dataItem.message.substr(-3), this.encryptionKey).toString()
         dataItem.encrypted = true
