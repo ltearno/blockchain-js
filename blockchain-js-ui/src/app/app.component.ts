@@ -120,14 +120,19 @@ export class AppComponent {
 
     this.p2pBroker.createSignalingSocket()
 
-    setInterval(() => {
-      if (this.fullNode.peerInfos && this.fullNode.peerInfos.length >= this.desiredNbPeers) {
-        let toRemove = this.fullNode.peerInfos[Math.floor(this.fullNode.peerInfos.length * Math.random())]
-        this.fullNode.removePeer(toRemove)
+    let scheduleRemoveRandomPeer = () => {
+      setTimeout(() => {
+        if (this.fullNode.peerInfos && this.fullNode.peerInfos.length >= this.desiredNbPeers) {
+          let toRemove = this.fullNode.peerInfos[Math.floor(this.fullNode.peerInfos.length * Math.random())]
+          this.fullNode.removePeer(toRemove)
 
-        this.log(`removed random node ${toRemove.id}:${toRemove.description}`)
-      }
-    }, 30000 + Math.random() * 45000)
+          this.log(`removed random node ${toRemove.id}:${toRemove.description}`)
+        }
+
+        scheduleRemoveRandomPeer()
+      }, 30000 + Math.random() * 180000)
+    }
+    scheduleRemoveRandomPeer()
 
     setInterval(() => {
       if (this.autoP2P && this.p2pBroker.ready)
