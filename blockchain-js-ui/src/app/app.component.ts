@@ -14,7 +14,6 @@ function sleep(time: number) {
   return new Promise((resolve, reject) => setTimeout(resolve, time))
 }
 
-// TODO pool de peers accepted
 // TODO affichage tous messages
 // TODO clean
 

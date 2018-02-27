@@ -211,20 +211,6 @@
         </div>
       </div>
     </div>
-
-    <br/>
-    <div class="container is-fluid">
-      <div class="box">
-        <h2 class='subtitle'>Local storage</h2>
-        <div class="field">
-          <label for='autoSave' class="label">Auto save blocks and parameters</label>
-          <input id='autoSave' type="checkbox" [(ngModel)]='autoSave'>
-        </div>
-        <div class="field">
-          <button class="button" (click)='clearStorage()'>Clear data and reload</button>
-        </div>
-      </div>
-    </div>
     <br/>
     <div class="container is-fluid">
       <div class="box">
@@ -254,6 +240,13 @@
         <div class="field">
           <label for='autoStart' class="label">Auto start (skip the connection screen)</label>
           <input id='autoStart' type="checkbox" [(ngModel)]='autoStart'>
+        </div>
+        <div class="field">
+          <label for='autoSave' class="label">Auto save blocks and parameters</label>
+          <input id='autoSave' type="checkbox" [(ngModel)]='autoSave'>
+        </div>
+        <div class="field">
+          <button class="button" (click)='clearStorage()'>Clear data and reload</button>
         </div>
       </div>
     </div>
