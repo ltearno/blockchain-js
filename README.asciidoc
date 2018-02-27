@@ -38,8 +38,13 @@ at all in any of the connected peers. It is also possible to connect to other no
 The UI allows to create a node, connect to the meeting server, receive blockchain notifications and see blocks data and update the blockchain
 by mining new blocks with adjustable difficulty.
 
+As a prerequisite, for the ui, you need to install angular's cli :
+
+        sudo npm install -g @angular/cli
+
 First you need to link projects together. Since the script does `npm link` internally, you need to sudo it. You have to do it **only once**.
 
+        ./first-build.sh
         ./install.sh
 
 Then to build the three projects (blockchain-js-core, rencontres and blockchain-js-ui), simply call :
