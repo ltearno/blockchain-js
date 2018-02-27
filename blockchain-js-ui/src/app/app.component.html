@@ -5,7 +5,7 @@
         <h1 class='title'>Blockchain JS</h1>
       </div>
       <div class='level-item' style='width:2em;'></div>
-      <div class='level-item' *ngIf='pseudo'>
+      <div class='level-item' *ngIf='userStarted'>
         <span class='is-italic'>pseudo: </span>
         <h2 class='subtitle'> {{pseudo}}</h2>
       </div>
@@ -14,7 +14,7 @@
 </nav>
 
 <section id='blockchain-main' class='section'>
-  <div *ngIf='!pseudo' class="container">
+  <div *ngIf='!userStarted' class="container">
     <h1 class='subtitle'>You are not yet connected to the blockchain.</h1>
     <p>First,
       <b>choose a pseudo</b> to connect to the blockchain network.</p>
@@ -36,7 +36,7 @@
     </div>
   </div>
 
-  <div *ngIf='pseudo' class="tabs">
+  <div *ngIf='userStarted' class="tabs">
     <ul>
       <li [class.is-active]='selectedTab==1' (click)='selectTab(1)'>
         <a>Messages</a>
@@ -50,7 +50,7 @@
     </ul>
   </div>
 
-  <div *ngIf='pseudo && selectedTab==1'>
+  <div *ngIf='userStarted && selectedTab==1'>
     <div *ngIf='!autoP2P && !(fullNode.peerInfos?.length)' class="container is-fluid">
       <button class='button is-success' (click)='toggleAutoP2P()'>Enable peer to peer connectivity</button>
       <br/>
@@ -108,7 +108,7 @@
     </div>
   </div>
 
-  <div *ngIf='pseudo && selectedTab==2'>
+  <div *ngIf='userStarted && selectedTab==2'>
     <div class="container is-fluid">
       <div *ngIf='p2pBroker.ready' class='box'>
         <h2 class="subtitle">Peer to peer connectivity</h2>
@@ -187,7 +187,7 @@
     </div>
   </div>
 
-  <div *ngIf='pseudo && selectedTab==3'>
+  <div *ngIf='userStarted && selectedTab==3'>
     <div class="container is-fluid">
       <div class="box">
         <h2 class='subtitle'>Privacy</h2>
@@ -263,6 +263,16 @@
     <br/>
     <div class="container is-fluid">
       <div class="box">
+        <h2 class='subtitle'>Miscellanous</h2>
+        <div class="field">
+          <label for='autoStart' class="label">Auto start (skip the connection screen)</label>
+          <input id='autoStart' type="checkbox" [(ngModel)]='autoStart'>
+        </div>
+      </div>
+    </div>
+    <br/>
+    <div class="container is-fluid">
+      <div class="box">
         <h2 class='subtitle'>Branch management</h2>
         <div class="field">
           <label class="label">Current branch</label>
@@ -303,7 +313,7 @@
         <a href='https://github.com/ltearno'>Arnaud Tournier</a> at
         <a href="https://stack-labs.com">Stack Labs</a>
       </p>
-      <p *ngIf='pseudo'>
+      <p *ngIf='userStarted'>
         <span>{{fullNode.peerInfos.length}} peers connected</span>
         <span *ngIf='!p2pBroker.ready' style='color:red;'> - peer to peer connectivity is not ready</span>
         <span *ngIf='fullNode.transfer.isLoading' style='color:green;'> - loading</span>

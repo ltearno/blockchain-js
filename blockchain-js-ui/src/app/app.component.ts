@@ -27,6 +27,8 @@ function sleep(time: number) {
 export class AppComponent {
   proposedPseudo = this.guid()
 
+  userStarted = false
+
   // To save
   pseudo = null
   encryptMessages = false
@@ -35,6 +37,7 @@ export class AppComponent {
   desiredNbPeers = 5
   autoP2P = false
   autoSave = true
+  autoStart = false
 
   selectedTab = 1
   selectedBranch = Blockchain.MASTER_BRANCH
@@ -74,7 +77,8 @@ export class AppComponent {
       otherEncryptionKeys: this.otherEncryptionKeys,
       desiredNbPeers: this.desiredNbPeers,
       autoP2P: this.autoP2P,
-      autoSave: this.autoSave
+      autoSave: this.autoSave,
+      autoStart: this.autoStart
     }
 
     localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings))
@@ -92,7 +96,7 @@ export class AppComponent {
         return
 
       if (settings.pseudo)
-        this.proposedPseudo = settings.pseudo || this.guid()
+        this.proposedPseudo = this.pseudo = settings.pseudo || this.guid()
 
       if (settings.encryptMessages)
         this.encryptMessages = settings.encryptMessages || false
@@ -106,11 +110,9 @@ export class AppComponent {
       if (settings.desiredNbPeers)
         this.desiredNbPeers = settings.desiredNbPeers || 5
 
-      if (settings.autoP2P)
-        this.autoP2P = !!settings.autoP2P
-
-      if (settings.autoSave)
-        this.autoSave = !!settings.autoSave
+      this.autoP2P = !!settings.autoP2P
+      this.autoSave = !!settings.autoSave
+      this.autoStart = !!settings.autoStart
 
       this.log(`preferences loaded`)
     }
@@ -225,6 +227,10 @@ export class AppComponent {
       if (this.autoP2P && this.p2pBroker.ready)
         this.maybeOfferP2PChannel()
     }, 10000)
+
+    if (this.autoStart) {
+      this.userStarted = true
+    }
   }
 
   private nextLoad: { branch, blockId } = { branch: null, blockId: null }
@@ -289,6 +295,8 @@ export class AppComponent {
   }
 
   setPseudo(pseudo, peerToPeer) {
+    this.userStarted = true
+
     this.pseudo = pseudo
     this.autoP2P = peerToPeer
 
