@@ -47,6 +47,9 @@
       <li [class.is-active]='selectedTab==3' (click)='selectTab(3)'>
         <a>Advanced</a>
       </li>
+      <li [class.is-active]='selectedTab==4' (click)='selectTab(4)'>
+        <a>Logs</a>
+      </li>
     </ul>
   </div>
 
@@ -60,17 +63,17 @@
     <div class="container is-fluid">
       <div class="field has-addons">
         <p class="control is-expanded">
-          <input #minedData class='input' type="text" placeholder='Message to send to blockchain' (keyup.enter)='mine(minedData.value, miningDifficulty.value) && minedData.value=""'>
+          <input #minedData class='input' type="text" placeholder='Message to send to blockchain' (keyup.enter)='mine(minedData.value) && minedData.value=""'>
         </p>
         <div class="control has-icons-left">
           <span class="select">
-            <select #miningDifficulty>
-              <option>1</option>
-              <option>5</option>
-              <option>10</option>
-              <option>20</option>
-              <option selected>100</option>
-              <option>1000</option>
+            <select [(ngModel)]='miningDifficulty'>
+              <option value=1>1</option>
+              <option value=5>5</option>
+              <option value=10>10</option>
+              <option value=20>20</option>
+              <option value=100>100</option>
+              <option value=1000>1000</option>
             </select>
           </span>
           <div class="icon is-small is-left">
@@ -78,7 +81,7 @@
           </div>
         </div>
         <p class="control">
-          <button (click)='mine(minedData.value, miningDifficulty.value)' [disabled]='isMining || autoMining' class='button has-icon-left'>
+          <button (click)='mine(minedData.value)' [disabled]='isMining || autoMining' class='button has-icon-left'>
             <i class='mdi mdi-cloud-upload'></i> Mine
           </button>
         </p>
@@ -214,45 +217,6 @@
     <br/>
     <div class="container is-fluid">
       <div class="box">
-        <h2 class='subtitle'>Automining</h2>
-        <div class="field">
-          <label class='label'>Message</label>
-          <input #minedData class='input' type="text" value='Some data to mine...'>
-        </div>
-        <div class="field">
-          <label class='label'>Difficulty</label>
-          <input #miningDifficulty type="number" class="input" value='100' step="10" min="1" size="5" />
-        </div>
-        <div class="field">
-          <label class='label'>Timer</label>
-          <input #automineTimer type="number" class='input' value='2000' min='1' size='5' />
-        </div>
-
-        <div class="field">
-          <button (click)='toggleAutomine(minedData.value, miningDifficulty.value, automineTimer.value)' class='button is-link'>{{autoMining ? 'disable' : 'enable'}} auto-mining</button>
-        </div>
-      </div>
-    </div>
-    <br/>
-    <div class="container is-fluid">
-      <div class="box">
-        <h2 class='subtitle'>Miscellanous</h2>
-        <div class="field">
-          <label for='autoStart' class="label">Auto start (skip the connection screen)</label>
-          <input id='autoStart' type="checkbox" [(ngModel)]='autoStart'>
-        </div>
-        <div class="field">
-          <label for='autoSave' class="label">Auto save blocks and parameters</label>
-          <input id='autoSave' type="checkbox" [(ngModel)]='autoSave'>
-        </div>
-        <div class="field">
-          <button class="button" (click)='clearStorage()'>Clear data and reload</button>
-        </div>
-      </div>
-    </div>
-    <br/>
-    <div class="container is-fluid">
-      <div class="box">
         <h2 class='subtitle'>Branch management</h2>
         <div class="field">
           <label class="label">Current branch</label>
@@ -276,6 +240,47 @@
       </div>
     </div>
     <br/>
+    <div class="container is-fluid">
+      <div class="box">
+        <h2 class='subtitle'>Automining</h2>
+        <div class="field">
+          <label class='label'>Message</label>
+          <input #minedData class='input' type="text" value='Some data to mine...'>
+        </div>
+        <div class="field">
+          <label class='label'>Difficulty</label>
+          <input #miningDifficulty type="number" class="input" value='100' step="10" min="1" size="5" />
+        </div>
+        <div class="field">
+          <label class='label'>Timer</label>
+          <input #automineTimer type="number" class='input' value='2000' min='1' size='5' />
+        </div>
+
+        <div class="field">
+          <button (click)='toggleAutomine(minedData.value, automineTimer.value)' class='button is-link'>{{autoMining ? 'disable' : 'enable'}} auto-mining</button>
+        </div>
+      </div>
+    </div>
+    <br/>
+    <div class="container is-fluid">
+      <div class="box">
+        <h2 class='subtitle'>Miscellanous</h2>
+        <div class="field">
+          <label for='autoStart' class="label">Auto start (skip the connection screen)</label>
+          <input id='autoStart' type="checkbox" [(ngModel)]='autoStart'>
+        </div>
+        <div class="field">
+          <label for='autoSave' class="label">Auto save blocks and parameters</label>
+          <input id='autoSave' type="checkbox" [(ngModel)]='autoSave'>
+        </div>
+        <div class="field">
+          <button class="button" (click)='clearStorage()'>Clear data and reload</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf='userStarted && selectedTab==4'>
     <div class="container is-fluid">
       <div class="box">
         <h2 class='subtitle'>Logs</h2>

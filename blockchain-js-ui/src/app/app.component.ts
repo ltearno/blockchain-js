@@ -37,6 +37,7 @@ export class AppComponent {
   autoP2P = false
   autoSave = true
   autoStart = false
+  miningDifficulty = 100
 
   selectedTab = 1
   selectedBranch = Blockchain.MASTER_BRANCH
@@ -288,8 +289,8 @@ export class AppComponent {
     return decypheredMessage
   }
 
-  async mine(message: string, miningDifficulty) {
-    if (this.isMining || message == '' || miningDifficulty <= 0)
+  async mine(message: string) {
+    if (this.isMining || message == '' || this.miningDifficulty <= 0)
       return
 
     this.isMining = true
@@ -313,7 +314,7 @@ export class AppComponent {
       this.log(`start mining...`)
 
       this.fullNode.miner.addData(this.selectedBranch, dataItem)
-      let mineResult = await this.fullNode.miner.mineData(miningDifficulty, 30)
+      let mineResult = await this.fullNode.miner.mineData(this.miningDifficulty, 30)
       this.log(`finished mining: ${JSON.stringify(mineResult)}`)
     }
     catch (error) {
@@ -340,7 +341,7 @@ export class AppComponent {
     }
   }
 
-  toggleAutomine(minedData, miningDifficulty, automineTimer) {
+  toggleAutomine(minedData, automineTimer) {
     if (this.autoMining) {
       this.autoMining = false
     }
@@ -348,7 +349,7 @@ export class AppComponent {
       this.autoMining = true
 
       let action = async () => {
-        this.autoMining && await this.mine(`${minedData} - ${this.autoMiningIteration++}`, miningDifficulty)
+        this.autoMining && await this.mine(`${minedData} - ${this.autoMiningIteration++}`)
         if (this.autoMining)
           setTimeout(action, automineTimer)
       }
@@ -433,6 +434,7 @@ export class AppComponent {
       otherEncryptionKeys: this.otherEncryptionKeys,
       desiredNbIncomingPeers: this.desiredNbIncomingPeers,
       desiredNbOutgoingPeers: this.desiredNbOutgoingPeers,
+      miningDifficulty: this.miningDifficulty,
       autoP2P: this.autoP2P,
       autoSave: this.autoSave,
       autoStart: this.autoStart
@@ -469,6 +471,9 @@ export class AppComponent {
 
       if (settings.desiredNbOutgoingPeers)
         this.desiredNbOutgoingPeers = settings.desiredNbOutgoingPeers || 3
+
+      if (settings.miningDifficulty)
+        this.miningDifficulty = settings.miningDifficulty
 
       this.autoP2P = !!settings.autoP2P
       this.autoSave = !!settings.autoSave
