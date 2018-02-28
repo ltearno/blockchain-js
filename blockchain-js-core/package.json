@@ -11,6 +11,12 @@
   },
   "author": "Arnaud Tournier",
   "license": "ISC",
+  "homepage": "https://blockchain-js.com",
+  "bugs": "https://github.com/ltearno/blockchain-js/issues",
+  "repository": {
+    "url": "https://github.com/ltearno/blockchain-js.git",
+    "type": "git"
+  },
   "devDependencies": {
     "@types/express": "^4.0.37",
     "@types/node": "^8.0.46",
