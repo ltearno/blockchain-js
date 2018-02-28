@@ -1,11 +1,11 @@
 {
   "name": "blockchain-js-core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Blockchain demo",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "install": "./build.sh",
+    "build": "./node_modules/.bin/tsc && ./node_modules/.bin/browserify dist/blockchain-browser.js -o dist/bundle.js",
     "start": "node dist/blockchain-node.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
