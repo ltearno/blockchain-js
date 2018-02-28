@@ -170,6 +170,13 @@ export class AppComponent {
   }
 
   private async loadState(branch: string, blockId: string) {
+    if (this.state && this.state[branch] && this.state[branch].head == blockId)
+      return
+
+    // only update current state
+    // stop when we encounter the current branch head
+    // if not found, replace the head
+
     let state = {}
 
     let toFetch = blockId
