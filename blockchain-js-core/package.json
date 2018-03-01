@@ -1,6 +1,6 @@
 {
   "name": "blockchain-js-core",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Blockchain demo",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

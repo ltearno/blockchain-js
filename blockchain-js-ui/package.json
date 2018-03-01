@@ -21,7 +21,7 @@
     "@angular/platform-browser": "^5.2.0",
     "@angular/platform-browser-dynamic": "^5.2.0",
     "@angular/router": "^5.2.0",
-    "blockchain-js-core": "1.0.1",
+    "blockchain-js-core": "1.0.3",
     "bulma": "^0.6.2",
     "core-js": "^2.4.1",
     "crypto-js": "^3.1.9-1",
