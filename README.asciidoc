@@ -2,11 +2,14 @@
 
 A simple typescript implementation of a Bitcoin-like distributed blockchain consensus algortihm.
 
-The aim is to have a base work to make experiments with it.
+The aim is to have a working code base to make demoes and experiments with it.
 
 It has a node with many of the bitcoin concepts implemented, and some more (branches, merches, and so on).
 
 The code woks both on server (NodeJS) and client (browser) environments so it is fit for doing demoes.
+
+A demo application is available at https://blockchain-js.com. It is a chat (web) application using the underlying blockchain as
+the data storage.
 
 == Introduction
 
