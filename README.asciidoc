@@ -43,12 +43,27 @@ by mining new blocks with adjustable difficulty.
 
 As a prerequisite, for the ui, you need to install angular's cli :
 
-        sudo npm install -g @angular/cli
+        yarn global add @angular/cli
 
-First you need to link projects together. Since the script does `npm link` internally, you need to sudo it. You have to do it **only once**.
+First you need to build and link projects together.
 
-        ./first-build.sh
-        ./install.sh
+        cd rencontres
+        yarn install
+        yarn build
+        yarn link
+        cd ..
+
+        cd blockchain-js-core
+        yarn install
+        yarn build
+        yarn link
+        cd ..
+
+        cd blockchain-js-ui
+        yarn link rencontres blockchain-js-core
+        yarn install
+        yarn build
+        cd ..
 
 Then to build the three projects (blockchain-js-core, rencontres and blockchain-js-ui), simply call :
 
@@ -64,11 +79,12 @@ In another terminal :
 
         cd blockchain-js-ui/dist
         # if you had not installed http-server before :
-        npm install -g http-server
+        yarn global add http-server
         http-server -p 8080 ./
 
-You can then go with several browsers to `http://localhost:8080/` and you should see the demo application, which is a blockchain distributed
-amongst all connected nodes in which the client add messages by mining some blocks and transmitting them to peer nodes.
+You can then go with several browsers to `http://localhost:8080/` and you should see 
+the demo application, which is a blockchain distributed amongst all connected nodes 
+in which the client add messages by mining some blocks and transmitting them to peer nodes.
 
 === Development mode
 

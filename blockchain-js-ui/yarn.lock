@@ -757,9 +757,9 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
-blockchain-js-core@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/blockchain-js-core/-/blockchain-js-core-1.0.1.tgz#2f820fe1e6372993c268d18f45f284ae93227b6e"
+blockchain-js-core@1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/blockchain-js-core/-/blockchain-js-core-1.0.3.tgz#4e12b863a82a45c227f3d61b869b124c105e7f00"
   dependencies:
     body-parser "^1.15.2"
     express "~4.11.1"

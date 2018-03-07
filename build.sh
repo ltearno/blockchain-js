@@ -4,17 +4,17 @@ set -e
 
 echo "building rencontres..."
 cd rencontres
-npm install
+yarn build
 cd ..
 
 echo "building core..."
 cd blockchain-js-core
-npm install
+yarn build
 cd ..
 
 echo "building UI..."
 cd blockchain-js-ui
-ng build -prod
+yarn build
 cd ..
 
 echo "all done"

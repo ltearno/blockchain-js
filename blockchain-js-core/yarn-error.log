@@ -1,14 +1,14 @@
 Arguments: 
-  /usr/bin/node /usr/share/yarn/bin/yarn.js install
+  /usr/bin/node /usr/share/yarn/bin/yarn.js build
 
 PATH: 
-  /home/arnaud-airbus/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/arnaud-airbus/IncludeOS//bin
+  /home/arnaud/bin:/home/arnaud/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/arnaud/.yarn/bin
 
 Yarn version: 
   1.5.1
 
 Node version: 
-  8.9.3
+  8.9.4
 
 Platform: 
   linux x64
@@ -16,12 +16,12 @@ Platform:
 npm manifest: 
   {
     "name": "blockchain-js-core",
-    "version": "1.0.1",
+    "version": "1.0.3",
     "description": "Blockchain demo",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-      "install": "./node_modules/.bin/tsc && ./node_modules/.bin/browserify dist/blockchain-browser.js -o dist/bundle.js",
+      "build": "./node_modules/.bin/tsc && ./node_modules/.bin/browserify dist/blockchain-browser.js -o dist/bundle.js",
       "start": "node dist/blockchain-node.js",
       "test": "echo \"Error: no test specified\" && exit 1"
     },
@@ -2971,10 +2971,10 @@ Lockfile:
 
 Trace: 
   Error: Command failed.
-  Exit code: 2
+  Exit code: 127
   Command: sh
   Arguments: -c ./node_modules/.bin/tsc && ./node_modules/.bin/browserify dist/blockchain-browser.js -o dist/bundle.js
-  Directory: /home/arnaud-airbus/repos/persos/blockchain-js/blockchain-js-core
+  Directory: /home/arnaud/repos/persos/blockchain-js/blockchain-js-core
   Output:
   
       at ProcessTermError.MessageError (/usr/share/yarn/lib/cli.js:186:110)
