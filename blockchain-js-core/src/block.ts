@@ -2,7 +2,8 @@ import * as HashTools from './hash-tools'
 
 export const MASTER_BRANCH = 'master'
 
-// TODO (not 100% sure) : each data in the bockchain should have a hash and a content (hash is not required to be the hash of the content). there can be only one data for a hash on the chain
+// TODO (not 100% sure) : each data in the bockchain should have a hash and a content (hash is not 
+// required to be the hash of the content). there can be only one data for a hash on the chain.
 
 /**
  * A block which has no validation data yet
@@ -11,8 +12,7 @@ export interface BlockSeed {
     // blockchain branch name
     branch: string
 
-    // TODO : should be an ordered list of parents, to allow fot DAG
-    // ID of the previous block
+    // IDs of the previous blocks
     previousBlockIds: string[]
 
     // a list of data appended to the block. Those are the data users required to be published on the blockchain
@@ -37,6 +37,9 @@ export interface Block extends BlockSeed {
 export interface BlockMetadata {
     // ID of the block (which is sha(stringify(block)))
     blockId: string
+
+    // IDs of the previous blocks
+    previousBlockIds: string[]
 
     // sha(stringify(block)) == block.validityProof
     isValid: boolean

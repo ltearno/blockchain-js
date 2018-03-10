@@ -338,6 +338,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         let metadata: Block.BlockMetadata = {
             blockId,
+            previousBlockIds: block.previousBlockIds,
             isValid: await Block.isBlockValid(block),
             blockCount,
             confidence
