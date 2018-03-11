@@ -14,6 +14,7 @@ export class MinerImpl {
         return this.dataToMineByBranch.get(branch)
     }
 
+    // add data to miner's mempool
     addData(branch: string, data: any): void {
         this.getToMineList(branch).push(data)
         this.schedule()

@@ -90,7 +90,6 @@ export class NodeTransfer {
         if (!this.fetchingItem) {
             this.isLoading = false
             console.log(`cannot choose an item to load`)
-
             return
         }
 
