@@ -68,10 +68,11 @@
         <div class="control has-icons-left">
           <span class="select">
             <select [(ngModel)]='miningDifficulty'>
-              <option value=1>1</option>
+              <!--<option value=1>1</option>
               <option value=5>5</option>
               <option value=10>10</option>
-              <option value=20>20</option>
+              <option value=20>20</option>-->
+              <option value=50>50</option>
               <option value=100>100</option>
               <option value=1000>1000</option>
             </select>
@@ -81,7 +82,7 @@
           </div>
         </div>
         <p class="control">
-          <button (click)='mine(minedData.value)' [disabled]='isMining || autoMining' class='button has-icon-left'>
+          <button (click)='mine(minedData.value) && minedData.value=""' [disabled]='isMining || autoMining' class='button has-icon-left'>
             <i class='mdi mdi-cloud-upload'></i> Mine
           </button>
         </p>
@@ -240,7 +241,7 @@
       </div>
     </div>
     <br/>
-    <div class="container is-fluid">
+    <div class="container is-fluid" *ngIf="encryptionKey.endsWith('stacklabs')">
       <div class="box">
         <h2 class='subtitle'>Automining</h2>
         <div class="field">
@@ -260,8 +261,8 @@
           <button (click)='toggleAutomine(minedData.value, automineTimer.value)' class='button is-link'>{{autoMining ? 'disable' : 'enable'}} auto-mining</button>
         </div>
       </div>
+      <br/>
     </div>
-    <br/>
     <div class="container is-fluid">
       <div class="box">
         <h2 class='subtitle'>Miscellanous</h2>
