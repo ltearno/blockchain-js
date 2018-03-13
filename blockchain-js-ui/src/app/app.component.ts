@@ -36,7 +36,7 @@ export class AppComponent {
   desiredNbOutgoingPeers = 3
   autoP2P = false
   autoSave = true
-  autoStart = false
+  autoStart = true
   miningDifficulty = 100
 
   selectedTab = 1
@@ -157,7 +157,7 @@ export class AppComponent {
         this.maybeOfferP2PChannel()
     }, 10000)
 
-    if (this.autoStart) {
+    if (this.autoStart && this.pseudo) {
       this.userStarted = true
     }
   }
