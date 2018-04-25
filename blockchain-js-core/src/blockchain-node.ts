@@ -4,6 +4,7 @@ import * as NodeNetworkServer from './node-network-server'
 import * as NodeNetworkClient from './node-network-client'
 import * as FullNode from './full-node'
 import * as NetworkApiNodeImpl from './network-api-node-impl'
+import * as http from 'http'
 import * as https from 'https'
 import * as fs from 'fs'
 
@@ -18,10 +19,17 @@ let port = (process.argv.length >= 3 && parseInt(process.argv[2])) || 9091
 let app = express()
 app.use(bodyParser.json())
 
-let server = https.createServer({
-    key: fs.readFileSync('key.pem'),
-    cert: fs.readFileSync('cert.pem')
-}, app)
+let server
+
+if (fs.existsSync('key.pem') && fs.existsSync('cert.pem')) {
+    server = https.createServer({
+        key: fs.readFileSync('key.pem'),
+        cert: fs.readFileSync('cert.pem')
+    }, app)
+}
+else {
+    server = http.createServer(app)
+}
 
 require('express-ws')(app, server)
 
