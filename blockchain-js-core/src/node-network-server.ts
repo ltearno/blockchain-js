@@ -54,7 +54,7 @@ export class NodeServer {
             res.send(JSON.stringify(result))
         })
 
-        app.get('/blockChainHeadLog/:depth', async (req, res) => {
+        app.get('/blockChainHeadLog/:branch/:depth', async (req, res) => {
             let branch = req.params.branch
             let depth = 1 * (req.params.depth || 1)
 
