@@ -38,6 +38,7 @@ export class AppComponent {
   autoSave = true
   autoStart = true
   miningDifficulty = 100
+  maxNumberDisplayedMessages = 100
 
   selectedTab = 1
   selectedBranch = Blockchain.MASTER_BRANCH
@@ -203,7 +204,7 @@ export class AppComponent {
       blockData && blockData.previousBlockIds && blockData.previousBlockIds.forEach(b => !toFetchs.some(bid => bid == b) && toFetchs.push(b))
 
       count++
-      if (count > 50)
+      if (count > this.maxNumberDisplayedMessages)
         break
     }
 
