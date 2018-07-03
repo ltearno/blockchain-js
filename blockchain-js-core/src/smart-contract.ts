@@ -18,6 +18,9 @@
  * 
  * - allows to update a program by signing its previous version with the same private key
  * 
+ * - program api: create update delete, options : can instances be created without a sig ?
+ * - instance api: lifecycle=init_memory, methods
+ * 
  * Think about key renewal...
  */
 
@@ -27,3 +30,5 @@
   * filter block data for smartcontract related data
   * construct program instances and update their state
   */
+
+  // from a node, browse blocks reverse and callback for blockId + data item
