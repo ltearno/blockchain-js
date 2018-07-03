@@ -12,8 +12,8 @@ interface ListItem {
 
 // READING :
 // subscribe to the node => fetch latest data
-// reverse browser the node's head and fetch blocks until root block
-// browser blocks from root and filter list data, construct the chained list with that
+// reverse browse the node's head and fetch blocks until root block
+// browse blocks from root and filter list data, construct the chained list with that
 
 async function idOfItem(index: number, item: any) {
     return `${index}-${await Block.idOfData(item)}`
