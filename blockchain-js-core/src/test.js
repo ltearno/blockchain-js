@@ -1,7 +1,10 @@
 let bannedKeywords = ['document', 'window', 'os', 'console']
 
 // init = ID (given by the user, should not already exist), PubKey, Code (with init method)
-// update = ID, sig, new code (with transformData method)
+// update = OLD ID, NEW ID, sig, new code (with transformData method)
+// execution of an updated program is forbidden
+
+// call = programId + parameters
 
 function createProgram(id, pubKey, code) {
 }
@@ -13,10 +16,11 @@ if(typeof process != "undefined") {
     }
 }
 
-${bannedKeywords.map(kw => `if(typeof ${kw} != "undefined") ${kw} = null;`).join('\n')}
+${bannedKeywords.map(kw => `if(typeof ${kw} != "undefined") ${kw} = undefined;`).join('\n')}
 
 return (
 
+// user's smart contract
 {
     init: () => {
         return { value: 104 }
@@ -42,6 +46,10 @@ let instanceData = instance.init()
 console.log(`instance initial data: ${JSON.stringify(instanceData, null, 2)}`)
 
 for (let i = 0; i < 10; i++) {
-    instance.test(instanceData)
+    let callResult = instance.test(instanceData)
     console.log(`instance data (after call): ${JSON.stringify(instanceData, null, 2)}`)
+    if (callResult) {
+        console.log(`call result : ${callResult}`)
+        // TODO find an id for this data [eg sha(callparams)] and add it to the current block (question : as long as mining is free, ok, but we should provide credentials when not free ;))
+    }
 }

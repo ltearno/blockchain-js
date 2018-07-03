@@ -1,3 +1,7 @@
+import * as Block from './block'
+import * as NodeApi from './node-api'
+import * as MinerImpl from './miner-impl'
+
 /**
  * This should implement basic smart contract functionality :
  * 
@@ -24,11 +28,126 @@
  * Think about key renewal...
  */
 
- /**
-  * browse blocks and :
-  * 
-  * filter block data for smartcontract related data
-  * construct program instances and update their state
-  */
+/**
+ * Program execution :
+ * 
+ * can lead to a result or an error, if error then the call is invalid and not counted
+ */
 
-  // from a node, browse blocks reverse and callback for blockId + data item
+/**
+ * browse blocks and :
+ * 
+ * filter block data for smart contract related data
+ * construct program instances and update their state
+ */
+
+// from a node, browse blocks reverse and callback for blockId + data item
+
+export class SmartContract {
+    constructor(
+        private node: NodeApi.NodeApi,
+        private branch: string,
+        private miner: MinerImpl.MinerImpl) { }
+
+    private stepPromiseFactory: () => Promise<any>
+    private lastPromiseContext: {} = null
+
+    private nodeListener = () => this.updateFromNode()
+
+    initialise() {
+        this.node.addEventListener('head', this.nodeListener)
+        this.updateFromNode()
+    }
+
+    terminate() {
+        this.node.removeEventListener(this.nodeListener)
+        this.node = undefined
+    }
+
+    async addProgram(id: string, pubKey: string, code: string) {
+    }
+
+    async updateProgram(newId: string, oldId: string, sig: string, code: string) {
+    }
+
+    async deleteProgram(id: string, sig: string) {
+    }
+
+    // returns the instance id (a guid)
+    async createProgramInstance(programId: string, args: object, pubKey: string) {
+        return ""
+    }
+
+    async deleteProgramInstance(programId: string, sig: string) {
+    }
+
+    // return a data that is used to call the program
+    async dataItemForCall(programId: string, args: object) {
+        return null
+    }
+
+    private async updateFromNode() {
+        this.stepPromiseFactory = this.stepGetNodeHead
+        this.executeCurrentStep()
+    }
+
+    private executeCurrentStep() {
+        let context = {}
+        this.lastPromiseContext = context
+
+        if (!this.stepPromiseFactory)
+            return
+
+        let stepPromiseFactory = this.stepPromiseFactory
+        this.stepPromiseFactory = null
+
+        stepPromiseFactory.call(this).then(result => {
+            if (this.lastPromiseContext !== context) {
+                console.log(`abandonned step result`)
+                return
+            }
+
+            console.log(`step accomplished ! ${result}`)
+            if (!this.stepPromiseFactory)
+                console.log(`no more steps`)
+            else
+                this.executeCurrentStep()
+        }).catch(error => {
+            if (this.lastPromiseContext !== context) {
+                console.log(`abandonned step error ${error}`)
+                return
+            }
+
+            console.error(`step error: ${error}`)
+            this.stepPromiseFactory = null
+        })
+    }
+
+    private head: string = null
+
+    private async stepGetNodeHead() {
+        this.head = await this.node.blockChainHead(this.branch)
+        console.log(`loaded node head ${this.head}`)
+
+        // go reverse in the blocks to find smart contract informations
+        this.stepPromiseFactory = this.stepRecurseBlock
+        this.recursedBlock = this.head
+    }
+
+    private recursedBlock: string
+
+    private async stepRecurseBlock() {
+        if (!this.recursedBlock) {
+            console.log(`finished reverse browsing blocks`)
+            return
+        }
+
+        let metadata = await this.node.blockChainBlockMetadata(this.recursedBlock, 1)
+        //let data = await this.node.blockChainBlockData(this.recursedBlock, 1)
+
+        console.log(`recursed to block ${metadata[0].blockId}`)
+
+        this.stepPromiseFactory = this.stepRecurseBlock
+        this.recursedBlock = metadata && metadata.length && metadata[0].previousBlockIds && metadata[0].previousBlockIds[0]
+    }
+}
