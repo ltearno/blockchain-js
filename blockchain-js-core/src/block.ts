@@ -21,6 +21,9 @@ export interface BlockSeed {
 
 /**
  * A block with validity proof information in it
+ * 
+ * - validity of the block as a whole (mining, pki, ...)
+ * - validity of data in the block (data format GUID)
  */
 export interface Block extends BlockSeed {
     validityProof: {
