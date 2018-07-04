@@ -177,6 +177,9 @@ export class SmartContract {
 
         console.log(`recursed to block ${metadata[0].blockId}`)
 
+        // read block data and find useful items
+        // from those items (in reverse order), build program and program instance states
+
         context.stepRecurseBlock(metadata && metadata.length && metadata[0].previousBlockIds && metadata[0].previousBlockIds[0])
     }
 }
