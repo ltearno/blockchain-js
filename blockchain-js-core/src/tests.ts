@@ -9,10 +9,7 @@ import * as Tools from './tools'
 import * as ListOnChain from './list-on-chain'
 import * as MinerImpl from './miner-impl'
 import * as NetworkApiNodeImpl from './network-api-node-impl'
-
-import * as express from 'express'
-import * as bodyParser from 'body-parser'
-import * as WebSocket from 'ws'
+import * as SmartContract from './smart-contract'
 
 const NETWORK_CLIENT_API = new NetworkApiNodeImpl.NetworkApiNodeImpl()
 
@@ -284,6 +281,26 @@ async function testListOnBlockSpeed() {
 async function firstTest() {
 }
 
+async function testSmartContract() {
+    let node = new NodeImpl.NodeImpl()
+    let miner = new MinerImpl.MinerImpl(node)
+
+    for (let j = 0; j < 5; j++) {
+        for (let i = 0; i < 3; i++)
+            miner.addData(Block.MASTER_BRANCH, `initial-data-${i}`)
+        await miner.mineData()
+
+        await TestTools.wait(1000)
+    }
+
+    let smartContract = new SmartContract.SmartContract(node, Block.MASTER_BRANCH, miner)
+    smartContract.initialise()
+
+    console.log(`real beginning`)
+
+    await miner.mineData()
+}
+
 let testers = [
     //firstTest,
     //testNodeProxy,
@@ -291,7 +308,8 @@ let testers = [
     //testBasicMining,
     //testNodeTransfer,
     //testListOnBlockBasic,
-    testListOnBlockSpeed
+    //testListOnBlockSpeed,
+    testSmartContract
 ]
 
 export async function testAll() {
@@ -302,3 +320,5 @@ export async function testAll() {
 
     console.log(`done with testing`)
 }
+
+testAll()

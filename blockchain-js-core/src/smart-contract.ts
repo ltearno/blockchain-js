@@ -43,14 +43,29 @@ import * as MinerImpl from './miner-impl'
 
 // from a node, browse blocks reverse and callback for blockId + data item
 
+type StepFactory = (context: StepContext, ...args) => Promise<any>
+
+interface StepContext {
+    nextStepFactory: StepFactory
+    nextStepArguments: any[]
+}
+
+interface IStepContext {
+    [stepName: string]: (...args) => Promise<any>
+}
+
+function setNextStep(context: StepContext, nextStepFactory: StepFactory, ...nextStepArguments: any[]) {
+    context.nextStepFactory = nextStepFactory
+    context.nextStepArguments = nextStepArguments
+}
+
 export class SmartContract {
     constructor(
         private node: NodeApi.NodeApi,
         private branch: string,
         private miner: MinerImpl.MinerImpl) { }
 
-    private stepPromiseFactory: () => Promise<any>
-    private lastPromiseContext: {} = null
+    private currentStepContext: StepContext = null
 
     private nodeListener = () => this.updateFromNode()
 
@@ -87,67 +102,72 @@ export class SmartContract {
     }
 
     private async updateFromNode() {
-        this.stepPromiseFactory = this.stepGetNodeHead
-        this.executeCurrentStep()
+        this.executeCurrentStep(this.stepGetNodeHead, null)
     }
 
-    private executeCurrentStep() {
-        let context = {}
-        this.lastPromiseContext = context
+    private executeCurrentStep(stepFactory: StepFactory, stepArguments: any[]) {
+        let context = {
+            nextStepFactory: null,
+            nextStepArguments: null
+        }
 
-        if (!this.stepPromiseFactory)
+        this.currentStepContext = context
+
+        if (!stepFactory)
             return
 
-        let stepPromiseFactory = this.stepPromiseFactory
-        this.stepPromiseFactory = null
+        stepFactory.call(this, ...([context].concat(stepArguments))).then(() => {
+            console.log(`step ${stepFactory.name} finished`)
 
-        stepPromiseFactory.call(this).then(result => {
-            if (this.lastPromiseContext !== context) {
-                console.log(`abandonned step result`)
+            if (this.currentStepContext !== context) {
+                console.log(`this step has been abandonned`)
                 return
             }
 
-            console.log(`step accomplished ! ${result}`)
-            if (!this.stepPromiseFactory)
+            if (!context.nextStepFactory) {
                 console.log(`no more steps`)
-            else
-                this.executeCurrentStep()
-        }).catch(error => {
-            if (this.lastPromiseContext !== context) {
-                console.log(`abandonned step error ${error}`)
+                this.currentStepContext = null
                 return
             }
 
-            console.error(`step error: ${error}`)
-            this.stepPromiseFactory = null
+            this.executeCurrentStep(context.nextStepFactory, context.nextStepArguments)
+        }).catch(error => {
+            console.error(`error ${error} step ${stepFactory.name}`)
+
+            if (this.currentStepContext !== context) {
+                console.log(`this step has been abandonned`)
+                return
+            }
+
+            this.currentStepContext = null
         })
     }
 
-    private head: string = null
-
-    private async stepGetNodeHead() {
-        this.head = await this.node.blockChainHead(this.branch)
-        console.log(`loaded node head ${this.head}`)
-
-        // go reverse in the blocks to find smart contract informations
-        this.stepPromiseFactory = this.stepRecurseBlock
-        this.recursedBlock = this.head
+    private async ttt(context: IStepContext) {
+        context.stepRecurseBlock("toto")
     }
 
-    private recursedBlock: string
+    private async stepGetNodeHead(context: StepContext) {
+        let head = await this.node.blockChainHead(this.branch)
+        console.log(`loaded node head ${head} ${typeof context}`)
 
-    private async stepRecurseBlock() {
-        if (!this.recursedBlock) {
+        // go reverse in the blocks to find smart contract informations
+        setNextStep(context, this.stepRecurseBlock, head)
+    }
+
+    private async stepRecurseBlock(context: StepContext, recursedBlock: string) {
+        if (!recursedBlock) {
             console.log(`finished reverse browsing blocks`)
             return
         }
 
-        let metadata = await this.node.blockChainBlockMetadata(this.recursedBlock, 1)
+        console.log(`recursing from block ${recursedBlock}`)
+
+        let metadata = await this.node.blockChainBlockMetadata(recursedBlock, 1)
         //let data = await this.node.blockChainBlockData(this.recursedBlock, 1)
 
         console.log(`recursed to block ${metadata[0].blockId}`)
 
-        this.stepPromiseFactory = this.stepRecurseBlock
-        this.recursedBlock = metadata && metadata.length && metadata[0].previousBlockIds && metadata[0].previousBlockIds[0]
+        setNextStep(context, this.stepRecurseBlock, metadata && metadata.length && metadata[0].previousBlockIds && metadata[0].previousBlockIds[0])
     }
 }
