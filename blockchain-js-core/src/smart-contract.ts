@@ -43,7 +43,7 @@ import * as MinerImpl from './miner-impl'
 
 // from a node, browse blocks reverse and callback for blockId + data item
 
-type StepFactory = (context: StepContext, ...args) => Promise<any>
+type StepFactory = (context: IStepContext, ...args) => Promise<any>
 
 interface StepContext {
     nextStepFactory: StepFactory
@@ -111,12 +111,25 @@ export class SmartContract {
             nextStepArguments: null
         }
 
+        let stepperObject = this
+        let iContext: IStepContext = new Proxy({}, {
+            get: function (obj, prop) {
+                return (...args) => {
+                    if (!stepperObject[prop]) {
+                        console.error(`scheduler error: the stepper object does not contain the ${prop.toString()} method`)
+                        return
+                    }
+                    setNextStep(context, stepperObject[prop], ...args)
+                }
+            }
+        })
+
         this.currentStepContext = context
 
         if (!stepFactory)
             return
 
-        stepFactory.call(this, ...([context].concat(stepArguments))).then(() => {
+        stepFactory.call(this, ...([iContext].concat(stepArguments))).then(() => {
             console.log(`step ${stepFactory.name} finished`)
 
             if (this.currentStepContext !== context) {
@@ -143,19 +156,15 @@ export class SmartContract {
         })
     }
 
-    private async ttt(context: IStepContext) {
-        context.stepRecurseBlock("toto")
-    }
-
-    private async stepGetNodeHead(context: StepContext) {
+    private async stepGetNodeHead(context: IStepContext) {
         let head = await this.node.blockChainHead(this.branch)
         console.log(`loaded node head ${head} ${typeof context}`)
 
         // go reverse in the blocks to find smart contract informations
-        setNextStep(context, this.stepRecurseBlock, head)
+        context.stepRecurseBlock(head)
     }
 
-    private async stepRecurseBlock(context: StepContext, recursedBlock: string) {
+    private async stepRecurseBlock(context: IStepContext, recursedBlock: string) {
         if (!recursedBlock) {
             console.log(`finished reverse browsing blocks`)
             return
@@ -168,6 +177,6 @@ export class SmartContract {
 
         console.log(`recursed to block ${metadata[0].blockId}`)
 
-        setNextStep(context, this.stepRecurseBlock, metadata && metadata.length && metadata[0].previousBlockIds && metadata[0].previousBlockIds[0])
+        context.stepRecurseBlock(metadata && metadata.length && metadata[0].previousBlockIds && metadata[0].previousBlockIds[0])
     }
 }

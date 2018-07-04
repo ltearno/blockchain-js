@@ -290,7 +290,7 @@ async function testSmartContract() {
             miner.addData(Block.MASTER_BRANCH, `initial-data-${i}`)
         await miner.mineData()
 
-        await TestTools.wait(1000)
+        await TestTools.wait(100)
     }
 
     let smartContract = new SmartContract.SmartContract(node, Block.MASTER_BRANCH, miner)
