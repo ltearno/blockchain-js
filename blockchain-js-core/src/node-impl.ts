@@ -203,13 +203,19 @@ export class NodeImpl implements NodeApi.NodeApi {
 
             this.setHead(block.branch, metadata.blockId)
 
-            // if new head is not a parent of new head (non fast-forward), create a merge block
+            /*
+            MAYBE TO DO, OR NOT...
+            // if new head is not a parent of old head (non fast-forward), create a merge block
             if (!this.isAncestorOf(oldHead, metadata.blockId)) {
                 // create a merge block
                 let pre = Block.createBlock(block.branch, [metadata.blockId, oldHead], ["AUTO MERGE BLOCK"])
                 let oldHeadBlock = (await this.blockChainBlockData(oldHead, 1))[0]
-                let minedBlock = Block.mineBlock(pre, oldHeadBlock ? Math.max(oldHeadBlock.validityProof.difficulty, block.validityProof.difficulty) : block.validityProof.difficulty)
+                // TODO should raise above the most recent block with POW proof instead of looking only the last !
+                let oldDifficulty = oldHeadBlock.validityProof.strategy == Block.ProofOfWorkStrategy ? oldHeadBlock.validityProof.difficulty : 0
+                let blockDifficulty = block.validityProof.strategy == Block.ProofOfWorkStrategy ? block.validityProof.difficulty : 0
+                let minedBlock = Block.mineBlock(pre, Math.min(1, Math.max(oldDifficulty, blockDifficulty)))
             }
+            */
         }
     }
 
@@ -319,7 +325,7 @@ export class NodeImpl implements NodeApi.NodeApi {
             return null
         }
         let blockCount = 1
-        let confidence = 1 * block.validityProof.difficulty
+        let confidence = Block.blockConfidence(block)
 
         if (block.previousBlockIds) {
             for (let previousBlockId of block.previousBlockIds) {

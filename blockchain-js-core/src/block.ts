@@ -2,9 +2,6 @@ import * as HashTools from './hash-tools'
 
 export const MASTER_BRANCH = 'master'
 
-// TODO (not 100% sure) : each data in the bockchain should have a hash and a content (hash is not 
-// required to be the hash of the content). there can be only one data for a hash on the chain.
-
 /**
  * A block which has no validation data yet
  */
@@ -19,6 +16,27 @@ export interface BlockSeed {
     data: any[]
 }
 
+export const ProofOfWorkStrategy = 'pow'
+
+/**
+ * No validation here !
+ */
+export interface VoidBlockValidationData {
+    strategy: 'void'
+}
+
+/**
+ * Proof of Work validation algorithm
+ */
+export interface ProofOfWorkBlockValidationData {
+    strategy: typeof ProofOfWorkStrategy
+
+    difficulty: number
+    padding: number
+}
+
+export type BlockValidationData = VoidBlockValidationData | ProofOfWorkBlockValidationData
+
 /**
  * A block with validity proof information in it
  * 
@@ -26,12 +44,7 @@ export interface BlockSeed {
  * - validity of data in the block (data format GUID)
  */
 export interface Block extends BlockSeed {
-    validityProof: {
-        // TODO : add validation strategy id
-        // TODO : the other fields are then specific to each strategy
-        difficulty: number
-        padding: number
-    }
+    validityProof: BlockValidationData
 }
 
 /**
@@ -65,13 +78,18 @@ export function createBlock(branch: string, previousBlockIds: string[], data: an
 }
 
 export async function isBlockValid(block: Block): Promise<boolean> {
-    // TODO : delegate to specific strategy specified by the block itself
-
-    if (!block || !block.validityProof || block.validityProof.difficulty < 0)
+    if (!block || !block.validityProof)
         return false
 
-    let sha = await idOfBlock(block)
-    return sha.startsWith("" + block.validityProof.difficulty)
+    if (block.validityProof.strategy == ProofOfWorkStrategy) {
+        if (block.validityProof.difficulty === undefined || block.validityProof.difficulty < 0)
+            return false
+
+        let sha = await idOfBlock(block)
+        return sha.startsWith("" + block.validityProof.difficulty)
+    }
+
+    return false
 }
 
 export async function idOfBlock(block: Block) {
@@ -80,6 +98,14 @@ export async function idOfBlock(block: Block) {
 
 export async function idOfData(data: any) {
     return await HashTools.hashString(serializeBlockData(data))
+}
+
+export function blockConfidence(block: Block) {
+    if (block && block.validityProof && block.validityProof.strategy == ProofOfWorkStrategy) {
+        return Math.max(0, 1 * block.validityProof.difficulty)
+    }
+
+    return 0
 }
 
 export async function mineBlock(model: BlockSeed, difficulty: number, batchSize: number = -1): Promise<Block> {
@@ -92,6 +118,7 @@ export async function mineBlock(model: BlockSeed, difficulty: number, batchSize:
     let padding = 0
     while (true) {
         block.validityProof = {
+            strategy: ProofOfWorkStrategy,
             difficulty,
             padding
         }
