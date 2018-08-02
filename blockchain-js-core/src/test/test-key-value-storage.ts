@@ -4,27 +4,62 @@ import * as MinerImpl from '../miner-impl'
 import * as KeyValueStorage from '../key-value-storage'
 import * as TestTools from '../test-tools'
 
+const MAX_I = 3
+const MAX_J = 3
+
+let node = new NodeImpl.NodeImpl()
+let miner = new MinerImpl.MinerImpl(node)
+let keyValueStorage = new KeyValueStorage.KeyValueStorage(node, Block.MASTER_BRANCH, "test-storage", miner)
+keyValueStorage.initialise()
+
 async function main() {
-    let node = new NodeImpl.NodeImpl()
-    let miner = new MinerImpl.MinerImpl(node)
-
-    for (let j = 0; j < 5; j++) {
-        for (let i = 0; i < 3; i++) {
-            let data = { "v": `${j} - ${i}` }
-            data[`v-${i}-${j}`] = i * j
-            miner.addData(Block.MASTER_BRANCH, { tag: 'kvs-test-storage', items: data })
+    for (let j = 0; j < MAX_J; j++) {
+        for (let i = 0; i < MAX_I; i++) {
+            keyValueStorage.put('v', `${j} - ${i}`)
+            keyValueStorage.put(`v-${i}-${j}`, i * j)
         }
-        await miner.mineData()
 
-        await TestTools.wait(100)
+        await TestTools.wait(20)
     }
 
-    let keyValueStorage = new KeyValueStorage.KeyValueStorage(node, Block.MASTER_BRANCH, "test-storage", miner)
-    keyValueStorage.initialise()
+    for (let j = 4; j < MAX_J; j++) {
+        for (let i = 2; i < MAX_I; i++) {
+            keyValueStorage.put('v', `${j} - ${i}`)
+            keyValueStorage.put(`v-${i}-${j}`, i * j)
+        }
 
-    console.log(`real beginning`)
+        await TestTools.wait(10)
+    }
+}
 
-    await miner.mineData()
+function printValue(key: string) {
+    let v = keyValueStorage.get(key)
+    console.log(`${key}: ${v}`)
+}
+
+async function testLoop() {
+    while (true) {
+        console.log(`=================== STATUS >>>>`)
+
+        printValue('v')
+
+        for (let j = 0; j < MAX_J; j++) {
+            for (let i = 0; i < MAX_I; i++) {
+                printValue(`v-${i}-${j}`)
+            }
+        }
+
+        console.log(`keys ALL : `, keyValueStorage.keys())
+        console.log(`keys v-0 : `, keyValueStorage.keys('v-0'))
+        console.log(`keys v-1: `, keyValueStorage.keys('v-1'))
+        console.log(`keys y: `, keyValueStorage.keys('y'))
+        console.log(`keys a: `, keyValueStorage.keys('a'))
+
+        console.log(`=================== STATUS <<<<`)
+
+        await TestTools.wait(1000)
+    }
 }
 
 main()
+testLoop()

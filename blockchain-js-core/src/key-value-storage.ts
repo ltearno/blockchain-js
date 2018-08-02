@@ -9,6 +9,18 @@ interface KeyValueStorageDataItem {
     }
 }
 
+interface ProcessingData {
+    items: {
+        [key: string]: {
+            value: any,
+            origin: string,
+            refused: string[]
+        }
+    }
+
+    seenBlocks: Set<string>
+}
+
 export class KeyValueStorage {
     constructor(
         private node: NodeApi.NodeApi,
@@ -28,26 +40,76 @@ export class KeyValueStorage {
         this.node = undefined
     }
 
+    dataForPut(key: string, value: any) {
+        let items = {}
+        items[key] = value
+
+        return { tag: `kvs-${this.storageId}`, items }
+    }
+
+    put(key: string, value: any, miner: MinerImpl.MinerImpl = this.miner) {
+        let dataToAdd = this.dataForPut(key, value)
+        miner.addData(this.branch, dataToAdd)
+    }
+
+    get(key: string) {
+        if (!this.lastProcessing)
+            return undefined
+
+        let data = this.lastProcessing.items[key]
+        if (!data)
+            return undefined
+
+        return data.value
+    }
+
+    keys(prefix: string = undefined) {
+        if (!this.lastProcessing)
+            return []
+
+        return Object.keys(this.lastProcessing.items)
+            .filter(k => !prefix || k.startsWith(prefix))
+            .sort()
+    }
+
     private processingCount = 0
+
+    private lastProcessingVersion = -1
+    private lastProcessing: ProcessingData = null
 
     private async updateFromNode() {
         let head = await this.node.blockChainHead(this.branch)
         console.log(`loaded node head ${head}, start processing`)
 
         let currentCount = this.processingCount++
-        let data = {}
+        let data = {
+            items: {},
+            seenBlocks: new Set<string>()
+        }
         let result = await this.processBlock(head, currentCount, data)
 
         console.log(`data : ${JSON.stringify(data, null, 2)}`)
 
         console.log(`finished processing ${currentCount} with result ${result}`)
+
+        if (currentCount > this.lastProcessingVersion) {
+            this.lastProcessingVersion = currentCount
+            this.lastProcessing = data
+
+            console.log(`validated data processing round ${currentCount}`)
+        }
     }
 
-    // TODO process blocks only once in ncase of multiple parents !
-
-    private async processBlock(blockId, processingCount, processData) {
+    private async processBlock(blockId, processingCount, processData: ProcessingData) {
         if (!blockId)
             return false
+
+        if (processData.seenBlocks.has(blockId)) {
+            console.log(`already seen block ${blockId}`)
+            return true
+        }
+
+        processData.seenBlocks.add(blockId)
 
         let blockMetadatas = await this.node.blockChainBlockMetadata(blockId, 1)
         if (!blockMetadatas || !blockMetadatas.length) {
@@ -79,15 +141,16 @@ export class KeyValueStorage {
         console.log(`kvsItems[${processingCount}]-block ${blockId.substr(0, 5)} ${JSON.stringify(kvsItems)}`)
 
         if (kvsItems) {
-            for (let kvsItem of kvsItems) {
+            for (let kvsItemIndex in kvsItems) {
+                const kvsItem = kvsItems[kvsItemIndex]
                 for (let key in kvsItem.items) {
-                    if (key in processData) {
+                    if (key in processData.items) {
                         console.log(`ALREADY HAVE KEY ${key}`)
-                        processData[key].refused.push(blockId)
+                        processData.items[key].refused.push(`${blockId}-${kvsItemIndex}`)
                         continue
                     }
 
-                    processData[key] = {
+                    processData.items[key] = {
                         value: kvsItem.items[key],
                         origin: blockId,
                         refused: []
@@ -121,4 +184,3 @@ export class KeyValueStorage {
         return result
     }
 }
-
