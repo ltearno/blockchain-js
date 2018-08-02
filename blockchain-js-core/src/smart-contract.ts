@@ -18,7 +18,9 @@ import * as MinerImpl from './miner-impl'
  *   - outputs : add data to the chain => yes as long as idempotent => produced data must keyed by the smart contract (and of course it cannot use random number generation)
  * - allows to get data that should be added in the chain to call a program
  * 
- * - signed calls : sig(pubKey, programInstanceId, parameters)
+ * - api to retreive any program state data
+ * 
+ * - signed calls : sig(pubKey, programInstanceId, parameters), targetting a *precise* version of the contract
  * 
  * - allows to update a program by signing its previous version with the same private key
  * 

@@ -17,7 +17,7 @@
             "type": "node",
             "request": "launch",
             "name": "Test Program",
-            "program": "${workspaceFolder}/dist/tests.js",
+            "program": "${workspaceFolder}/dist/test/test-key-value-storage.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]
