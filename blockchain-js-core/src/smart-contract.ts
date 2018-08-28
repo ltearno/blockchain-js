@@ -197,6 +197,7 @@ export class SmartContract {
     }
 
     async callContract(iterationId: number, method: string, args: object) {
+        // TODO have a way to add items in the same block (en effet en l'etat actuel, un seul item par bloc va passer, car un item référence l'item précédent...)
         return this.contractItemList.addToList([{
             type: 'call',
             data: {
