@@ -76,3 +76,62 @@ export function verify(data: any, signature: string, publicKey: string) {
     const result = key.verify(OrderedJson.stringify(data), signature, 'utf8', 'base64')
     return result
 }
+
+interface SignedAndPackedData {
+    body: any
+
+    proof: {
+        signature: string
+        publicKey: string
+    }
+}
+
+export function signAndPackData(data: object, privateKey: string) {
+    data = JSON.parse(JSON.stringify(data))
+
+    const key = new NodeRSA()
+    key.importKey(privateKey)
+    let publicKey = key.exportKey('pkcs8-public-pem')
+
+    let signature = sign(data, privateKey)
+
+    let result: SignedAndPackedData = {
+        body: data,
+        proof: {
+            signature,
+            publicKey
+        }
+    }
+
+    return result
+}
+
+export function verifyPackedData(data: object) {
+    if (!data || !data["body"] || !data["proof"])
+        return false
+
+    let packedData = JSON.parse(JSON.stringify(data)) as SignedAndPackedData
+
+    return verify(packedData.body, packedData.proof.signature, packedData.proof.publicKey)
+}
+
+export function extractPackedDataBody(data: object): any {
+    if (!data || !data["body"] || !data["proof"])
+        return undefined
+
+    return data["body"]
+}
+
+export function extractPackedDataSignature(data: object): string {
+    if (!data || !data["body"] || !data["proof"])
+        return undefined
+
+    return (JSON.parse(JSON.stringify(data)) as SignedAndPackedData).proof.signature
+}
+
+export function extractPackedDataPublicKey(data: object): string {
+    if (!data || !data["body"] || !data["proof"])
+        return undefined
+
+    return (JSON.parse(JSON.stringify(data)) as SignedAndPackedData).proof.publicKey
+}
