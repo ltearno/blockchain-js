@@ -1,5 +1,5 @@
 import * as HashTools from './hash-tools'
-
+import * as OrderedJson from './ordered-json'
 export const MASTER_BRANCH = 'master'
 
 /**
@@ -144,32 +144,11 @@ export async function mineBlock(model: BlockSeed, difficulty: number, batchSize:
  * strict json data format (total order between payloads)
  */
 export function serializeBlockData(data: any): string {
-    if (Array.isArray(data))
-        return `[${(data as any[]).map(item => serializeBlockData(item)).join(',')}]`
-
-    if (data && typeof data === 'object')
-        return `{${Object.getOwnPropertyNames(data)
-            .sort()
-            .filter(name => data[name] !== undefined)
-            .map(name => `"${name}":${serializeBlockData(data[name])}`)}}`
-
-    if (typeof data === 'string')
-        return JSON.stringify(data)
-
-    if (typeof data === 'number')
-        return JSON.stringify(data)
-
-    if (typeof data === 'boolean')
-        return JSON.stringify(data)
-
-    if (data === null)
-        return 'null'
-
-    throw `unknown data for serializtion ${JSON.stringify(data)}`
+    return OrderedJson.stringify(data)
 }
 
 export function deserializeBlockData(representation: string) {
-    return JSON.parse(representation)
+    return OrderedJson.parse(representation)
 }
 
 function wait(duration: number) {

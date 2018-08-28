@@ -1,6 +1,7 @@
 let hash = require('hash.js')
-let crypto = require('crypto-js')
-let jsencrypt = require('jsencrypt')
+let cryptojs = require('crypto-js')
+const NodeRSA = require('node-rsa')
+import * as OrderedJson from './ordered-json'
 
 export const EMPTY_PAYLOAD_SHA = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
 
@@ -12,31 +13,66 @@ export async function hashString(value: string): Promise<string> {
 }
 
 export function encryptAes(data: any, secret: string) {
-    return crypto.AES.encrypt(JSON.stringify(data), secret).toString()
+    return cryptojs.AES.encrypt(JSON.stringify(data), secret).toString()
 }
 
 export function decryptAes(data: string, secret: string) {
-    const bytes = crypto.AES.decrypt(data, secret)
-    return JSON.parse(bytes.toString(crypto.enc.Utf8))
+    const bytes = cryptojs.AES.decrypt(data, secret)
+    return JSON.parse(bytes.toString(cryptojs.enc.Utf8))
 }
 
 export function generateRsaKeyPair() {
-    const crypt = new jsencrypt({ default_key_size: 2056 })
-    const privateKey = crypt.getPrivateKey()
-    const publicKey = crypt.getPublicKey()
-    return { publicKey, privateKey }
+    const key = new NodeRSA(undefined, undefined, { encryptionScheme: 'pkcs1' })
+    key.generateKeyPair(2048, 65537)
+
+    return {
+        privateKey: key.exportKey('pkcs8-private-pem'),
+        publicKey: key.exportKey('pkcs8-public-pem')
+    }
 }
 
-export function encryptRSA(data: any, publicKey: string) {
-    const encrypt = new jsencrypt()
-    encrypt.setPublicKey(publicKey)
-    const encrypted = encrypt.encrypt(JSON.stringify(data))
-    return encrypted
+export function encryptRsa(data: any, publicKey: string): string {
+    const key = new NodeRSA()
+    key.importKey(publicKey)
+
+    let result = key.encrypt(JSON.stringify(data), 'base64', 'utf8')
+    return result
 }
 
-export function decryptRSA(data: string, privateKey: string) {
-    const decrypt = new jsencrypt()
-    decrypt.setPrivateKey(privateKey)
-    const uncrypted = decrypt.decrypt(data)
-    return uncrypted
+export function encryptRsaPrivate(data: any, privateKey: string): string {
+    const key = new NodeRSA()
+    key.importKey(privateKey)
+    const result = key.encryptPrivate(JSON.stringify(data), 'base64', 'utf8')
+    return result
+}
+
+export function decryptRsa(data: string, privateKey: string): any {
+    const key = new NodeRSA()
+    key.importKey(privateKey)
+
+    let result = key.decrypt(data, 'json')
+    return result
+}
+export function decryptRsaPublic(data: string, publicKey: string): any {
+    const key = new NodeRSA()
+    key.importKey(publicKey)
+
+    let result = key.decryptPublic(data, 'utf8', 'base64')
+    return JSON.parse(result)
+}
+
+export function sign(data: any, privateKey: string) {
+    const key = new NodeRSA()
+    key.importKey(privateKey)
+
+    const result = key.sign(OrderedJson.stringify(data), 'base64', 'utf8')
+    return result
+}
+
+export function verify(data: any, signature: string, publicKey: string) {
+    const key = new NodeRSA()
+    key.importKey(publicKey)
+
+    const result = key.verify(OrderedJson.stringify(data), signature, 'utf8', 'base64')
+    return result
 }
