@@ -13,9 +13,6 @@ function testFunction() {
 
     // call = programId + parameters
 
-    function createProgram(id, pubKey, code) {
-    }
-
     let program = new Function(`
         if(typeof process != "undefined") {
             process = {

@@ -76,12 +76,7 @@ export class SmartContract {
 
     private currentStepContext: StepContext = null
 
-    private nodeListener = () => this.updateFromNode()
-
     initialise() {
-        this.node.addEventListener('head', this.nodeListener)
-        this.updateFromNode()
-
         this.kv = new KeyValueStorage.KeyValueStorage(this.node, Block.MASTER_BRANCH, `kv-sm-${this.contractUuid}`, this.miner)
         this.kv.initialise()
 
@@ -94,7 +89,6 @@ export class SmartContract {
 
         this.kv.terminate()
 
-        this.node.removeEventListener(this.nodeListener)
         this.node = undefined
     }
 
@@ -108,8 +102,14 @@ export class SmartContract {
             return
         }
 
+        let contractIterations = []
+        contractIterations.fill(null, 0, iterationsKeys.length)
+
+        // TODO : check that all iterations have got the SAME PUBLIC KEY
         for (let iterationKey of iterationsKeys) {
-            console.log(`Iteration ${iterationKey}`)
+            let iterationId = parseInt(iterationKey.substr(1 + iterationKey.lastIndexOf('/')))
+
+            console.log(`Iteration ${iterationId} ${iterationKey}`)
 
             let packedDescription = this.kv.get(iterationKey)
             if (!packedDescription) {
@@ -122,6 +122,11 @@ export class SmartContract {
                 return
             }
 
+            contractIterations[iterationId] = {
+                description: packedDescription,
+                liveInstance: this.createLiveInstance(HashTools.extractPackedDataBody(packedDescription).code)
+            }
+
             console.log(`public key : ${HashTools.extractPackedDataPublicKey(packedDescription).substr(0, 15)}`)
             console.log(`signature  : ${HashTools.extractPackedDataSignature(packedDescription)}`)
             console.log(`description:`)
@@ -132,6 +137,82 @@ export class SmartContract {
         let calls = this.callList.getList()
         console.log(`calls :`)
         calls.forEach(call => console.log(JSON.stringify(call, null, 2)))
+
+        // simulate calls
+        console.log(`executing in VM :`)
+        // TODO prevent calls on obsolete iterations (so we need to order iterations and calls...)
+        let instanceData = {}
+        for (let { iterationId, method, args } of calls) {
+            let instance = contractIterations[iterationId].liveInstance
+            if (!(method in instance)) {
+                console.log(`cannot apply call, because method ${method} does not exist`)
+                continue
+            }
+
+            // TODO do parameter validation
+
+            try {
+                console.log(`applying call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
+                instance[method].apply(instanceData, args)
+                console.log(`done executing method on smart contract, contract state is now ${JSON.stringify(instanceData)}`)
+            }
+            catch (error) {
+                console.error('error while executing smart contract code', error)
+            }
+        }
+        console.log(`instance initial data: ${JSON.stringify(instanceData, null, 2)}`)
+    }
+
+    private createLiveInstance(code: string) {
+        function has(target, key) {
+            return true
+        }
+
+        function get(target, key) {
+            if (key === Symbol.unscopables) return undefined
+            return target[key]
+        }
+
+        try {
+            code = 'with (sandbox) { return (' + code + ') }'
+            const codeFunction = new Function('sandbox', code)
+
+            return function (sandbox) {
+                const sandboxProxy = new Proxy(sandbox, { has, get })
+                return codeFunction(sandboxProxy)
+            }({ console })
+        }
+        catch (error) {
+            return null
+        }
+    }
+
+    private createLiveInstanceOld(code: string) {
+        let bannedKeywords = ['document', 'window', 'os']
+
+        let program = new Function(`
+            //if(typeof process != "undefined") {
+            //    process = {
+            //        _tickCallback: process._tickCallback
+            //    }
+            //}
+
+            ${bannedKeywords.map(kw => `if(typeof ${kw} != "undefined") ${kw} = undefined;`).join('\n')}
+
+            return (
+            // user's smart contract
+            ${code}
+            )
+        `)
+
+        console.log(`program instance creation`)
+        let instance = program.apply(null)
+        if (typeof instance != "object") {
+            console.error(`ERROR not an object !`)
+            return null
+        }
+
+        return instance
     }
 
     async tryCreateContract(iterationId: number, privateKey: string, name: string, description: string, code: string) {
@@ -148,96 +229,12 @@ export class SmartContract {
         this.kv.put(`/iterations/${iterationId}`, signedContractDescription, this.miner)
     }
 
-    // return a data that is used to call the program
+    // make a call to the smart contract
     async callContract(iterationId: number, method: string, args: object) {
         return this.callList.addToList([{
-            type: 'smart-contract-call',
-            contractUuid: this.contractUuid,
             iterationId,
             method,
             args
         }])
-    }
-
-    private async updateFromNode() {
-        this.executeCurrentStep(this.stepGetNodeHead, null)
-    }
-
-    private executeCurrentStep(stepFactory: StepFactory, stepArguments: any[]) {
-        let context = {
-            nextStepFactory: null,
-            nextStepArguments: null
-        }
-
-        let stepperObject = this
-        let iContext: IStepContext = new Proxy({}, {
-            get: function (obj, prop) {
-                return (...args) => {
-                    if (!stepperObject[prop]) {
-                        console.error(`scheduler error: the stepper object does not contain the ${prop.toString()} method`)
-                        return
-                    }
-                    setNextStep(context, stepperObject[prop], ...args)
-                }
-            }
-        })
-
-        this.currentStepContext = context
-
-        if (!stepFactory)
-            return
-
-        stepFactory.call(this, ...([iContext].concat(stepArguments))).then(() => {
-            console.log(`step ${stepFactory.name} finished`)
-
-            if (this.currentStepContext !== context) {
-                console.log(`this step has been abandonned`)
-                return
-            }
-
-            if (!context.nextStepFactory) {
-                console.log(`no more steps`)
-                this.currentStepContext = null
-                return
-            }
-
-            this.executeCurrentStep(context.nextStepFactory, context.nextStepArguments)
-        }).catch(error => {
-            console.error(`error ${error} step ${stepFactory.name}`)
-
-            if (this.currentStepContext !== context) {
-                console.log(`this step has been abandonned`)
-                return
-            }
-
-            this.currentStepContext = null
-        })
-    }
-
-    private async stepGetNodeHead(context: IStepContext) {
-        let head = await this.node.blockChainHead(this.branch)
-        console.log(`loaded node head ${head} ${typeof context}`)
-
-        // go reverse in the blocks to find smart contract informations
-        context.stepRecurseBlock(head)
-    }
-
-    private async stepRecurseBlock(context: IStepContext, recursedBlock: string) {
-        if (!recursedBlock) {
-            console.log(`finished reverse browsing blocks`)
-            return
-        }
-
-        console.log(`recursing from block ${recursedBlock}`)
-
-        let metadata = await this.node.blockChainBlockMetadata(recursedBlock, 1)
-        //let data = await this.node.blockChainBlockData(this.recursedBlock, 1)
-
-        console.log(`recursed to block ${metadata[0].blockId}`)
-
-        // read block data and find useful items
-        // from those items (in reverse order), build program and program instance states
-
-        context.stepRecurseBlock(metadata && metadata.length && metadata[0].previousBlockIds && metadata[0].previousBlockIds[0])
     }
 }
