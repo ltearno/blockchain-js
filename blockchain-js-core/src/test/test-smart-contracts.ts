@@ -18,7 +18,16 @@ async function main() {
 
     let keys = HashTools.generateRsaKeyPair()
 
-    smartContract.tryCreateContract(0, keys.privateKey, 'mon premier contract', 'ceci est très basique !', '{ test: function() { if(!this.value) this.value=0; this.value++; if(this.value==2) process.exit(); console.log("hello from contract"); } }')
+    smartContract.tryCreateContract(0, keys.privateKey, 'mon premier contract', 'ceci est très basique !', `
+        { 
+            test: function() {
+                if(!this.value)
+                    this.value=0;
+                
+                this.value++;
+                console.log("hello from contract");
+            } 
+        }`)
     smartContract.callContract(0, 'test', {})
 
     while (true) {

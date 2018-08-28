@@ -136,9 +136,9 @@ export class KeyValueStorage {
             }
         }
 
-        console.log(`processing[${processingCount}] ${blockMetadata.blockId} of confidence ${blockMetadata.confidence}, depth ${blockMetadata.blockCount}`)
+        //console.log(`processing[${processingCount}] ${blockMetadata.blockId} of confidence ${blockMetadata.confidence}, depth ${blockMetadata.blockCount}`)
         let kvsItems = await this.findKeyValueStoragePartsInBlock(blockData)
-        console.log(`kvsItems[${processingCount}]-block ${blockId.substr(0, 5)} ${JSON.stringify(kvsItems)}`)
+        //console.log(`kvsItems[${processingCount}]-block ${blockId.substr(0, 5)} ${JSON.stringify(kvsItems)}`)
 
         if (kvsItems) {
             for (let kvsItemIndex in kvsItems) {
