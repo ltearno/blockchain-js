@@ -72,6 +72,8 @@ export class MinerImpl {
                 }
             }
 
+            console.log(`mining this data ${JSON.stringify(dataToMine)}`)
+
             let preBlock = Block.createBlock(branch, [head], dataToMine)
             let block = await Block.mineBlock(preBlock, difficulty, batchSize)
 

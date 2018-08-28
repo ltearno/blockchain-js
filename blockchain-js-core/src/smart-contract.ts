@@ -117,6 +117,7 @@ export class SmartContract {
                     console.log(JSON.stringify(HashTools.extractPackedDataBody(packedDescription), null, 4))
 
                     // call init on live instance (if init method is present)
+                    // This is the opportunity for the contract to upgrade its data structure : never will it be called again with the previous iteration
                     let liveInstance = contractIterations[iterationId].liveInstance
                     if ('init' in liveInstance) {
                         console.log(`initializing instance ${iterationId}`)
@@ -128,13 +129,13 @@ export class SmartContract {
                     const { iterationId, method, args } = contractItem['data']
 
                     if (iterationId != currentContractIterationId) {
-                        console.error(`cannot execute call targetting iteration ${iterationId}, current iteration is ${currentContractIterationId}`)
+                        console.warn(`cannot execute call targetting iteration ${iterationId}, current iteration is ${currentContractIterationId}`)
                         continue
                     }
 
                     let liveInstance = contractIterations[iterationId].liveInstance
                     if (!(method in liveInstance)) {
-                        console.log(`cannot apply call, because method ${method} does not exist`)
+                        console.warn(`cannot apply call, because method ${method} does not exist`)
                         continue
                     }
 
@@ -142,11 +143,11 @@ export class SmartContract {
 
                     try {
                         console.log(`applying call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
-                        liveInstance[method].apply(instanceData, args)
+                        liveInstance[method].apply(instanceData, [args])
                         console.log(`done executing method on smart contract, contract state is now ${JSON.stringify(instanceData)}`)
                     }
                     catch (error) {
-                        console.error('error while executing smart contract code', error)
+                        console.warn('error while executing smart contract code', error)
                     }
 
                     console.log(`instance resolved state: ${JSON.stringify(instanceData, null, 2)}`)
@@ -182,7 +183,7 @@ export class SmartContract {
         }
     }
 
-    async tryCreateContract(iterationId: number, privateKey: string, name: string, description: string, code: string) {
+    async tryCreateContract(privateKey: string, name: string, description: string, code: string) {
         let signedContractDescription = HashTools.signAndPackData({
             name,
             description,

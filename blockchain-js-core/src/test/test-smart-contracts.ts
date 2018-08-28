@@ -18,7 +18,7 @@ async function main() {
 
     let keys = HashTools.generateRsaKeyPair()
 
-    smartContract.tryCreateContract(0, keys.privateKey, 'mon premier contract', 'ceci est très basique !', `
+    smartContract.tryCreateContract(keys.privateKey, 'mon premier contract', 'ceci est très basique !', `
         { 
             test: function() {
                 if(!this.value)
@@ -26,16 +26,41 @@ async function main() {
                 
                 this.value++;
                 console.log("hello from contract");
-            } 
+            },
+
+            register: function(args) {
+                if(!this.registre)
+                    this.registre = {}
+                
+                if(args.name in this.registre){
+                    console.warn('already registered name ' + args.name)
+                    return
+                }
+                
+                this.registre[args.name] = args.ip
+
+                console.log('registered name ' + args.name + ' to ' + args.ip)
+            }
         }`)
     smartContract.callContract(0, 'test', {})
 
+    let n = 0
     while (true) {
         await miner.mineData()
         smartContract.callContract(0, 'test', {})
-        await TestTools.wait(2000)
 
+        await TestTools.wait(1000)
+        smartContract.callContract(0, 'register', { name: `name-${n}`, ip: `192.168.0.${n}` })
+        await miner.mineData() && await TestTools.wait(1000)
+        smartContract.callContract(0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 1}` })
+        await miner.mineData() && await TestTools.wait(1000)
+        smartContract.callContract(0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 2}` })
+        await miner.mineData() && await TestTools.wait(1000)
+
+        await TestTools.wait(1000)
         smartContract.displayStatus()
+
+        n += 3
     }
 }
 
