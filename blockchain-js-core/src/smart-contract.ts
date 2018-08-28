@@ -47,8 +47,7 @@ import * as ListOnChain from './list-on-chain'
  */
 
 export class SmartContract {
-    private kv: KeyValueStorage.KeyValueStorage
-    private callList: ListOnChain.ListOnChain
+    private contractItemList: ListOnChain.ListOnChain
 
     constructor(
         private node: NodeApi.NodeApi,
@@ -57,90 +56,106 @@ export class SmartContract {
         private miner: MinerImpl.MinerImpl) { }
 
     initialise() {
-        this.kv = new KeyValueStorage.KeyValueStorage(this.node, Block.MASTER_BRANCH, `kv-sm-${this.contractUuid}`, this.miner)
-        this.kv.initialise()
-
-        this.callList = new ListOnChain.ListOnChain(this.node, this.branch, `smart-contract-${this.contractUuid}`, this.miner)
-        this.callList.initialise()
+        this.contractItemList = new ListOnChain.ListOnChain(this.node, this.branch, `smart-contract-${this.contractUuid}`, this.miner)
+        this.contractItemList.initialise()
     }
 
     terminate() {
-        this.callList.terminate()
-
-        this.kv.terminate()
-
+        this.contractItemList.terminate()
         this.node = undefined
     }
 
     async displayStatus() {
         console.log(`== Smart contract status : ${this.contractUuid}`)
 
-        // definitions
-        let iterationsKeys = this.kv.keys(`/iterations/`)
-        if (!iterationsKeys) {
-            console.log(`empty contract, come back later...`)
+        let contractPublicKey = null
+        let currentContractIterationId = -1
+
+        let contractItems = this.contractItemList.getList()
+        if (!contractItems || !contractItems.length) {
+            console.log(`empty contract...`)
             return
         }
 
         let contractIterations = []
-        contractIterations.fill(null, 0, iterationsKeys.length)
-
-        // TODO : check that all iterations have got the SAME PUBLIC KEY
-        for (let iterationKey of iterationsKeys) {
-            let iterationId = parseInt(iterationKey.substr(1 + iterationKey.lastIndexOf('/')))
-
-            console.log(`Iteration ${iterationId} ${iterationKey}`)
-
-            let packedDescription = this.kv.get(iterationKey)
-            if (!packedDescription) {
-                console.error(`no packed description found for smart contract`)
-                return
-            }
-
-            if (!HashTools.verifyPackedData(packedDescription)) {
-                console.log(`packed description is invalid regarding signature`)
-                return
-            }
-
-            contractIterations[iterationId] = {
-                description: packedDescription,
-                liveInstance: this.createLiveInstance(HashTools.extractPackedDataBody(packedDescription).code)
-            }
-
-            console.log(`public key : ${HashTools.extractPackedDataPublicKey(packedDescription).substr(0, 15)}`)
-            console.log(`signature  : ${HashTools.extractPackedDataSignature(packedDescription)}`)
-            console.log(`description:`)
-            console.log(JSON.stringify(HashTools.extractPackedDataBody(packedDescription), null, 4))
-        }
-
-        // calls
-        let calls = this.callList.getList()
-        console.log(`calls :`)
-        calls.forEach(call => console.log(JSON.stringify(call, null, 2)))
-
-        // simulate calls
-        console.log(`executing in VM :`)
-        // TODO prevent calls on obsolete iterations (so we need to order iterations and calls...)
         let instanceData = {}
-        for (let { iterationId, method, args } of calls) {
-            let instance = contractIterations[iterationId].liveInstance
-            if (!(method in instance)) {
-                console.log(`cannot apply call, because method ${method} does not exist`)
-                continue
-            }
 
-            // TODO do parameter validation
+        for (let contractItem of contractItems) {
+            switch (contractItem['type']) {
+                case 'contract': {
+                    let iterationId = currentContractIterationId + 1
 
-            try {
-                console.log(`applying call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
-                instance[method].apply(instanceData, args)
-                console.log(`done executing method on smart contract, contract state is now ${JSON.stringify(instanceData)}`)
-            }
-            catch (error) {
-                console.error('error while executing smart contract code', error)
+                    console.log(`Iteration ${iterationId}`)
+
+                    let packedDescription = contractItem['data']
+                    if (!packedDescription) {
+                        console.error(`no packed description found for smart contract`)
+                        continue
+                    }
+
+                    if (contractPublicKey && contractPublicKey != HashTools.extractPackedDataPublicKey(packedDescription)) {
+                        console.error(`iteration does use an incorrect public key`)
+                    }
+
+                    if (!HashTools.verifyPackedData(packedDescription)) {
+                        console.error(`packed description is invalid regarding signature`)
+                        continue
+                    }
+
+                    contractIterations[iterationId] = {
+                        description: packedDescription,
+                        liveInstance: this.createLiveInstance(HashTools.extractPackedDataBody(packedDescription).code)
+                    }
+
+                    currentContractIterationId = iterationId
+                    if (!contractPublicKey)
+                        contractPublicKey = HashTools.extractPackedDataPublicKey(packedDescription)
+
+                    console.log(`public key : ${HashTools.extractPackedDataPublicKey(packedDescription).substr(0, 15)}`)
+                    console.log(`signature  : ${HashTools.extractPackedDataSignature(packedDescription)}`)
+                    console.log(`description:`)
+                    console.log(JSON.stringify(HashTools.extractPackedDataBody(packedDescription), null, 4))
+
+                    // call init on live instance (if init method is present)
+                    let liveInstance = contractIterations[iterationId].liveInstance
+                    if ('init' in liveInstance) {
+                        console.log(`initializing instance ${iterationId}`)
+                        liveInstance['init'].apply(instanceData)
+                    }
+                } break
+
+                case 'call': {
+                    const { iterationId, method, args } = contractItem['data']
+
+                    if (iterationId != currentContractIterationId) {
+                        console.error(`cannot execute call targetting iteration ${iterationId}, current iteration is ${currentContractIterationId}`)
+                        continue
+                    }
+
+                    let liveInstance = contractIterations[iterationId].liveInstance
+                    if (!(method in liveInstance)) {
+                        console.log(`cannot apply call, because method ${method} does not exist`)
+                        continue
+                    }
+
+                    // TODO do parameter validation
+
+                    try {
+                        console.log(`applying call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
+                        liveInstance[method].apply(instanceData, args)
+                        console.log(`done executing method on smart contract, contract state is now ${JSON.stringify(instanceData)}`)
+                    }
+                    catch (error) {
+                        console.error('error while executing smart contract code', error)
+                    }
+
+                    console.log(`instance resolved state: ${JSON.stringify(instanceData, null, 2)}`)
+                } break
+
+                default:
+                    console.log(`ignored contract item ${JSON.stringify(contractItem)}`)
             }
         }
-        console.log(`instance initial data: ${JSON.stringify(instanceData, null, 2)}`)
     }
 
     private createLiveInstance(code: string) {
@@ -196,25 +211,26 @@ export class SmartContract {
     }
 
     async tryCreateContract(iterationId: number, privateKey: string, name: string, description: string, code: string) {
-        // from the specs
-        // /smartcontracts/CONTRACT_UUID/ITERATION_ID/code : javascript code of the smart contract
-        // /smartcontracts/CONTRACT_UUID/ITERATION_ID/publicKey : public key of the contract owner
-        // /smartcontracts/CONTRACT_UUID/ITERATION_ID/sig : signature of the contract (should match the publick key)
         let signedContractDescription = HashTools.signAndPackData({
             name,
             description,
             code
         }, privateKey)
 
-        this.kv.put(`/iterations/${iterationId}`, signedContractDescription, this.miner)
+        return this.contractItemList.addToList([{
+            type: 'contract',
+            data: signedContractDescription
+        }])
     }
 
-    // make a call to the smart contract
     async callContract(iterationId: number, method: string, args: object) {
-        return this.callList.addToList([{
-            iterationId,
-            method,
-            args
+        return this.contractItemList.addToList([{
+            type: 'call',
+            data: {
+                iterationId,
+                method,
+                args
+            }
         }])
     }
 }
