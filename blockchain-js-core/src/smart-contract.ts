@@ -1,6 +1,9 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as MinerImpl from './miner-impl'
+import * as KeyValueStorage from './key-value-storage'
+import * as HashTools from './hash-tools'
+import * as ListOnChain from './list-on-chain'
 
 /**
  * This should implement basic smart contract functionality :
@@ -62,9 +65,13 @@ function setNextStep(context: StepContext, nextStepFactory: StepFactory, ...next
 }
 
 export class SmartContract {
+    private kv: KeyValueStorage.KeyValueStorage
+    private callList: ListOnChain.ListOnChain
+
     constructor(
         private node: NodeApi.NodeApi,
         private branch: string,
+        private contractUuid: string,
         private miner: MinerImpl.MinerImpl) { }
 
     private currentStepContext: StepContext = null
@@ -74,33 +81,82 @@ export class SmartContract {
     initialise() {
         this.node.addEventListener('head', this.nodeListener)
         this.updateFromNode()
+
+        this.kv = new KeyValueStorage.KeyValueStorage(this.node, Block.MASTER_BRANCH, `kv-sm-${this.contractUuid}`, this.miner)
+        this.kv.initialise()
+
+        this.callList = new ListOnChain.ListOnChain(this.node, this.branch, ``, this.miner)
+        this.callList.initialise()
     }
 
     terminate() {
+        this.callList.terminate()
+
+        this.kv.terminate()
+
         this.node.removeEventListener(this.nodeListener)
         this.node = undefined
     }
 
-    async addProgram(id: string, pubKey: string, code: string) {
+    async displayStatus() {
+        console.log(`== Smart contract status : ${this.contractUuid}`)
+
+        // definitions
+        let iterationsKeys = this.kv.keys(`/iterations/`)
+        if (!iterationsKeys) {
+            console.log(`empty contract, come back later...`)
+            return
+        }
+
+        for (let iterationKey of iterationsKeys) {
+            console.log(`Iteration ${iterationKey}`)
+
+            let packedDescription = this.kv.get(iterationKey)
+            if (!packedDescription) {
+                console.error(`no packed description found for smart contract`)
+                return
+            }
+
+            if (!HashTools.verifyPackedData(packedDescription)) {
+                console.log(`packed description is invalid regarding signature`)
+                return
+            }
+
+            console.log(`public key : ${HashTools.extractPackedDataPublicKey(packedDescription).substr(0, 15)}`)
+            console.log(`signature  : ${HashTools.extractPackedDataSignature(packedDescription)}`)
+            console.log(`description:`)
+            console.log(JSON.stringify(HashTools.extractPackedDataBody(packedDescription), null, 4))
+        }
+
+        // calls
+        let calls = this.callList.getList()
+        console.log(`calls :`)
+        calls.forEach(call => console.log(JSON.stringify(call, null, 2)))
     }
 
-    async updateProgram(newId: string, oldId: string, sig: string, code: string) {
-    }
+    async tryCreateContract(iterationId: number, privateKey: string, name: string, description: string, code: string) {
+        // from the specs
+        // /smartcontracts/CONTRACT_UUID/ITERATION_ID/code : javascript code of the smart contract
+        // /smartcontracts/CONTRACT_UUID/ITERATION_ID/publicKey : public key of the contract owner
+        // /smartcontracts/CONTRACT_UUID/ITERATION_ID/sig : signature of the contract (should match the publick key)
+        let signedContractDescription = HashTools.signAndPackData({
+            name,
+            description,
+            code
+        }, privateKey)
 
-    async deleteProgram(id: string, sig: string) {
-    }
-
-    // returns the instance id (a guid)
-    async createProgramInstance(programId: string, args: object, pubKey: string) {
-        return ""
-    }
-
-    async deleteProgramInstance(programId: string, sig: string) {
+        this.kv.put(`/iterations/${iterationId}`, signedContractDescription, this.miner)
     }
 
     // return a data that is used to call the program
-    async dataItemForCall(programId: string, args: object) {
-        return null
+    async callContract(iterationId: number, method: string, args: object) {
+        return this.callList.addToList([{
+            type: 'smart-contract-call',
+            contractUuid: this.contractUuid,
+            iterationId,
+            method,
+            args
+        }])
     }
 
     private async updateFromNode() {
