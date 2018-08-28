@@ -182,34 +182,6 @@ export class SmartContract {
         }
     }
 
-    private createLiveInstanceOld(code: string) {
-        let bannedKeywords = ['document', 'window', 'os']
-
-        let program = new Function(`
-            //if(typeof process != "undefined") {
-            //    process = {
-            //        _tickCallback: process._tickCallback
-            //    }
-            //}
-
-            ${bannedKeywords.map(kw => `if(typeof ${kw} != "undefined") ${kw} = undefined;`).join('\n')}
-
-            return (
-            // user's smart contract
-            ${code}
-            )
-        `)
-
-        console.log(`program instance creation`)
-        let instance = program.apply(null)
-        if (typeof instance != "object") {
-            console.error(`ERROR not an object !`)
-            return null
-        }
-
-        return instance
-    }
-
     async tryCreateContract(iterationId: number, privateKey: string, name: string, description: string, code: string) {
         let signedContractDescription = HashTools.signAndPackData({
             name,
