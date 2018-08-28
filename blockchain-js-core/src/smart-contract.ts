@@ -46,24 +46,6 @@ import * as ListOnChain from './list-on-chain'
  * construct program instances and update their state
  */
 
-// from a node, browse blocks reverse and callback for blockId + data item
-
-type StepFactory = (context: IStepContext, ...args) => Promise<any>
-
-interface StepContext {
-    nextStepFactory: StepFactory
-    nextStepArguments: any[]
-}
-
-interface IStepContext {
-    [stepName: string]: (...args) => Promise<any>
-}
-
-function setNextStep(context: StepContext, nextStepFactory: StepFactory, ...nextStepArguments: any[]) {
-    context.nextStepFactory = nextStepFactory
-    context.nextStepArguments = nextStepArguments
-}
-
 export class SmartContract {
     private kv: KeyValueStorage.KeyValueStorage
     private callList: ListOnChain.ListOnChain
@@ -74,13 +56,11 @@ export class SmartContract {
         private contractUuid: string,
         private miner: MinerImpl.MinerImpl) { }
 
-    private currentStepContext: StepContext = null
-
     initialise() {
         this.kv = new KeyValueStorage.KeyValueStorage(this.node, Block.MASTER_BRANCH, `kv-sm-${this.contractUuid}`, this.miner)
         this.kv.initialise()
 
-        this.callList = new ListOnChain.ListOnChain(this.node, this.branch, ``, this.miner)
+        this.callList = new ListOnChain.ListOnChain(this.node, this.branch, `smart-contract-${this.contractUuid}`, this.miner)
         this.callList.initialise()
     }
 
