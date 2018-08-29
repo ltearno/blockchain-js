@@ -205,26 +205,6 @@ export class NodeImpl implements NodeApi.NodeApi {
         }
     }
 
-    private isAncestorOf(ancestorId: string, ofId: string): boolean {
-        // from ofId browsing parents, if we encounter ancestorId return true
-        // otherwise return false
-        let visiteds = new Set<string>()
-        let toVisit: string[] = [ofId]
-        while (toVisit.length) {
-            let visited = toVisit.shift()
-            visiteds.add(visited)
-
-            if (visited == ancestorId)
-                return true
-
-            let block = this.knownBlocksData.get(visited)
-
-            block && block.previousBlockIds && block.previousBlockIds.forEach(p => toVisit.push(p))
-        }
-
-        return false
-    }
-
     addEventListener(type: 'head', eventListener: NodeApi.NodeEventListener): void {
         this.listeners.push(eventListener)
 
