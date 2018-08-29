@@ -3,46 +3,32 @@ import * as NodeApi from '../node-api'
 import * as NodeImpl from '../node-impl'
 import * as TestTools from '../test-tools'
 import * as NodeBrowser from '../node-browser'
+import * as SequenceStorage from '../sequence-storage'
+import * as MinerImpl from '../miner-impl'
 
 async function test() {
-    console.log(`creating a node`)
     let node = new NodeImpl.NodeImpl()
-
+    let miner = new MinerImpl.MinerImpl(node)
     let browser = new NodeBrowser.NodeBrowser(node)
+    browser.initialise()
 
-    console.log(`current head: ${await node.blockChainHead(Block.MASTER_BRANCH)}`)
-    let miner = TestTools.createSimpleMiner(Block.MASTER_BRANCH, null, 10)
+    let sequence = new SequenceStorage.SequenceStorage(node, Block.MASTER_BRANCH, 'maseq', miner, browser)
+    sequence.initialise()
 
-    let nbToMine = 10
-    let browserInitStep = 4
-    while (nbToMine-- >= 0) {
-        let minedBlock = await miner()
-        let metadata = await node.registerBlock(minedBlock.id, minedBlock.block)
-        console.log(`added block: ${JSON.stringify(metadata)}`)
+    // subscribe to sequence updates
+    // push to a sequence
 
-        if (nbToMine == browserInitStep) {
-            console.log(`initialise browser`)
-            browser.initialise()
-        }
-    }
+    // check that the sequence correctly matches what has been inserted
+    // further : check the same thing on DAG like blockchains
 
-    console.log(`branches: ${await node.branches()}`)
+    // in the smart-contract implementation, use Sequence instead of List, so
+    // that multiple calls can be made in the same block
 
-    await TestTools.wait(1000)
+    // validate that smart contract works on DAG chains !
 
-    let head = await node.blockChainHead(Block.MASTER_BRANCH)
+    // check everything compiles on browser and node, with the CHat application
 
-    console.log(`sync dump`)
-    await browser.browseBlocks(head, data => {
-        console.log(`received data ${data.metadata.blockId}`)
-    })
-
-    console.log(``)
-    console.log(`async dump`)
-    await browser.browseBlocks(head, async data => {
-        console.log(`received data ${data.metadata.blockId}`)
-        await TestTools.wait(250)
-    })
+    // imagine and create an application for product tracking (buy (quote, validate, order), sell, repair, ...)
 }
 
 test()

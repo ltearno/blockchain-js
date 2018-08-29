@@ -9,6 +9,7 @@ import * as Tools from '../tools'
 import * as ListOnChain from '../list-on-chain'
 import * as MinerImpl from '../miner-impl'
 import * as NetworkApiNodeImpl from '../network-api-node-impl'
+import * as NodeBrowser from '../node-browser'
 
 const NETWORK_CLIENT_API = new NetworkApiNodeImpl.NetworkApiNodeImpl()
 
@@ -277,6 +278,47 @@ async function testListOnBlockSpeed() {
     await miner.mineData()
 }
 
+async function testBrowser() {
+    console.log(`creating a node`)
+    let node = new NodeImpl.NodeImpl()
+
+    let browser = new NodeBrowser.NodeBrowser(node)
+
+    console.log(`current head: ${await node.blockChainHead(Block.MASTER_BRANCH)}`)
+    let miner = TestTools.createSimpleMiner(Block.MASTER_BRANCH, null, 10)
+
+    let nbToMine = 10
+    let browserInitStep = 4
+    while (nbToMine-- >= 0) {
+        let minedBlock = await miner()
+        let metadata = await node.registerBlock(minedBlock.id, minedBlock.block)
+        console.log(`added block: ${JSON.stringify(metadata)}`)
+
+        if (nbToMine == browserInitStep) {
+            console.log(`initialise browser`)
+            browser.initialise()
+        }
+    }
+
+    console.log(`branches: ${await node.branches()}`)
+
+    await TestTools.wait(1000)
+
+    let head = await node.blockChainHead(Block.MASTER_BRANCH)
+
+    console.log(`sync dump`)
+    await browser.browseBlocks(head, data => {
+        console.log(`received data ${data.metadata.blockId}`)
+    })
+
+    console.log(``)
+    console.log(`async dump`)
+    await browser.browseBlocks(head, async data => {
+        console.log(`received data ${data.metadata.blockId}`)
+        await TestTools.wait(250)
+    })
+}
+
 let testers = [
     testNodeProxy,
     testDataSerialization,
@@ -284,6 +326,7 @@ let testers = [
     testNodeTransfer,
     testListOnBlockBasic,
     testListOnBlockSpeed,
+    testBrowser
 ]
 
 export async function testAll() {
