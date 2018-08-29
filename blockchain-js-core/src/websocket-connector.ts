@@ -24,8 +24,8 @@ function uuidv4() {
  */
 export class WebSocketConnector implements NodeApi.NodeApi {
     private waitingCalls: Map<string, Resolver<any>> = new Map()
-    private remoteEventListeners: Map<string, NodeApi.NodeEventListener> = new Map()
-    private localEventListeners: Map<string, NodeApi.NodeEventListener> = new Map()
+    private remoteEventListeners: Map<string, NodeApi.NodeEventListener<keyof NodeApi.BlockchainEventMap>> = new Map()
+    private localEventListeners: Map<string, NodeApi.NodeEventListener<keyof NodeApi.BlockchainEventMap>> = new Map()
 
     constructor(private localNode: NodeApi.NodeApi, private ws: NetworkApi.WebSocket) {
         ws.on('message', this.messageListener)
@@ -88,12 +88,12 @@ export class WebSocketConnector implements NodeApi.NodeApi {
     blockChainBlockMetadata(startBlockId: string, depth: number): Promise<Block.BlockMetadata[]> { return this.sendCall('blockChainBlockMetadata', [startBlockId, depth]) }
     blockChainBlockData(startBlockId: string, depth: number): Promise<Block.Block[]> { return this.sendCall('blockChainBlockData', [startBlockId, depth]) }
     registerBlock(blockId: string, block: Block.Block): Promise<Block.BlockMetadata> { return this.sendCall('registerBlock', [blockId, block]) }
-    addEventListener(type: "head", eventListener: NodeApi.NodeEventListener): void {
+    addEventListener<K extends keyof NodeApi.BlockchainEventMap>(type: K, listener: NodeApi.NodeEventListener<K>): void {
         let listenerId = `listener_${uuidv4()}`
-        this.remoteEventListeners.set(listenerId, eventListener)
+        this.remoteEventListeners.set(listenerId, listener as NodeApi.NodeEventListener<keyof NodeApi.BlockchainEventMap>)
         this.sendCall('addEventListener', [type, listenerId], false)
     }
-    removeEventListener(eventListener: NodeApi.NodeEventListener): void {
+    removeEventListener<K extends keyof NodeApi.BlockchainEventMap>(eventListener: NodeApi.NodeEventListener<K>): void {
         for (let [listenerId, registeredEventListener] of this.remoteEventListeners.entries()) {
             if (registeredEventListener === eventListener) {
                 this.sendCall('removeEventListener', [listenerId], false)

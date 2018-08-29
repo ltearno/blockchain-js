@@ -1,7 +1,14 @@
 import * as Block from './block'
 
-export interface NodeEventListener {
-    (event: { branch: string; headBlockId: string }): void
+export interface HeadChangeEvent {
+    type: 'head'
+    branch: string
+    headBlockId: string
+}
+
+export interface AcceptedBlockEvent {
+    type: 'block'
+    blockId: string
 }
 
 export interface NodeApi {
@@ -55,10 +62,21 @@ export interface NodeApi {
      * 
      * TODO register on a specific branch
      */
-    addEventListener(type: 'head', eventListener: NodeEventListener): void
+    addEventListener<K extends keyof BlockchainEventMap>(type: K, listener: NodeEventListener<K>): void
 
     /**
      * Removes an event listener
      */
-    removeEventListener(eventListener: NodeEventListener): void
+    removeEventListener<K extends keyof BlockchainEventMap>(eventListener: NodeEventListener<K>): void
 }
+
+export interface BlockchainEventMap {
+    'head': HeadChangeEvent
+    'block': AcceptedBlockEvent
+}
+
+export interface NodeEventListener<K extends keyof BlockchainEventMap> {
+    (event: BlockchainEventMap[K]): any
+}
+
+document.body.addEventListener

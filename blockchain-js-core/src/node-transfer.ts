@@ -58,7 +58,7 @@ export class NodeTransfer {
     private initRemoteNode(remoteNode: NodeApi.NodeApi) {
         this.knownNodes.push(remoteNode)
 
-        let listener: NodeApi.NodeEventListener = async (event) => {
+        let listener: NodeApi.NodeEventListener<'head'> = async (event) => {
             console.log(`receive branch ${event.branch} change`)
             try {
                 await this.registerBlockInFetchList(event.headBlockId, remoteNode)

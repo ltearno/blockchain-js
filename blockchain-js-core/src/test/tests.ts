@@ -162,7 +162,7 @@ async function testNodeProxy() {
         },
         addEventListener: (type, listener) => {
             console.log(`addListener`)
-            setInterval(() => listener({ branch: Block.MASTER_BRANCH, headBlockId: null }), 1000)
+            setInterval(() => listener({ type: 'head', branch: Block.MASTER_BRANCH, headBlockId: null }), 1000)
         },
         removeEventListener: (listener) => {
             console.log(`removeListener`)
