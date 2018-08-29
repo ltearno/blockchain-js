@@ -60,15 +60,15 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     async blockChainBlockIds(startBlockId: string, depth: number): Promise<string[]> {
-        return Array.from(await this.browseBlockchain(startBlockId, depth)).map(item => item.metadata.blockId)
+        return Array.from(await this.browseBlockchainByFirstParent(startBlockId, depth)).map(item => item.metadata.blockId)
     }
 
     async blockChainBlockMetadata(startBlockId: string, depth: number): Promise<Block.BlockMetadata[]> {
-        return Array.from(await this.browseBlockchain(startBlockId, depth)).map(item => item.metadata)
+        return Array.from(await this.browseBlockchainByFirstParent(startBlockId, depth)).map(item => item.metadata)
     }
 
     async blockChainBlockData(startBlockId: string, depth: number): Promise<Block.Block[]> {
-        return Array.from(await this.browseBlockchain(startBlockId, depth)).map(item => item.block)
+        return Array.from(await this.browseBlockchainByFirstParent(startBlockId, depth)).map(item => item.block)
     }
 
     // registers a new block in the collection
@@ -202,20 +202,6 @@ export class NodeImpl implements NodeApi.NodeApi {
             console.log(`new block ${metadata.blockId} is the new head of branch ${block.branch}`)
 
             this.setHead(block.branch, metadata.blockId)
-
-            /*
-            MAYBE TO DO, OR NOT...
-            // if new head is not a parent of old head (non fast-forward), create a merge block
-            if (!this.isAncestorOf(oldHead, metadata.blockId)) {
-                // create a merge block
-                let pre = Block.createBlock(block.branch, [metadata.blockId, oldHead], ["AUTO MERGE BLOCK"])
-                let oldHeadBlock = (await this.blockChainBlockData(oldHead, 1))[0]
-                // TODO should raise above the most recent block with POW proof instead of looking only the last !
-                let oldDifficulty = oldHeadBlock.validityProof.strategy == Block.ProofOfWorkStrategy ? oldHeadBlock.validityProof.difficulty : 0
-                let blockDifficulty = block.validityProof.strategy == Block.ProofOfWorkStrategy ? block.validityProof.difficulty : 0
-                let minedBlock = Block.mineBlock(pre, Math.min(1, Math.max(oldDifficulty, blockDifficulty)))
-            }
-            */
         }
     }
 
@@ -353,7 +339,7 @@ export class NodeImpl implements NodeApi.NodeApi {
         return metadata
     }
 
-    private *browseBlockchain(startBlockId: string, depth: number) {
+    private *browseBlockchainByFirstParent(startBlockId: string, depth: number) {
         while (startBlockId && depth-- > 0) {
             let metadata = this.knownBlocks.get(startBlockId)
             let block = this.knownBlocksData.get(startBlockId)
@@ -368,4 +354,3 @@ export class NodeImpl implements NodeApi.NodeApi {
         }
     }
 }
-
