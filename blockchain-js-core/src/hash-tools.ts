@@ -77,7 +77,10 @@ export function verify(data: any, signature: string, publicKey: string) {
     return result
 }
 
-interface SignedAndPackedData {
+export interface SignedAndPackedData {
+}
+
+interface SignedAndPackedDataInternal extends SignedAndPackedData {
     body: any
 
     proof: {
@@ -95,7 +98,7 @@ export function signAndPackData(data: object, privateKey: string) {
 
     let signature = sign(data, privateKey)
 
-    let result: SignedAndPackedData = {
+    let result: SignedAndPackedDataInternal = {
         body: data,
         proof: {
             signature,
@@ -103,14 +106,14 @@ export function signAndPackData(data: object, privateKey: string) {
         }
     }
 
-    return result
+    return result as any
 }
 
 export function verifyPackedData(data: object) {
     if (!data || !data["body"] || !data["proof"])
         return false
 
-    let packedData = JSON.parse(JSON.stringify(data)) as SignedAndPackedData
+    let packedData = JSON.parse(JSON.stringify(data)) as SignedAndPackedDataInternal
 
     return verify(packedData.body, packedData.proof.signature, packedData.proof.publicKey)
 }
@@ -126,12 +129,12 @@ export function extractPackedDataSignature(data: object): string {
     if (!data || !data["body"] || !data["proof"])
         return undefined
 
-    return (JSON.parse(JSON.stringify(data)) as SignedAndPackedData).proof.signature
+    return (JSON.parse(JSON.stringify(data)) as SignedAndPackedDataInternal).proof.signature
 }
 
 export function extractPackedDataPublicKey(data: object): string {
     if (!data || !data["body"] || !data["proof"])
         return undefined
 
-    return (JSON.parse(JSON.stringify(data)) as SignedAndPackedData).proof.publicKey
+    return (JSON.parse(JSON.stringify(data)) as SignedAndPackedDataInternal).proof.publicKey
 }
