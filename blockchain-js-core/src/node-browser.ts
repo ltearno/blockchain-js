@@ -23,6 +23,8 @@ export class NodeBrowser {
 
     private registeredBlockEventListener: NodeApi.NodeEventListener<'block'>
 
+    private waitedBlocks = new Map<string, { (): void }[]>()
+
     initialise() {
         this.registeredBlockEventListener = e => this.storeBlock(e.blockId)
         this.node.addEventListener('block', this.registeredBlockEventListener)
@@ -33,18 +35,51 @@ export class NodeBrowser {
         this.node = undefined
     }
 
+    waitForBlock(blockId: string): Promise<any> {
+        if (this.store.has(blockId))
+            return Promise.resolve(true)
+
+        return new Promise((resolve) => {
+            if (this.store.has(blockId)) {
+                resolve()
+                return
+            }
+
+            if (this.waitedBlocks.has(blockId))
+                this.waitedBlocks.get(blockId).push(resolve)
+            else
+                this.waitedBlocks.set(blockId, [resolve])
+        })
+    }
+
+    private maybeNotifyWaitedBlocks(blockId: string) {
+        let waitingResolvers = this.waitedBlocks.get(blockId)
+        waitingResolvers && waitingResolvers.forEach(resolver => resolver())
+
+        // nobody will ever wait for it because we have it now !
+        this.waitedBlocks.delete(blockId)
+    }
+
     /**
      * If the handler returns a Promise, it will be waited for by the 
      * browser before continuing the browsing
      */
     async browseBlocks(startBlockId: string, handler: (blockInfo: BlockInfo) => any) {
         if (!startBlockId)
-            return
+            return false
 
-        for (let data of this.browseBlockchainDepth(startBlockId)) {
-            let result = handler(data)
-            if (result instanceof Promise)
-                await result
+        try {
+            for (let data of this.browseBlockchainDepth(startBlockId)) {
+                let result = handler(data)
+                if (result instanceof Promise)
+                    await result
+            }
+
+            return true
+        }
+        catch (error) {
+            console.error(`error ${error}`, error)
+            return false
         }
     }
 
@@ -55,6 +90,8 @@ export class NodeBrowser {
         let metadata = (await this.node.blockChainBlockMetadata(blockId, 1))[0]
 
         this.store.set(blockId, { block, metadata })
+
+        this.maybeNotifyWaitedBlocks(blockId)
     }
 
     private *browseBlockchainDepth(startBlockId: string) {
@@ -70,10 +107,8 @@ export class NodeBrowser {
             visitedBlocks.add(blockId)
 
             let data = this.store.get(blockId)
-            if (!data) {
-                console.warn(`no block data/metadata for ${blockId}, aborting browsing`)
-                return
-            }
+            if (!data)
+                throw `no block data/metadata for ${blockId}, aborting browsing`
 
             if (data.block.previousBlockIds) {
                 for (let i = data.block.previousBlockIds.length - 1; i >= 0; i--)

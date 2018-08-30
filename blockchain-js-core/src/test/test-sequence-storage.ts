@@ -12,8 +12,17 @@ async function test() {
     let browser = new NodeBrowser.NodeBrowser(node)
     browser.initialise()
 
+    /*browser.waitForBlock('1006d20e3329a9152592d44105ffb6a166cf72e7d5626d39170b2e54a01f6463').then(() => {
+        console.log(`YYYYYYYYYYYYYAAAAAAHOU !`)
+    })*/
+
     let sequence = new SequenceStorage.SequenceStorage(node, Block.MASTER_BRANCH, 'maseq', miner, browser)
     sequence.initialise()
+
+    for (let i = 0; i < 100; i++) {
+        miner.addData(Block.MASTER_BRANCH, 'hello !')
+        await miner.mineData()
+    }
 
     // subscribe to sequence updates
     // push to a sequence
@@ -29,6 +38,8 @@ async function test() {
     // check everything compiles on browser and node, with the CHat application
 
     // imagine and create an application for product tracking (buy (quote, validate, order), sell, repair, ...)
+
+    await TestTools.wait(1000)
 }
 
 test()

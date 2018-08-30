@@ -13,6 +13,7 @@ import * as MinerImpl from './miner-impl'
  */
 export class SequenceStorage {
     private ownBrowser: boolean
+    private lastKnownHead: string = null
 
     constructor(
         private node: NodeApi.NodeApi,
@@ -47,8 +48,13 @@ export class SequenceStorage {
 
     private async updateFromNode() {
         let head = await this.node.blockChainHead(this.branch)
+        if (head == this.lastKnownHead)
+            return
+
+        await this.browser.waitForBlock(head)
 
         this.browser.browseBlocks(head, blockInfo => {
+            console.log(`block: ${blockInfo.metadata.blockId}, depth=${blockInfo.metadata.blockCount}, confidence=${blockInfo.metadata.confidence}`)
         })
     }
 }
