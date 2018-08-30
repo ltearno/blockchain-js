@@ -4,6 +4,8 @@ import * as HashTools from './hash-tools'
 import * as SequenceStorage from './sequence-storage'
 
 /**
+ * THIS IMPLEMENTATION DOES NOT ALLOW CONTRACT TO CALL OTHER CONTRACTS, SO IT IS DEPRECATED
+ * 
  * This should implement basic smart contract functionality :
  * 
  * - recognize and sort-up data in the blockchain (only those with certain field values, and which are consistent...)
@@ -53,10 +55,11 @@ export class SmartContract {
     constructor(
         private node: NodeApi.NodeApi,
         private branch: string,
+        private contractUuid: string,
         private miner: MinerImpl.MinerImpl) { }
 
     initialise() {
-        this.contractItemList = new SequenceStorage.SequenceStorage(this.node, this.branch, `smart-contract-v1`, this.miner)
+        this.contractItemList = new SequenceStorage.SequenceStorage(this.node, this.branch, `smart-contract-${this.contractUuid}`, this.miner)
         this.contractItemList.initialise()
 
         this.registeredChangeListener = sequenceItems => this.updateStatusFromSequence(sequenceItems)
@@ -75,10 +78,11 @@ export class SmartContract {
             return
         }
 
-        console.log(`updating smart contracts statuses because sequence item has changed`)
+        console.log(`updating smart contract status because sequence item has changed`)
 
         let contractPublicKey = null
         let currentContractIterationId = -1
+
         let contractIterations = []
         let instanceData = {}
 
@@ -104,11 +108,9 @@ export class SmartContract {
                         continue
                     }
 
-                    let contractDescription = HashTools.extractPackedDataBody(packedDescription)
-
                     contractIterations[iterationId] = {
                         description: packedDescription,
-                        liveInstance: this.createLiveInstance(contractDescription.uuid, iterationId, contractDescription.code)
+                        liveInstance: this.createLiveInstance(HashTools.extractPackedDataBody(packedDescription).code)
                     }
 
                     currentContractIterationId = iterationId
@@ -136,9 +138,6 @@ export class SmartContract {
                         console.warn(`cannot execute call targetting iteration ${iterationId}, current iteration is ${currentContractIterationId}`)
                         continue
                     }
-
-                    // TODO check that iterationId is the last one on the contract.
-                    // TODO or ignore it if iterationId is undefined
 
                     let liveInstance = contractIterations[iterationId].liveInstance
                     if (!(method in liveInstance)) {
@@ -175,12 +174,12 @@ export class SmartContract {
     }
 
     async displayStatus() {
-        console.log(`== Smart contract status`)
+        console.log(`== Smart contract status : ${this.contractUuid}`)
 
         console.log(`Instance state : ${JSON.stringify(this.latestInstanceState, null, 4)}`)
     }
 
-    private createLiveInstance(contractUuid: string, iterationId: number, code: string) {
+    private createLiveInstance(code: string) {
         let instanceSandbox = {
             console: {
                 log: (text) => console.log(`### SMART CONTRACT LOG: ${text}`),
@@ -211,9 +210,8 @@ export class SmartContract {
         }
     }
 
-    async tryCreateContract(privateKey: string, uuid: string, name: string, description: string, code: string) {
+    async tryCreateContract(privateKey: string, name: string, description: string, code: string) {
         let signedContractDescription = HashTools.signAndPackData({
-            uuid,
             name,
             description,
             code
@@ -225,12 +223,11 @@ export class SmartContract {
         }])
     }
 
-    async callContract(contractUuid: string, iterationId: number, method: string, args: object) {
+    async callContract(iterationId: number, method: string, args: object) {
         // TODO have a way to add items in the same block (en effet en l'etat actuel, un seul item par bloc va passer, car un item référence l'item précédent...)
         return this.contractItemList.addItems([{
             type: 'call',
             data: {
-                contractUuid,
                 iterationId,
                 method,
                 args
