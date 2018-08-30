@@ -1,6 +1,5 @@
 import * as NodeApi from './node-api'
 import * as NodeImpl from './node-impl'
-import * as NodeNetworkClient from './node-network-client'
 import * as NodeTransfer from './node-transfer'
 import * as MinerImpl from './miner-impl'
 import * as ListOnChain from './list-on-chain'

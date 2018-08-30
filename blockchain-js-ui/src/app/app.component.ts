@@ -1,12 +1,26 @@
 import { Component, OnInit } from '@angular/core'
-import * as Blockchain from 'blockchain-js-core'
+import {
+  Block,
+  FullNode,
+  ListOnChain,
+  HashTools,
+  KeyValueStorage,
+  SequenceStorage,
+  SmartContract,
+  NodeBrowser,
+  NetworkApi,
+  NetworkClientBrowserImpl,
+  NodeApi,
+  NodeImpl,
+  NodeTransfer,
+  NodeNetworkClient,
+  WebsocketConnector
+} from 'blockchain-js-core'
 import * as PeerToPeer from 'rencontres'
-import sha256 from 'crypto-js/sha256'
-import hmacSHA512 from 'crypto-js/hmac-sha512'
-import Base64 from 'crypto-js/enc-base64'
 import * as CryptoJS from 'crypto-js'
+import { WebSocketConnector } from 'blockchain-js-core/dist/websocket-connector';
 
-const NETWORK_CLIENT_IMPL = new Blockchain.NetworkClientBrowserImpl()
+const NETWORK_CLIENT_IMPL = new NetworkClientBrowserImpl.NetworkClientBrowserImpl()
 const STORAGE_BLOCKS = 'blocks'
 const STORAGE_SETTINGS = 'settings'
 
@@ -41,9 +55,9 @@ export class AppComponent {
   maxNumberDisplayedMessages = 100
 
   selectedTab = 1
-  selectedBranch = Blockchain.MASTER_BRANCH
+  selectedBranch = Block.MASTER_BRANCH
 
-  fullNode: Blockchain.FullNode = null
+  fullNode: FullNode.FullNode = null
   logs: string[] = []
   state: {
     [key: string]: {
@@ -51,7 +65,7 @@ export class AppComponent {
       head: string
       blocks: any[]
     }
-  } = { "master": { branch: Blockchain.MASTER_BRANCH, head: null, blocks: [] } }
+  } = { "master": { branch: Block.MASTER_BRANCH, head: null, blocks: [] } }
 
   p2pBroker: PeerToPeer.PeerToPeerBrokering
 
@@ -62,7 +76,7 @@ export class AppComponent {
   accepting = new Map<string, { offerId: string; offerMessage: string }>()
   knownAcceptedMessages = new Set<string>()
 
-  private peersSockets = new Map<Blockchain.PeerInfo, { ws: Blockchain.WebSocket, isSelfInitiated: boolean, counterpartyId: string }>()
+  private peersSockets = new Map<FullNode.PeerInfo, { ws: NetworkApi.WebSocket, isSelfInitiated: boolean, counterpartyId: string }>()
 
   private decypherCache = new Map<string, string>()
 
@@ -214,7 +228,7 @@ export class AppComponent {
   }
 
   private initFullNode() {
-    this.fullNode = new Blockchain.FullNode(NETWORK_CLIENT_IMPL)
+    this.fullNode = new FullNode.FullNode(NETWORK_CLIENT_IMPL)
 
     setInterval(() => {
       if (this.lastLoaded.blockId != this.nextLoad.blockId || this.lastLoaded.branch != this.nextLoad.branch) {
@@ -373,14 +387,14 @@ export class AppComponent {
     this.addPeerBySocket(ws, `${peerHost}:${peerPort}`, true, `direct peer ${peerHost}:${peerPort}`)
   }
 
-  private addPeerBySocket(ws: Blockchain.WebSocket, counterpartyId: string, isSelfInitiated: boolean, description: string) {
-    let peerInfo: Blockchain.PeerInfo = null
+  private addPeerBySocket(ws: NetworkApi.WebSocket, counterpartyId: string, isSelfInitiated: boolean, description: string) {
+    let peerInfo: FullNode.PeerInfo = null
     let connector = null
 
     ws.on('open', () => {
       console.log(`peer connected`)
 
-      connector = new Blockchain.WebSocketConnector(this.fullNode.node, ws)
+      connector = new WebSocketConnector(this.fullNode.node, ws)
 
       peerInfo = this.fullNode.addPeer(connector, description)
       this.peersSockets.set(peerInfo, { ws, counterpartyId, isSelfInitiated })
@@ -401,7 +415,7 @@ export class AppComponent {
     })
   }
 
-  disconnectPeer(peerInfo: Blockchain.PeerInfo) {
+  disconnectPeer(peerInfo: FullNode.PeerInfo) {
     this.fullNode.removePeer(peerInfo.id)
     let ws = this.peersSockets.get(peerInfo)
     ws && ws.ws.close()
@@ -520,7 +534,7 @@ export class AppComponent {
   saveBlocks() {
     // TODO only save blocks that are in branches...
     let toSave = []
-    let blocks: Map<string, Blockchain.Block> = this.fullNode.node.blocks()
+    let blocks: Map<string, Block.Block> = this.fullNode.node.blocks()
     blocks.forEach((block, blockId) => toSave.push({ blockId, block }))
     localStorage.setItem(STORAGE_BLOCKS, JSON.stringify(toSave))
     this.log(`blocks saved`)

@@ -3,7 +3,7 @@ import * as NodeApi from './node-api'
 import * as NodeBrowser from './node-browser'
 import * as MinerImpl from './miner-impl'
 
-const SEQUENCE_TAG = 'seq-storage'
+export const SEQUENCE_TAG = 'seq-storage'
 
 export interface SequenceItem {
     tag: typeof SEQUENCE_TAG

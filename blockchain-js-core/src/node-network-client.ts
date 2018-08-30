@@ -1,8 +1,6 @@
-import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as WebSocketConnector from './websocket-connector'
 import * as NetworkApi from './network-api'
-import { mineBlock } from './index';
 
 /**
  * Network connection to a remote node
