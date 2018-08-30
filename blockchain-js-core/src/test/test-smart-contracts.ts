@@ -15,6 +15,7 @@ async function main() {
     const keys = HashTools.generateRsaKeyPair()
     const nameRegistryContractUuid = "test-me-I-am-a-contract-512"
     const counterContractUuid = "counter-contract-101-for-me"
+    const fibonacciContractUuid = "fibo-contract"
 
     smartContract.publishContract(keys.privateKey, counterContractUuid, 'Counter contract v1 (beta)', 'A very simple counter', `
         {
@@ -58,6 +59,31 @@ async function main() {
         }`
     )
 
+    smartContract.publishContract(keys.privateKey, fibonacciContractUuid, 'Fibonacci contract v1 (beta)', 'A recursive contract calling another one !', `
+        {
+            fibonacci: function(args) {
+                let value = (args&&args.n) || 0
+
+                console.log('fibonacci of '+value)
+
+                if(value==0||value==1)
+                    return value
+                
+                // we can do that, it works !
+                // callContract('${counterContractUuid}', 0, 'inc', {inc:42})
+
+                let v1 = callContract('${fibonacciContractUuid}', 0, 'fibonacci', {n:value-1})
+                let v2 = callContract('${fibonacciContractUuid}', 0, 'fibonacci', {n:value-2})
+                
+                let result = v1 + v2
+
+                console.error('fib(' + value + ') = ' + result + ' ' + v1 + ' ' + v2)
+
+                return result
+            }
+        }`
+    )
+
     smartContract.callContract(counterContractUuid, 0, 'test')
     smartContract.callContract(counterContractUuid, 0, 'inc', { inc: 4 })
     smartContract.callContract(counterContractUuid, 0, 'inc')
@@ -74,6 +100,8 @@ async function main() {
         await TestTools.wait(1000)
 
         n++
+
+        smartContract.callContract(fibonacciContractUuid, 0, 'fibonacci', { n })
     }
 }
 

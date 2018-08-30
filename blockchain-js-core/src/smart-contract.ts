@@ -6,6 +6,7 @@ import * as SequenceStorage from './sequence-storage'
 /**
  * TODO :
  * - options on contracts : can other read state ? can be updated ? list of pubKeys for changing the contract...
+ * - methods could be public, private, requiring a sig and so on...
  * 
  * This should implement basic smart contract functionality :
  * 
@@ -155,9 +156,13 @@ export class SmartContract {
                     // This is the opportunity for the contract to upgrade its data structure : never will it be called again with the previous iteration
                     let liveInstance = contractState.contractIterations[iterationId].liveInstance
                     if ('init' in liveInstance) {
-                        let callSuccess = this.callContractInstance('init', undefined, liveInstance, contractState)
-                        if (!callSuccess) {
-                            console.error(`error when initializing contract ${contractUuid}, caused by item ${JSON.stringify(contractItem)}`)
+                        try {
+                            let callResult = this.callContractInstance('init', undefined, liveInstance, contractState)
+                            if (callResult)
+                                console.log(`initialisation of contract ${contractUuid}@${iterationId} produced result : ${JSON.stringify(callResult)}`)
+                        }
+                        catch (error) {
+                            console.error(`error when initializing contract ${contractUuid}, caused by item ${JSON.stringify(contractItem)}`, error)
                             continue
                         }
                     }
@@ -195,9 +200,13 @@ export class SmartContract {
 
                     // TODO do parameter validation
 
-                    let callSuccess = this.callContractInstance(method, args, liveInstance, contractState)
-                    if (!callSuccess) {
-                        console.error(`error when calling ${method} on contract ${contractUuid}, caused by item ${JSON.stringify(contractItem)}`)
+                    try {
+                        let callResult = this.callContractInstance(method, args, liveInstance, contractState)
+                        if (callResult)
+                            console.log(`call on ${contractUuid}@${iterationId}:${method} produced result : ${JSON.stringify(callResult)}`)
+                    }
+                    catch (error) {
+                        console.error(`error when calling ${method} on contract ${contractUuid}, caused by item ${JSON.stringify(contractItem)}`, error)
                         continue
                     }
                 } break
@@ -216,29 +225,30 @@ export class SmartContract {
     }
 
     private callContractInstance(method: string, args: any, liveInstance: any, contractState: ContractState) {
-        if (!(method in liveInstance)) {
-            console.error(`method ${method} does not exist on contract, cannot apply`)
-            return false
-        }
+        if (!(method in liveInstance))
+            throw `method ${method} does not exist on contract, cannot apply`
 
         console.log(`applying call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
 
         let backup = JSON.stringify(contractState.instanceData)
 
         try {
-            liveInstance[method].apply({
+            let callResult = liveInstance[method].apply({
                 data: contractState.instanceData
             }, [args])
+
+            if (callResult)
+                console.log(`call returned a result : ${JSON.stringify(callResult)}`)
+
+            return callResult
         }
         catch (error) {
             console.warn('error while executing smart contract code, reverting changes', error)
 
             contractState.instanceData = JSON.parse(backup)
 
-            return false
+            throw error
         }
-
-        return true
     }
 
     private createLiveInstance(contractUuid: string, iterationId: number, code: string, contracts: Map<string, ContractState>) {
@@ -279,7 +289,7 @@ export class SmartContract {
                     return false
                 }
 
-                this.callContractInstance(method, args, contractState.contractIterations[contractState.currentContractIterationId].liveInstance, contractState)
+                return this.callContractInstance(method, args, contractState.contractIterations[contractState.currentContractIterationId].liveInstance, contractState)
             }
         }
 
