@@ -19,6 +19,7 @@ async function test() {
     let sequence = new SequenceStorage.SequenceStorage(node, Block.MASTER_BRANCH, 'maseq', miner, browser)
     sequence.initialise()
 
+    // subscribe to sequence updates
     sequence.addEventListener('change', sequenceItems => {
         console.log(`receive sequence update : ${sequenceItems}`)
     })
@@ -35,13 +36,8 @@ async function test() {
         await miner.mineData()
     }
 
-    // subscribe to sequence updates
-
-    // check that the sequence correctly matches what has been inserted
-    // further : check the same thing on DAG like blockchains
-
-    // in the smart-contract implementation, use Sequence instead of List, so
-    // that multiple calls can be made in the same block
+    // DONE check that the sequence correctly matches what has been inserted
+    // TODO further : check the same thing on DAG like blockchains
 
     // validate that smart contract works on DAG chains !
 
