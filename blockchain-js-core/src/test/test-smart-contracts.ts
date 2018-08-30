@@ -9,29 +9,39 @@ async function main() {
     let node = new NodeImpl.NodeImpl()
     let miner = new MinerImpl.MinerImpl(node)
 
-    const contractUuid = "test-me-I-am-a-contract-512"
-
-    let smartContract = new SmartContract.SmartContract(node, Block.MASTER_BRANCH, contractUuid, miner)
+    let smartContract = new SmartContract.SmartContract(node, Block.MASTER_BRANCH, miner)
     smartContract.initialise()
 
-    console.log(`real beginning`)
+    const keys = HashTools.generateRsaKeyPair()
+    const nameRegistryContractUuid = "test-me-I-am-a-contract-512"
+    const counterContractUuid = "counter-contract-101-for-me"
 
-    let keys = HashTools.generateRsaKeyPair()
+    smartContract.publishContract(keys.privateKey, counterContractUuid, 'Counter contract v1 (beta)', 'A very simple counter', `
+        {
+            init: function() {
+                this.data.counter = 0
+            },
 
-    smartContract.tryCreateContract(keys.privateKey, 'mon premier contract', 'ceci est très basique !', `
-        { 
-            test: function() {
-                if(!this.data.value)
-                    this.data.value=0;
-                
-                this.data.value++;
-                console.log("hello from contract");
+            inc: function(args) {
+                if(args && args.error)
+                    throw 'you wanted an error isnt it ?'
+
+                let inc = (args && args.inc) || 1
+
+                this.data.counter += inc
+
+                console.log("counter increment by " + inc + ", new value = " + this.data.counter);
+            }
+        }`
+    )
+
+    smartContract.publishContract(keys.privateKey, nameRegistryContractUuid, 'NameRegistry contract v1 (beta)', 'A DNS-like registry (very dumb)', `
+        {
+            init: function() {
+                this.data.registre = {}
             },
 
             register: function(args) {
-                if(!this.data.registre)
-                    this.data.registre = {}
-                
                 if(args.name in this.data.registre){
                     console.warn('already registered name ' + args.name)
                     return
@@ -41,19 +51,23 @@ async function main() {
 
                 console.log('registered name ' + args.name + ' to ' + args.ip)
             }
-        }`)
-    smartContract.callContract(0, 'test', {})
+        }`
+    )
+
+    smartContract.callContract(counterContractUuid, 0, 'test')
+    smartContract.callContract(counterContractUuid, 0, 'inc', { inc: 4 })
+    smartContract.callContract(counterContractUuid, 0, 'inc')
+    smartContract.callContract(counterContractUuid, 0, 'inc', { error: true })
 
     let n = 0
     while (true) {
         await miner.mineData()
-        smartContract.callContract(0, 'test', {})
-        smartContract.callContract(0, 'register', { name: `name-${n}`, ip: `192.168.0.${n}` })
-        smartContract.callContract(0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 1}` })
-        smartContract.callContract(0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 2}` })
+        smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n}` })
+        smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 1}` })
+        smartContract.callContract(counterContractUuid, 0, 'inc')
+        smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 2}` })
 
         await TestTools.wait(1000)
-        smartContract.displayStatus()
 
         n++
     }
