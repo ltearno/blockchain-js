@@ -85,7 +85,7 @@ async function main() {
                 
                 let result = v1 + v2
 
-                console.error('fib(' + value + ') = ' + result + ' ' + v1 + ' ' + v2)
+                console.log('fib(' + value + ') = ' + result + ' ' + v1 + ' ' + v2)
 
                 return result
             }
