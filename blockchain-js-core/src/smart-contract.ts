@@ -147,7 +147,9 @@ export class SmartContract {
 
                     try {
                         console.log(`applying call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
-                        liveInstance[method].apply(instanceData, [args])
+                        liveInstance[method].apply({
+                            data: instanceData
+                        }, [args])
                     }
                     catch (error) {
                         console.warn('error while executing smart contract code', error)
@@ -176,13 +178,12 @@ export class SmartContract {
     }
 
     private createLiveInstance(code: string) {
-        function has(target, key) {
-            return true
-        }
-
-        function get(target, key) {
-            if (key === Symbol.unscopables) return undefined
-            return target[key]
+        let instanceSandbox = {
+            console: {
+                log: (text) => console.log(`### SMART CONTRACT LOG: ${text}`),
+                warn: (text) => console.warn(`### SMART CONTRACT WARNING: ${text}`),
+                error: (text) => console.error(`### SMART CONTRACT ERROR: ${text}`)
+            }
         }
 
         try {
@@ -190,9 +191,17 @@ export class SmartContract {
             const codeFunction = new Function('sandbox', code)
 
             return function (sandbox) {
-                const sandboxProxy = new Proxy(sandbox, { has, get })
+                const sandboxProxy = new Proxy(sandbox, {
+                    has: () => true,
+                    get: (target, key) => {
+                        if (key === Symbol.unscopables)
+                            return undefined
+                        return target[key]
+                    }
+                })
+
                 return codeFunction(sandboxProxy)
-            }({ console })
+            }(instanceSandbox)
         }
         catch (error) {
             return null

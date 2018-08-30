@@ -21,23 +21,23 @@ async function main() {
     smartContract.tryCreateContract(keys.privateKey, 'mon premier contract', 'ceci est très basique !', `
         { 
             test: function() {
-                if(!this.value)
-                    this.value=0;
+                if(!this.data.value)
+                    this.data.value=0;
                 
-                this.value++;
+                this.data.value++;
                 console.log("hello from contract");
             },
 
             register: function(args) {
-                if(!this.registre)
-                    this.registre = {}
+                if(!this.data.registre)
+                    this.data.registre = {}
                 
-                if(args.name in this.registre){
+                if(args.name in this.data.registre){
                     console.warn('already registered name ' + args.name)
                     return
                 }
                 
-                this.registre[args.name] = args.ip
+                this.data.registre[args.name] = args.ip
 
                 console.log('registered name ' + args.name + ' to ' + args.ip)
             }
