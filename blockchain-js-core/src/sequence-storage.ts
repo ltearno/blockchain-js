@@ -3,6 +3,18 @@ import * as NodeApi from './node-api'
 import * as NodeBrowser from './node-browser'
 import * as MinerImpl from './miner-impl'
 
+const SEQUENCE_TAG = 'seq-storage'
+
+export interface SequenceItem {
+    tag: typeof SEQUENCE_TAG
+    id: string
+    items: any[]
+}
+
+export interface SequenceChangeListener {
+    (items: SequenceItem[]): any
+}
+
 /**
  * Stores a list on chain.
  * 
@@ -13,7 +25,11 @@ import * as MinerImpl from './miner-impl'
  */
 export class SequenceStorage {
     private ownBrowser: boolean
+
     private lastKnownHead: string = null
+    private lastKnownSequenceItems: SequenceItem[] = null
+
+    private changeListeners: SequenceChangeListener[] = []
 
     constructor(
         private node: NodeApi.NodeApi,
@@ -46,15 +62,62 @@ export class SequenceStorage {
         this.node = null
     }
 
+    addItems(items: any[]) {
+        this.miner.addData(this.branch, {
+            tag: SEQUENCE_TAG,
+            id: this.sequenceId,
+            items
+        })
+    }
+
+    addEventListener(type: 'change', handler: SequenceChangeListener) {
+        this.changeListeners.push(handler)
+    }
+
+    removeEventListener(handler: SequenceChangeListener) {
+        this.changeListeners = this.changeListeners.filter(l => l != handler)
+    }
+
     private async updateFromNode() {
         let head = await this.node.blockChainHead(this.branch)
+
         if (head == this.lastKnownHead)
             return
+        this.lastKnownHead = head
 
         await this.browser.waitForBlock(head)
 
-        this.browser.browseBlocks(head, blockInfo => {
+        let sequenceItems = []
+
+        await this.browser.browseBlocksReverse(head, blockInfo => {
             console.log(`block: ${blockInfo.metadata.blockId}, depth=${blockInfo.metadata.blockCount}, confidence=${blockInfo.metadata.confidence}`)
+
+            this.appendSequencePartsFromBlock(blockInfo.block, sequenceItems)
         })
+
+        this.lastKnownSequenceItems = sequenceItems
+
+        this.changeListeners.forEach(listener => listener(sequenceItems))
+    }
+
+    private appendSequencePartsFromBlock(block: Block.Block, sequenceItems: SequenceItem[]) {
+        for (let dataItem of block.data) {
+            if (typeof dataItem !== 'object')
+                continue
+
+            if (!['tag', 'id', 'items'].every(field => field in dataItem))
+                continue
+
+            if (dataItem.tag != SEQUENCE_TAG)
+                continue
+
+            if (dataItem.id != this.sequenceId)
+                continue
+
+            if (!Array.isArray(dataItem.items))
+                continue
+
+            dataItem.items.forEach(item => sequenceItems.push(item as SequenceItem))
+        }
     }
 }

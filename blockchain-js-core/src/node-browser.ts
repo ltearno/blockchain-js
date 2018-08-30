@@ -1,5 +1,6 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
+import { start } from 'repl';
 
 export interface BlockInfo {
     block: Block.Block
@@ -71,6 +72,26 @@ export class NodeBrowser {
         try {
             for (let data of this.browseBlockchainDepth(startBlockId)) {
                 let result = handler(data)
+                if (result instanceof Promise)
+                    await result
+            }
+
+            return true
+        }
+        catch (error) {
+            console.error(`error ${error}`, error)
+            return false
+        }
+    }
+
+    async browseBlocksReverse(startBlockId: string, handler: (blockInfo: BlockInfo) => any) {
+        let blockList = []
+
+        try {
+            await this.browseBlocks(startBlockId, blockInfo => blockList.push(blockInfo))
+
+            for (let i = blockList.length - 1; i >= 0; i--) {
+                let result = handler(blockList[i])
                 if (result instanceof Promise)
                     await result
             }
