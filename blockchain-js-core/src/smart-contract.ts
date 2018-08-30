@@ -1,9 +1,7 @@
-import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as MinerImpl from './miner-impl'
-import * as KeyValueStorage from './key-value-storage'
 import * as HashTools from './hash-tools'
-import * as ListOnChain from './list-on-chain'
+import * as SequenceStorage from './sequence-storage'
 
 /**
  * This should implement basic smart contract functionality :
@@ -47,7 +45,10 @@ import * as ListOnChain from './list-on-chain'
  */
 
 export class SmartContract {
-    private contractItemList: ListOnChain.ListOnChain
+    private contractItemList: SequenceStorage.SequenceStorage
+    private registeredChangeListener: SequenceStorage.SequenceChangeListener
+
+    private latestInstanceState = {}
 
     constructor(
         private node: NodeApi.NodeApi,
@@ -56,26 +57,29 @@ export class SmartContract {
         private miner: MinerImpl.MinerImpl) { }
 
     initialise() {
-        this.contractItemList = new ListOnChain.ListOnChain(this.node, this.branch, `smart-contract-${this.contractUuid}`, this.miner)
+        this.contractItemList = new SequenceStorage.SequenceStorage(this.node, this.branch, `smart-contract-${this.contractUuid}`, this.miner)
         this.contractItemList.initialise()
+
+        this.registeredChangeListener = sequenceItems => this.updateStatusFromSequence(sequenceItems)
+        this.contractItemList.addEventListener('change', this.registeredChangeListener)
     }
 
     terminate() {
+        this.contractItemList.removeEventListener(this.registeredChangeListener)
         this.contractItemList.terminate()
         this.node = undefined
     }
 
-    async displayStatus() {
-        console.log(`== Smart contract status : ${this.contractUuid}`)
-
-        let contractPublicKey = null
-        let currentContractIterationId = -1
-
-        let contractItems = this.contractItemList.getList()
+    private updateStatusFromSequence(contractItems: SequenceStorage.SequenceItem[]) {
         if (!contractItems || !contractItems.length) {
             console.log(`empty contract...`)
             return
         }
+
+        console.log(`updating smart contract status because sequence item has changed`)
+
+        let contractPublicKey = null
+        let currentContractIterationId = -1
 
         let contractIterations = []
         let instanceData = {}
@@ -111,10 +115,10 @@ export class SmartContract {
                     if (!contractPublicKey)
                         contractPublicKey = HashTools.extractPackedDataPublicKey(packedDescription)
 
-                    console.log(`public key : ${HashTools.extractPackedDataPublicKey(packedDescription).substr(0, 15)}`)
+                    /*console.log(`public key : ${HashTools.extractPackedDataPublicKey(packedDescription).substr(0, 15)}`)
                     console.log(`signature  : ${HashTools.extractPackedDataSignature(packedDescription)}`)
                     console.log(`description:`)
-                    console.log(JSON.stringify(HashTools.extractPackedDataBody(packedDescription), null, 4))
+                    console.log(JSON.stringify(HashTools.extractPackedDataBody(packedDescription), null, 4))*/
 
                     // call init on live instance (if init method is present)
                     // This is the opportunity for the contract to upgrade its data structure : never will it be called again with the previous iteration
@@ -144,19 +148,31 @@ export class SmartContract {
                     try {
                         console.log(`applying call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
                         liveInstance[method].apply(instanceData, [args])
-                        console.log(`done executing method on smart contract, contract state is now ${JSON.stringify(instanceData)}`)
                     }
                     catch (error) {
                         console.warn('error while executing smart contract code', error)
                     }
 
-                    console.log(`instance resolved state: ${JSON.stringify(instanceData, null, 2)}`)
+                    //console.log(`instance resolved state: ${JSON.stringify(instanceData, null, 2)}`)
                 } break
 
                 default:
                     console.log(`ignored contract item ${JSON.stringify(contractItem)}`)
             }
         }
+
+        console.log(`instance resolved state: ${JSON.stringify(instanceData, null, 2)}`)
+        this.latestInstanceState = instanceData
+    }
+
+    getLatestContractState() {
+        return this.latestInstanceState
+    }
+
+    async displayStatus() {
+        console.log(`== Smart contract status : ${this.contractUuid}`)
+
+        console.log(`Instance state : ${JSON.stringify(this.latestInstanceState, null, 4)}`)
     }
 
     private createLiveInstance(code: string) {
@@ -190,7 +206,7 @@ export class SmartContract {
             code
         }, privateKey)
 
-        return this.contractItemList.addToList([{
+        return this.contractItemList.addItems([{
             type: 'contract',
             data: signedContractDescription
         }])
@@ -198,7 +214,7 @@ export class SmartContract {
 
     async callContract(iterationId: number, method: string, args: object) {
         // TODO have a way to add items in the same block (en effet en l'etat actuel, un seul item par bloc va passer, car un item référence l'item précédent...)
-        return this.contractItemList.addToList([{
+        return this.contractItemList.addItems([{
             type: 'call',
             data: {
                 iterationId,
