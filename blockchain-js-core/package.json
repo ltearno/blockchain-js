@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Arnaud Tournier",
-  "license": "ISC",
+  "license": "MIT",
   "homepage": "https://blockchain-js.com",
   "bugs": "https://github.com/ltearno/blockchain-js/issues",
   "repository": {

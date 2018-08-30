@@ -8,8 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "./node_modules/.bin/tsc && ./node_modules/.bin/browserify dist/gui.js -o dist/bundle.js"
   },
-  "author": "ltearno@gmail.com",
-  "license": "ISC",
+  "author": "Arnaud Tournier",
+  "license": "MIT",
   "homepage": "https://blockchain-js.com",
   "bugs": "https://github.com/ltearno/blockchain-js/issues",
   "repository": {
