@@ -49,6 +49,7 @@ import * as SequenceStorage from './sequence-storage'
  */
 
 interface ContractState {
+    uuid: string,
     name: string
     description: string
     contractPublicKey: string
@@ -120,6 +121,7 @@ export class SmartContract {
                     }
                     else {
                         contractState = {
+                            uuid: contractUuid,
                             contractPublicKey: null,
                             currentContractIterationId: -1,
                             contractIterations: [],
@@ -234,6 +236,11 @@ export class SmartContract {
 
         try {
             let callResult = liveInstance[method].apply({
+                uuid: contractState.uuid,
+                name: contractState.name,
+                description: contractState.description,
+                currentIterationId: contractState.currentContractIterationId,
+                publicKey: contractState.contractPublicKey,
                 data: contractState.instanceData
             }, [args])
 

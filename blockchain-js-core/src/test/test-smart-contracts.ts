@@ -24,6 +24,14 @@ async function main() {
             },
 
             inc: function(args) {
+                // introspection demo
+                console.log('i am a contract and i can know my :')
+                console.log('uuid : ' + this.uuid)
+                console.log('name : ' + this.name)
+                console.log('description : ' + this.description)
+                console.log('currentIterationId : ' + this.currentIterationId)
+                console.log('publicKey : ' + this.publicKey)
+
                 if(args && args.error)
                     throw 'you wanted an error isnt it ?'
 
