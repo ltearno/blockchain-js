@@ -49,6 +49,10 @@ async function main() {
                 
                 this.data.registre[args.name] = args.ip
 
+                console.log('current counter : ' + stateOfContract('${counterContractUuid}').counter)
+                callContract('${counterContractUuid}', 0, 'inc', {inc:5})
+                console.log('after call counter : ' + stateOfContract('${counterContractUuid}').counter)
+
                 console.log('registered name ' + args.name + ' to ' + args.ip + ' while counter contract state is ' + JSON.stringify(stateOfContract('${counterContractUuid}')))
             }
         }`

@@ -4,6 +4,9 @@ import * as HashTools from './hash-tools'
 import * as SequenceStorage from './sequence-storage'
 
 /**
+ * TODO :
+ * - options on contracts : can other read state ? can be updated ? list of pubKeys for changing the contract...
+ * 
  * This should implement basic smart contract functionality :
  * 
  * - recognize and sort-up data in the blockchain (only those with certain field values, and which are consistent...)
@@ -239,9 +242,11 @@ export class SmartContract {
     }
 
     private createLiveInstance(contractUuid: string, iterationId: number, code: string, contracts: Map<string, ContractState>) {
+        let liveInstance = null
+
         let instanceSandbox = {
             JSON,
-            
+
             console: {
                 log: (text) => console.log(`### SMART CONTRACT ${contractUuid}@${iterationId} LOG: ${text}`),
                 warn: (text) => console.warn(`### SMART CONTRACT ${contractUuid}@${iterationId} WARNING: ${text}`),
@@ -249,6 +254,9 @@ export class SmartContract {
             },
 
             stateOfContract: (uuid) => {
+                if (!liveInstance)
+                    throw 'no live instance, are you trying to do something weird?'
+
                 let contractState = contracts.get(uuid)
                 if (!contractState) {
                     console.warn(`contract ${contractUuid} asked for state of an unknown contract (${uuid})`)
@@ -259,6 +267,19 @@ export class SmartContract {
 
                 // make a clone, so that contract cannot alter the other instance's data
                 return JSON.parse(JSON.stringify(contractState.instanceData))
+            },
+
+            callContract: (uuid, iterationId, method, args) => {
+                if (!liveInstance)
+                    throw 'no live instance, are you trying to do something weird?'
+
+                let contractState = contracts.get(uuid)
+                if (!contractState) {
+                    console.error(`contract ${contractUuid} asked for calling method ${method} on an unknown contract (${uuid}@${iterationId})`)
+                    return false
+                }
+
+                this.callContractInstance(method, args, contractState.contractIterations[contractState.currentContractIterationId].liveInstance, contractState)
             }
         }
 
@@ -266,7 +287,7 @@ export class SmartContract {
             code = 'with (sandbox) { return (' + code + ') }'
             const codeFunction = new Function('sandbox', code)
 
-            return function (sandbox) {
+            liveInstance = function (sandbox) {
                 const sandboxProxy = new Proxy(sandbox, {
                     has: () => true,
                     get: (target, key) => {
@@ -278,6 +299,8 @@ export class SmartContract {
 
                 return codeFunction(sandboxProxy)
             }(instanceSandbox)
+
+            return liveInstance
         }
         catch (error) {
             return null
