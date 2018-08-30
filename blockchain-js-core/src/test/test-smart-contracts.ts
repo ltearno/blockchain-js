@@ -48,19 +48,14 @@ async function main() {
     while (true) {
         await miner.mineData()
         smartContract.callContract(0, 'test', {})
-
-        await TestTools.wait(1000)
         smartContract.callContract(0, 'register', { name: `name-${n}`, ip: `192.168.0.${n}` })
-        await miner.mineData() && await TestTools.wait(1000)
         smartContract.callContract(0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 1}` })
-        await miner.mineData() && await TestTools.wait(1000)
         smartContract.callContract(0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 2}` })
-        await miner.mineData() && await TestTools.wait(1000)
 
         await TestTools.wait(1000)
         smartContract.displayStatus()
 
-        n += 3
+        n++
     }
 }
 
