@@ -30,7 +30,7 @@ async function main() {
 
                 this.data.counter += inc
 
-                console.log("counter increment by " + inc + ", new value = " + this.data.counter);
+                console.log("counter increment by " + inc + ", new value = " + this.data.counter)
             }
         }`
     )
@@ -49,7 +49,7 @@ async function main() {
                 
                 this.data.registre[args.name] = args.ip
 
-                console.log('registered name ' + args.name + ' to ' + args.ip)
+                console.log('registered name ' + args.name + ' to ' + args.ip + ' while counter contract state is ' + JSON.stringify(stateOfContract('${counterContractUuid}')))
             }
         }`
     )

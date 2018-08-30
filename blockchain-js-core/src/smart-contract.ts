@@ -136,7 +136,7 @@ export class SmartContract {
 
                     contractState.contractIterations[iterationId] = {
                         description: packedDescription,
-                        liveInstance: this.createLiveInstance(contractDescription.uuid, iterationId, contractDescription.code)
+                        liveInstance: this.createLiveInstance(contractDescription.uuid, iterationId, contractDescription.code, contracts)
                     }
 
                     contractState.currentContractIterationId = iterationId
@@ -238,12 +238,27 @@ export class SmartContract {
         return true
     }
 
-    private createLiveInstance(contractUuid: string, iterationId: number, code: string) {
+    private createLiveInstance(contractUuid: string, iterationId: number, code: string, contracts: Map<string, ContractState>) {
         let instanceSandbox = {
+            JSON,
+            
             console: {
                 log: (text) => console.log(`### SMART CONTRACT ${contractUuid}@${iterationId} LOG: ${text}`),
                 warn: (text) => console.warn(`### SMART CONTRACT ${contractUuid}@${iterationId} WARNING: ${text}`),
                 error: (text) => console.error(`### SMART CONTRACT ${contractUuid}@${iterationId} ERROR: ${text}`)
+            },
+
+            stateOfContract: (uuid) => {
+                let contractState = contracts.get(uuid)
+                if (!contractState) {
+                    console.warn(`contract ${contractUuid} asked for state of an unknown contract (${uuid})`)
+                    return null
+                }
+
+                console.log(`contract ${contractUuid} asked for state of contract (${uuid})`)
+
+                // make a clone, so that contract cannot alter the other instance's data
+                return JSON.parse(JSON.stringify(contractState.instanceData))
             }
         }
 
