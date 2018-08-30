@@ -80,8 +80,8 @@ async function main() {
                 // we can do that, it works !
                 // callContract('${counterContractUuid}', 0, 'inc', {inc:42})
 
-                let v1 = callContract('${fibonacciContractUuid}', 0, 'fibonacci', {n:value-1})
-                let v2 = callContract('${fibonacciContractUuid}', 0, 'fibonacci', {n:value-2})
+                let v1 = callContract(this.uuid, 0, 'fibonacci', {n:value-1})
+                let v2 = callContract(this.uuid, 0, 'fibonacci', {n:value-2})
                 
                 let result = v1 + v2
 
