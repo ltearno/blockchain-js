@@ -241,9 +241,9 @@ export class SmartContract {
     private createLiveInstance(contractUuid: string, iterationId: number, code: string) {
         let instanceSandbox = {
             console: {
-                log: (text) => console.log(`### SMART CONTRACT LOG: ${text}`),
-                warn: (text) => console.warn(`### SMART CONTRACT WARNING: ${text}`),
-                error: (text) => console.error(`### SMART CONTRACT ERROR: ${text}`)
+                log: (text) => console.log(`### SMART CONTRACT ${contractUuid}@${iterationId} LOG: ${text}`),
+                warn: (text) => console.warn(`### SMART CONTRACT ${contractUuid}@${iterationId} WARNING: ${text}`),
+                error: (text) => console.error(`### SMART CONTRACT ${contractUuid}@${iterationId} ERROR: ${text}`)
             }
         }
 
