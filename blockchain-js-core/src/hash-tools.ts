@@ -1,6 +1,8 @@
 let hash = require('hash.js')
 let cryptojs = require('crypto-js')
 const NodeRSA = require('node-rsa')
+const jsencrypt = require('jsencrypt')
+
 import * as OrderedJson from './ordered-json'
 
 export const EMPTY_PAYLOAD_SHA = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'

@@ -244,6 +244,12 @@ export class AppComponent {
       this.triggerLoad(event.branch, event.headBlockId)
     })
 
+    let crypt = require('crypto-browserify')
+    console.log(`crypto: `, crypt)
+
+    crypt = require('crypto') 
+    console.log(`crypto: `, crypt)
+
     let miner = this.fullNode.miner
     let smartContract = new SmartContract.SmartContract(this.fullNode.node, Block.MASTER_BRANCH, miner)
     smartContract.initialise()

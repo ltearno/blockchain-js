@@ -13,6 +13,7 @@ const { publicKey, privateKey } = HashTools.generateRsaKeyPair()
 console.log(`public ${publicKey}`)
 console.log(`private ${privateKey}`)
 
+/*
 let encryptedRsa = HashTools.encryptRsa(msg, publicKey)
 let decryptedRsa = HashTools.decryptRsa(encryptedRsa, privateKey)
 
@@ -52,4 +53,4 @@ programV2.code = 'nnn'
 
 let isFromOwner = HashTools.verify(programPayload, signature, programPayload.ownerPublicKey)
 let isFromOwner2 = HashTools.verify(programV2, sig2, programPayload.ownerPublicKey)
-
+*/
