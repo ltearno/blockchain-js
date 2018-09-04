@@ -12,7 +12,7 @@ async function main() {
     let smartContract = new SmartContract.SmartContract(node, Block.MASTER_BRANCH, miner)
     smartContract.initialise()
 
-    const keys = HashTools.generateRsaKeyPair()
+    const keys = await HashTools.generateRsaKeyPair()
     const nameRegistryContractUuid = "test-me-I-am-a-contract-512"
     const counterContractUuid = "counter-contract-101-for-me"
     const fibonacciContractUuid = "fibo-contract"

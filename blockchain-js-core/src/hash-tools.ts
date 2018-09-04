@@ -1,8 +1,7 @@
 let hash = require('hash.js')
 let cryptojs = require('crypto-js')
-const NodeRSA = require('node-rsa')
-const jsencrypt = require('jsencrypt')
-
+//const NodeRSA = require('node-rsa')
+import * as forge from 'node-forge'
 import * as OrderedJson from './ordered-json'
 
 export const EMPTY_PAYLOAD_SHA = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
@@ -23,60 +22,118 @@ export function decryptAes(data: string, secret: string) {
     return JSON.parse(bytes.toString(cryptojs.enc.Utf8))
 }
 
-export function generateRsaKeyPair() {
-    const key = new NodeRSA(undefined, undefined, { encryptionScheme: 'pkcs1' })
-    key.generateKeyPair(2048, 65537)
+export async function generateRsaKeyPair() {
+    return new Promise<{ privateKey: string; publicKey: string }>((resolve, reject) => {
+        const rsa = forge.pki.rsa
 
-    return {
-        privateKey: key.exportKey('pkcs8-private-pem'),
-        publicKey: key.exportKey('pkcs8-public-pem')
-    }
+        try {
+            rsa.generateKeyPair({ bits: 2048, workers: 2 }, (err, keyPair) => {
+                if (err) {
+                    reject(err)
+                    return
+                }
+
+                resolve({
+                    privateKey: forge.pki.privateKeyToPem(keyPair.privateKey),
+                    publicKey: forge.pki.publicKeyToPem(keyPair.publicKey)
+                })
+            })
+        }
+        catch (err) {
+            reject(err)
+        }
+    })
 }
 
-export function encryptRsa(data: any, publicKey: string): string {
-    const key = new NodeRSA()
-    key.importKey(publicKey)
+function encryptAesEx(data: string, key) {
+    data = forge.util.encode64(data)
 
-    let result = key.encrypt(JSON.stringify(data), 'base64', 'utf8')
-    return result
+    var iv = forge.random.getBytesSync(16)
+
+    var cipher = forge.cipher.createCipher('AES-CBC', key)
+
+    cipher.start({ iv })
+    cipher.update(forge.util.createBuffer(data))
+    cipher.finish()
+
+    return JSON.stringify({
+        iv: forge.util.encode64(iv),
+        encrypted: forge.util.encode64(cipher.output.getBytes())
+    })
 }
 
-export function encryptRsaPrivate(data: any, privateKey: string): string {
+function decryptAesEx(encrypted: string, key) {
+    let obj = JSON.parse(encrypted)
+
+    let data = forge.util.createBuffer(forge.util.decode64(obj.encrypted))
+    let iv = forge.util.createBuffer(forge.util.decode64(obj.iv))
+
+    var decipher = forge.cipher.createDecipher('AES-CBC', key)
+    decipher.start({ iv })
+    decipher.update(data)
+    decipher.finish()
+
+    return forge.util.decode64(decipher.output.toString())
+}
+
+export function encryptRsa(data: any, publicKeyPem: string): string {
+
+    let serializedData = OrderedJson.stringify(data)
+
+    var key = forge.random.getBytesSync(16)
+
+    let encrypted = encryptAesEx(serializedData, key)
+    let decrypted = decryptAesEx(encrypted, key)
+
+    /*let publicKey = forge.pki.publicKeyFromPem(publicKeyPem)
+    let binaryData = clearBytes
+    let encrypted = publicKey.encrypt(OrderedJson.stringify(data), 'RSA-OAEP', {
+        md: forge.md.sha256.create(),
+        mgf1: {
+            md: forge.md.sha1.create()
+        }
+    })*/
+    return encrypted // TODO check that it's a string
+}
+
+/*export function encryptRsaPrivate(data: any, privateKey: string): string {
     const key = new NodeRSA()
     key.importKey(privateKey)
     const result = key.encryptPrivate(JSON.stringify(data), 'base64', 'utf8')
     return result
-}
+}*/
 
 export function decryptRsa(data: string, privateKey: string): any {
-    const key = new NodeRSA()
-    key.importKey(privateKey)
-
-    let result = key.decrypt(data, 'json')
-    return result
+    let pk = forge.pki.privateKeyFromPem(privateKey)
+    let decrypted = pk.decrypt(data)
+    return OrderedJson.parse(decrypted) // TODO check decrypted is a string
 }
-export function decryptRsaPublic(data: string, publicKey: string): any {
+/*export function decryptRsaPublic(data: string, publicKey: string): any {
     const key = new NodeRSA()
     key.importKey(publicKey)
 
     let result = key.decryptPublic(data, 'utf8', 'base64')
     return JSON.parse(result)
+}*/
+
+export function sign(data: any, privateKeyPem: string) {
+    let md = forge.md.sha1.create()
+    md.update(OrderedJson.stringify(data), 'utf8')
+
+    let pk = forge.pki.privateKeyFromPem(privateKeyPem)
+    let signature = forge.util.encode64(pk.sign(md))
+
+    return signature
 }
 
-export function sign(data: any, privateKey: string) {
-    const key = new NodeRSA()
-    key.importKey(privateKey)
+export function verify(data: any, signature: string, publicKeyPem: string) {
+    var md = forge.md.sha1.create()
+    md.update(OrderedJson.stringify(data), 'utf8')
 
-    const result = key.sign(OrderedJson.stringify(data), 'base64', 'utf8')
-    return result
-}
+    let pk = forge.pki.publicKeyFromPem(publicKeyPem)
+    let verified = pk.verify(md.digest().bytes(), forge.util.decode64(signature))
 
-export function verify(data: any, signature: string, publicKey: string) {
-    const key = new NodeRSA()
-    key.importKey(publicKey)
-
-    const result = key.verify(OrderedJson.stringify(data), signature, 'utf8', 'base64')
-    return result
+    return verified
 }
 
 export interface SignedAndPackedData {
@@ -91,20 +148,21 @@ interface SignedAndPackedDataInternal extends SignedAndPackedData {
     }
 }
 
-export function signAndPackData(data: object, privateKey: string) {
-    data = JSON.parse(JSON.stringify(data))
+export function signAndPackData(data: object, privateKeyPem: string) {
+    var md = forge.md.sha1.create()
+    md.update(OrderedJson.stringify(data), 'utf8')
 
-    const key = new NodeRSA()
-    key.importKey(privateKey)
-    let publicKey = key.exportKey('pkcs8-public-pem')
+    let privateKey = forge.pki.privateKeyFromPem(privateKeyPem)
+    let signature = forge.util.encode64(privateKey.sign(md))
 
-    let signature = sign(data, privateKey)
+    let publicKey = forge.pki.setRsaPublicKey(privateKey.n, privateKey.e)
+    let publicKeyPem = forge.pki.publicKeyToPem(publicKey)
 
     let result: SignedAndPackedDataInternal = {
         body: data,
         proof: {
             signature,
-            publicKey
+            publicKey: publicKeyPem
         }
     }
 

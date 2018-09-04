@@ -28,6 +28,8 @@ function sleep(time: number) {
   return new Promise((resolve, reject) => setTimeout(resolve, time))
 }
 
+declare function require(v: any): any;
+
 // TODO affichage tous messages
 // TODO clean
 
@@ -244,13 +246,18 @@ export class AppComponent {
       this.triggerLoad(event.branch, event.headBlockId)
     })
 
-    let crypt = require('crypto-browserify')
-    console.log(`crypto: `, crypt)
+    alert('forge test')
+    let forge = require('node-forge')
+    var rsa = forge.pki.rsa
+    var keypair = rsa.generateKeyPair({ bits: 2048, e: 0x10001 })
+    console.log(`keypair: ${keypair.privateKey} ${keypair.publicKey}`)
+    console.log('publickey pem: ', forge.pki.publicKeyToPem(keypair.publicKey))
+    console.log('privatekey pem: ', forge.pki.privateKeyToPem(keypair.privateKey))
+    rsa.generateKeyPair({ bits: 2048, workers: 2 }, function (err, keypair) {
+      console.log(`keypair: ${keypair.privateKey} ${keypair.publicKey}`)
+    })
 
-    crypt = require('crypto') 
-    console.log(`crypto: `, crypt)
-
-    let miner = this.fullNode.miner
+    /*let miner = this.fullNode.miner
     let smartContract = new SmartContract.SmartContract(this.fullNode.node, Block.MASTER_BRANCH, miner)
     smartContract.initialise()
     const keys = HashTools.generateRsaKeyPair()
@@ -270,7 +277,7 @@ export class AppComponent {
             }
         }`
     )
-    setInterval(() => smartContract.callContract(counterContractUuid, 0, 'inc'), 500)
+    setInterval(() => smartContract.callContract(counterContractUuid, 0, 'inc'), 500)*/
   }
 
   setPseudo(pseudo, peerToPeer) {
