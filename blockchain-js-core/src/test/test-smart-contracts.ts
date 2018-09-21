@@ -9,7 +9,7 @@ async function main() {
     let node = new NodeImpl.NodeImpl()
     let miner = new MinerImpl.MinerImpl(node)
 
-    let smartContract = new SmartContract.SmartContract(node, Block.MASTER_BRANCH, miner)
+    let smartContract = new SmartContract.SmartContract(node, Block.MASTER_BRANCH, 'tests', miner)
     smartContract.initialise()
 
     const keys = await HashTools.generateRsaKeyPair()

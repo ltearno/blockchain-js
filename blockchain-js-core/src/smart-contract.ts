@@ -58,25 +58,28 @@ interface ContractState {
     currentContractIterationId: number
     contractIterations: {
         description: any
-        liveInstance: any
     }[]
     instanceData: any
 }
 
+type LiveInstance = any
+
 export class SmartContract {
     private contractItemList: SequenceStorage.SequenceStorage
     private registeredChangeListener: SequenceStorage.SequenceChangeListener
+    private contractsLiveInstances = new Map<string, Map<string, LiveInstance>>()
 
     constructor(
         private node: NodeApi.NodeApi,
         private branch: string,
+        private namespace: string,
         private miner: MinerImpl.MinerImpl) { }
 
     initialise() {
-        this.contractItemList = new SequenceStorage.SequenceStorage(this.node, this.branch, `smart-contract-v1`, this.miner)
+        this.contractItemList = new SequenceStorage.SequenceStorage(this.node, this.branch, `${this.namespace}-smart-contract-v1`, this.miner)
         this.contractItemList.initialise()
 
-        this.registeredChangeListener = (blockId, sequenceItems) => this.updateStatusFromSequence(blockId, sequenceItems)
+        this.registeredChangeListener = (sequenceItemsByBlock) => this.updateStatusFromSequence(sequenceItemsByBlock)
         this.contractItemList.addEventListener('change', this.registeredChangeListener)
     }
 
@@ -86,138 +89,169 @@ export class SmartContract {
         this.node = undefined
     }
 
-    private updateStatusFromSequence(blockId: string, contractItems: SequenceStorage.SequenceItem[]) {
-        if (!contractItems || !contractItems.length) {
-            console.log(`empty contract...`)
-            return
-        }
+    private setLiveInstance(contractUuid: string, iterationId: number, liveInstance: any) {
+        if (!this.contractsLiveInstances.has(contractUuid))
+            this.contractsLiveInstances.set(contractUuid, new Map())
 
+        const it = "" + iterationId
+        let byIterationId = this.contractsLiveInstances.get(contractUuid)
+        if (!byIterationId.has(it))
+            byIterationId.set(it, new Map())
+
+        byIterationId.get(it).set(liveInstance)
+    }
+
+    private getLiveInstance(contractUuid: string, iterationId: number) {
+        let byIterationId = this.contractsLiveInstances.get(contractUuid)
+        return byIterationId && byIterationId.get("" + iterationId)
+    }
+
+    private stateCache = new Map()
+
+    private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
         console.log(`updating smart contracts statuses because sequence item has changed`)
 
         let contracts = new Map<string, ContractState>()
 
-        for (let contractItem of contractItems) {
-            switch (contractItem['type']) {
-                case 'contract': {
-                    let packedDescription = contractItem['data']
-                    if (!packedDescription) {
-                        console.error(`no packed description found for smart contract, ignoring item ${JSON.stringify(contractItem)}`)
-                        continue
-                    }
+        for (let { blockId, items } of sequenceItemsByBlock) {
+            if (!items || !items.length) {
+                console.log(`empty contract...`)
+                continue
+            }
 
-                    if (!HashTools.verifyPackedData(packedDescription)) {
-                        console.error(`packed description signature is invalid, ignoring ${JSON.stringify(contractItem)}`)
-                        continue
-                    }
+            if (this.stateCache.has(blockId))
+                continue
 
-                    let contractDescription = HashTools.extractPackedDataBody(packedDescription)
-                    let contractUuid = contractDescription.uuid
-
-                    // retrieve or create the contract state
-                    let contractState: ContractState = null
-                    if (contracts.has(contractUuid)) {
-                        contractState = contracts.get(contractUuid)
-
-                        contractState.name = contractDescription.name
-                        contractState.description = contractDescription.description
-                    }
-                    else {
-                        contractState = {
-                            uuid: contractUuid,
-                            contractPublicKey: null,
-                            currentContractIterationId: -1,
-                            contractIterations: [],
-                            instanceData: {},
-                            name: contractDescription.name,
-                            description: contractDescription.description
-                        }
-
-                        contracts.set(contractUuid, contractState)
-                    }
-
-                    let iterationId = contractState.currentContractIterationId + 1
-                    console.log(`Contract ${contractUuid}, iteration ${iterationId}`)
-
-                    if (contractState.contractPublicKey && contractState.contractPublicKey != HashTools.extractPackedDataPublicKey(packedDescription)) {
-                        console.error(`iteration does use an incorrect public key`)
-                    }
-
-                    contractState.contractIterations[iterationId] = {
-                        description: packedDescription,
-                        liveInstance: this.createLiveInstance(contractDescription.uuid, iterationId, contractDescription.code, contracts)
-                    }
-
-                    contractState.currentContractIterationId = iterationId
-                    if (!contractState.contractPublicKey)
-                        contractState.contractPublicKey = HashTools.extractPackedDataPublicKey(packedDescription)
-
-                    /*console.log(`public key : ${HashTools.extractPackedDataPublicKey(packedDescription).substr(0, 15)}`)
-                    console.log(`signature  : ${HashTools.extractPackedDataSignature(packedDescription)}`)
-                    console.log(`description:`)
-                    console.log(JSON.stringify(HashTools.extractPackedDataBody(packedDescription), null, 4))*/
-
-                    // call init on live instance (if init method is present)
-                    // This is the opportunity for the contract to upgrade its data structure : never will it be called again with the previous iteration
-                    let liveInstance = contractState.contractIterations[iterationId].liveInstance
-                    if ('init' in liveInstance) {
-                        try {
-                            let callResult = this.callContractInstance('init', undefined, liveInstance, contractState)
-                            if (callResult)
-                                console.log(`initialisation of contract ${contractUuid}@${iterationId} produced result : ${JSON.stringify(callResult)}`)
-                        }
-                        catch (error) {
-                            console.error(`error when initializing contract ${contractUuid}, caused by item ${JSON.stringify(contractItem)}`, error)
+            for (let contractItem of items) {
+                switch (contractItem['type']) {
+                    case 'contract': {
+                        let packedDescription = contractItem['data']
+                        if (!packedDescription) {
+                            console.error(`no packed description found for smart contract, ignoring item ${JSON.stringify(contractItem)}`)
                             continue
                         }
-                    }
-                    else {
-                        console.warn(`no init method on contract ${contractUuid} for iteration ${iterationId}, ignore`)
-                    }
-                } break
 
-                case 'call': {
-                    const { contractUuid, iterationId, method, args } = contractItem['data']
+                        if (!HashTools.verifyPackedData(packedDescription)) {
+                            console.error(`packed description signature is invalid, ignoring ${JSON.stringify(contractItem)}`)
+                            continue
+                        }
 
-                    if (method == 'init') {
-                        console.error(`cannot call the init method (caused by ${JSON.stringify(contractItem)})`)
-                        continue
-                    }
+                        let contractDescription = HashTools.extractPackedDataBody(packedDescription)
+                        let contractUuid = contractDescription.uuid
 
-                    let contractState: ContractState = contracts.get(contractUuid)
-                    if (!contractState) {
-                        console.error(`cannot call a contract without state, ignoring. ${JSON.stringify(contractItem)}`)
-                        continue
-                    }
+                        // retrieve or create the contract state
+                        let contractState: ContractState = null
+                        if (contracts.has(contractUuid)) {
+                            contractState = contracts.get(contractUuid)
 
-                    // check that iterationId is the last one on the contract.
-                    // or ignore it if iterationId is undefined
-                    if (iterationId !== undefined && iterationId != contractState.currentContractIterationId) {
-                        console.warn(`cannot execute call targetting iteration ${iterationId}, current iteration is ${contractState.currentContractIterationId}`)
-                        continue
-                    }
+                            contractState.name = contractDescription.name
+                            contractState.description = contractDescription.description
+                        }
+                        else {
+                            contractState = {
+                                uuid: contractUuid,
+                                contractPublicKey: null,
+                                currentContractIterationId: -1,
+                                contractIterations: [],
+                                instanceData: {},
+                                name: contractDescription.name,
+                                description: contractDescription.description
+                            }
 
-                    let liveInstance = contractState.contractIterations[iterationId].liveInstance
-                    if (!(method in liveInstance)) {
-                        console.warn(`cannot apply call, because method ${method} does not exist`)
-                        continue
-                    }
+                            contracts.set(contractUuid, contractState)
+                        }
 
-                    // TODO do parameter validation
+                        let iterationId = contractState.currentContractIterationId + 1
+                        console.log(`Contract ${contractUuid}, iteration ${iterationId}`)
 
-                    try {
-                        let callResult = this.callContractInstance(method, args, liveInstance, contractState)
-                        if (callResult)
-                            console.log(`call on ${contractUuid}@${iterationId}:${method} produced result : ${JSON.stringify(callResult)}`)
-                    }
-                    catch (error) {
-                        console.error(`error when calling ${method} on contract ${contractUuid}, caused by item ${JSON.stringify(contractItem)}`, error)
-                        continue
-                    }
-                } break
+                        if (contractState.contractPublicKey && contractState.contractPublicKey != HashTools.extractPackedDataPublicKey(packedDescription)) {
+                            console.error(`iteration does use an incorrect public key`)
+                        }
 
-                default:
-                    console.log(`ignored contract item ${JSON.stringify(contractItem)}`)
+                        this.setLiveInstance(contractDescription.uuid, iterationId, this.createLiveInstance(contractDescription.uuid, iterationId, contractDescription.code, contracts))
+
+                        contractState.contractIterations[iterationId] = {
+                            description: packedDescription
+                        }
+
+                        contractState.currentContractIterationId = iterationId
+                        if (!contractState.contractPublicKey)
+                            contractState.contractPublicKey = HashTools.extractPackedDataPublicKey(packedDescription)
+
+                        /*console.log(`public key : ${HashTools.extractPackedDataPublicKey(packedDescription).substr(0, 15)}`)
+                        console.log(`signature  : ${HashTools.extractPackedDataSignature(packedDescription)}`)
+                        console.log(`description:`)
+                        console.log(JSON.stringify(HashTools.extractPackedDataBody(packedDescription), null, 4))*/
+
+                        // call init on live instance (if init method is present)
+                        // This is the opportunity for the contract to upgrade its data structure : never will it be called again with the previous iteration
+                        let liveInstance = this.getLiveInstance(contractUuid, iterationId)
+                        if ('init' in liveInstance) {
+                            try {
+                                let callResult = this.callContractInstance('init', undefined, liveInstance, contractState)
+                                if (callResult)
+                                    console.log(`initialisation of contract ${contractUuid}@${iterationId} produced result : ${JSON.stringify(callResult)}`)
+                            }
+                            catch (error) {
+                                console.error(`error when initializing contract ${contractUuid}, caused by item ${JSON.stringify(contractItem)}`, error)
+                                continue
+                            }
+                        }
+                        else {
+                            console.warn(`no init method on contract ${contractUuid} for iteration ${iterationId}, ignore`)
+                        }
+                    } break
+
+                    case 'call': {
+                        const { contractUuid, iterationId, method, args } = contractItem['data']
+
+                        if (method == 'init') {
+                            console.error(`cannot call the init method (caused by ${JSON.stringify(contractItem)})`)
+                            continue
+                        }
+
+                        let contractState: ContractState = contracts.get(contractUuid)
+                        if (!contractState) {
+                            console.error(`cannot call a contract without state, ignoring. ${JSON.stringify(contractItem)}`)
+                            continue
+                        }
+
+                        // check that iterationId is the last one on the contract.
+                        // or ignore it if iterationId is undefined
+                        if (iterationId !== undefined && iterationId != contractState.currentContractIterationId) {
+                            console.warn(`cannot execute call targetting iteration ${iterationId}, current iteration is ${contractState.currentContractIterationId}`)
+                            continue
+                        }
+
+                        let liveInstance = this.getLiveInstance(contractUuid, iterationId)
+                        if (!(method in liveInstance)) {
+                            console.warn(`cannot apply call, because method ${method} does not exist`)
+                            continue
+                        }
+
+                        // TODO do parameter validation
+
+                        try {
+                            let callResult = this.callContractInstance(method, args, liveInstance, contractState)
+                            if (callResult)
+                                console.log(`call on ${contractUuid}@${iterationId}:${method} produced result : ${JSON.stringify(callResult)}`)
+                        }
+                        catch (error) {
+                            console.error(`error when calling ${method} on contract ${contractUuid}, caused by item ${JSON.stringify(contractItem)}`, error)
+                            continue
+                        }
+                    } break
+
+                    default:
+                        console.log(`ignored contract item ${JSON.stringify(contractItem)}`)
+                }
+
             }
+
+            // store the contract state at the end of the block
+            let copy = new Map()
+            contracts.forEach((v, k) => copy.set(k, v))
+            this.stateCache.set(blockId, copy)
         }
 
         for (let [contractUuid, state] of contracts.entries()) {
@@ -299,7 +333,7 @@ export class SmartContract {
                     return false
                 }
 
-                return this.callContractInstance(method, args, contractState.contractIterations[contractState.currentContractIterationId].liveInstance, contractState)
+                return this.callContractInstance(method, args, this.getLiveInstance(uuid, iterationId), contractState)
             }
         }
 

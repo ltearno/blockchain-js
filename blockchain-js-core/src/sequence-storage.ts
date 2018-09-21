@@ -12,7 +12,7 @@ export interface SequenceItem {
 }
 
 export interface SequenceChangeListener {
-    (blockId: string, items: SequenceItem[]): any
+    (items: { blockId: string; items: SequenceItem[] }[]): any
 }
 
 /**
@@ -27,7 +27,6 @@ export class SequenceStorage {
     private ownBrowser: boolean
 
     private lastKnownHead: string = null
-    private lastKnownSequenceItems: SequenceItem[] = null
 
     private changeListeners: SequenceChangeListener[] = []
 
@@ -92,12 +91,14 @@ export class SequenceStorage {
         await this.browser.browseBlocksReverse(head, blockInfo => {
             console.log(`block: ${blockInfo.metadata.blockId}, depth=${blockInfo.metadata.blockCount}, confidence=${blockInfo.metadata.confidence}`)
 
-            this.appendSequencePartsFromBlock(blockInfo.block, sequenceItems)
+            let items = []
+
+            this.appendSequencePartsFromBlock(blockInfo.block, items)
+
+            sequenceItems.push({ blockId: blockInfo.metadata.blockId, items })
         })
 
-        this.lastKnownSequenceItems = sequenceItems
-
-        this.changeListeners.forEach(listener => listener(head, sequenceItems))
+        this.changeListeners.forEach(listener => listener(sequenceItems))
     }
 
     private appendSequencePartsFromBlock(block: Block.Block, sequenceItems: SequenceItem[]) {
