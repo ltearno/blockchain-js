@@ -234,7 +234,8 @@ export class SmartContract {
 
         console.log(`applying call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
 
-        let liveData = JSON.stringify(contractState.instanceData)
+        // make a copy of the current state
+        let liveData = JSON.parse(JSON.stringify(contractState.instanceData))
 
         try {
             let callResult = liveInstance[method].apply({
@@ -246,11 +247,10 @@ export class SmartContract {
                 data: liveData
             }, [args])
 
-            // commit change
+            // commit the new state
             contractState.instanceData = liveData
 
-            if (callResult)
-                console.log(`call returned a result : ${JSON.stringify(callResult)}`)
+            callResult && console.log(`call returned a result : ${JSON.stringify(callResult)}`)
 
             return callResult
         }
