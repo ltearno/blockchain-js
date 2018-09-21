@@ -12,7 +12,7 @@ export interface SequenceItem {
 }
 
 export interface SequenceChangeListener {
-    (items: SequenceItem[]): any
+    (blockId: string, items: SequenceItem[]): any
 }
 
 /**
@@ -97,7 +97,7 @@ export class SequenceStorage {
 
         this.lastKnownSequenceItems = sequenceItems
 
-        this.changeListeners.forEach(listener => listener(sequenceItems))
+        this.changeListeners.forEach(listener => listener(head, sequenceItems))
     }
 
     private appendSequencePartsFromBlock(block: Block.Block, sequenceItems: SequenceItem[]) {

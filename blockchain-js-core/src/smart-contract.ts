@@ -76,7 +76,7 @@ export class SmartContract {
         this.contractItemList = new SequenceStorage.SequenceStorage(this.node, this.branch, `smart-contract-v1`, this.miner)
         this.contractItemList.initialise()
 
-        this.registeredChangeListener = sequenceItems => this.updateStatusFromSequence(sequenceItems)
+        this.registeredChangeListener = (blockId, sequenceItems) => this.updateStatusFromSequence(blockId, sequenceItems)
         this.contractItemList.addEventListener('change', this.registeredChangeListener)
     }
 
@@ -86,7 +86,7 @@ export class SmartContract {
         this.node = undefined
     }
 
-    private updateStatusFromSequence(contractItems: SequenceStorage.SequenceItem[]) {
+    private updateStatusFromSequence(blockId: string, contractItems: SequenceStorage.SequenceItem[]) {
         if (!contractItems || !contractItems.length) {
             console.log(`empty contract...`)
             return
