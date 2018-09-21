@@ -88,3 +88,15 @@ The only difference with normal JSON is that in Ordered-JSON, the fields object 
 by lexical order.
 
 This means that between the two JSON representations above, only the first is a valid Ordered-JSON representation.
+
+== General principles for storing data
+
+- data are immutable
+- interpretation of data is deterministic for any blockchain topology
+- ids are better generated like uuids (random and unique). Easier than implementing a counter
+- if some data is duplicated on the chain, always consider the oldest one
+- use libraries for higher level data management (kv store, lists, ...)
+
+== General principles for smart contract code
+
+- immutable code

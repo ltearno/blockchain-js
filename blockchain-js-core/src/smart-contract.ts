@@ -5,6 +5,8 @@ import * as SequenceStorage from './sequence-storage'
 
 /**
  * TODO :
+ * - possibility for an application to wait on smart contract state change
+ * - add an identifier (known as 'colony' name) to have segregation between multiple smart contract realms...
  * - options on contracts : can other read state ? can be updated ? list of pubKeys for changing the contract...
  * - methods could be public, private, requiring a sig and so on...
  * 
@@ -232,7 +234,7 @@ export class SmartContract {
 
         console.log(`applying call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
 
-        let backup = JSON.stringify(contractState.instanceData)
+        let liveData = JSON.stringify(contractState.instanceData)
 
         try {
             let callResult = liveInstance[method].apply({
@@ -241,8 +243,11 @@ export class SmartContract {
                 description: contractState.description,
                 currentIterationId: contractState.currentContractIterationId,
                 publicKey: contractState.contractPublicKey,
-                data: contractState.instanceData
+                data: liveData
             }, [args])
+
+            // commit change
+            contractState.instanceData = liveData
 
             if (callResult)
                 console.log(`call returned a result : ${JSON.stringify(callResult)}`)
@@ -251,8 +256,6 @@ export class SmartContract {
         }
         catch (error) {
             console.warn('error while executing smart contract code, reverting changes', error)
-
-            contractState.instanceData = JSON.parse(backup)
 
             throw error
         }
@@ -349,5 +352,10 @@ export class SmartContract {
                 args
             }
         }])
+    }
+
+    async simulateCall(contractUuid: string, iterationId: number, method: string, args: object = null) {
+        // TODO run the call on the current contract state and return the produced value
+        // but do not try to mine anything !
     }
 }

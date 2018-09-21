@@ -1,0 +1,17 @@
+{
+  "name": "blockchain-js-supply-chain",
+  "version": "0.0.1",
+  "author": "Arnaud Tournier - Stack Labs",
+  "license": "MIT",
+  "scripts": {
+    "build": "./node_modules/.bin/tsc",
+    "start": "node dist/blockchain-node.js"
+  },
+  "private": true,
+  "dependencies": {
+    "blockchain-js-core": "1.0.3"
+  },
+  "devDependencies": {
+    "typescript": "3.0.3"
+  }
+}
