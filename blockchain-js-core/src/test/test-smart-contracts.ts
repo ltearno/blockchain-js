@@ -30,7 +30,7 @@ async function main() {
                 console.log('name : ' + this.name)
                 console.log('description : ' + this.description)
                 console.log('currentIterationId : ' + this.currentIterationId)
-                console.log('publicKey : ' + this.publicKey)
+                console.log('publicKey : ' + this.publicKey.substr(0,10)))
 
                 if(args && args.error)
                     throw 'you wanted an error isnt it ?'
@@ -92,24 +92,28 @@ async function main() {
         }`
     )
 
-    smartContract.callContract(counterContractUuid, 0, 'test')
-    smartContract.callContract(counterContractUuid, 0, 'inc', { inc: 4 })
-    smartContract.callContract(counterContractUuid, 0, 'inc')
-    smartContract.callContract(counterContractUuid, 0, 'inc', { error: true })
+    await smartContract.callContract(counterContractUuid, 0, 'test')
+    await smartContract.callContract(counterContractUuid, 0, 'inc', { inc: 4 })
+    await smartContract.callContract(counterContractUuid, 0, 'inc')
+    await smartContract.callContract(counterContractUuid, 0, 'inc', { error: true })
 
     let n = 0
     while (true) {
-        await miner.mineData()
-        smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n}` })
-        smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 1}` })
-        smartContract.callContract(counterContractUuid, 0, 'inc')
-        smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 2}` })
+        await smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n}` })
+        await smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 1}` })
+        await smartContract.callContract(counterContractUuid, 0, 'inc')
+        await smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 2}` })
 
-        await TestTools.wait(1000)
+        await miner.mineData(10)
+        console.log(`\n\n\nbreathing...\n\n\n`)
+        //await TestTools.wait(2000)
+
+        //for (let j = 0; j < 10; j++)
+        //    await smartContract.simulateCallContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 2}` })
 
         n++
 
-        smartContract.callContract(fibonacciContractUuid, 0, 'fibonacci', { n })
+        //smartContract.callContract(fibonacciContractUuid, 0, 'fibonacci', { n })
     }
 }
 

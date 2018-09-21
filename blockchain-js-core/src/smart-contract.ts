@@ -93,12 +93,7 @@ export class SmartContract {
         if (!this.contractsLiveInstances.has(contractUuid))
             this.contractsLiveInstances.set(contractUuid, new Map())
 
-        const it = "" + iterationId
-        let byIterationId = this.contractsLiveInstances.get(contractUuid)
-        if (!byIterationId.has(it))
-            byIterationId.set(it, new Map())
-
-        byIterationId.get(it).set(liveInstance)
+        this.contractsLiveInstances.get(contractUuid).set("" + iterationId, liveInstance)
     }
 
     private getLiveInstance(contractUuid: string, iterationId: number) {
@@ -106,21 +101,33 @@ export class SmartContract {
         return byIterationId && byIterationId.get("" + iterationId)
     }
 
-    private stateCache = new Map()
+    private stateCache = null
+    private stateCacheBlockId = null
 
     private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
         console.log(`updating smart contracts statuses because sequence item has changed`)
 
-        let contracts = new Map<string, ContractState>()
+        let contracts: Map<string, ContractState>
 
-        for (let { blockId, items } of sequenceItemsByBlock) {
+        // start from : 'go reverse from the end until finding something in the cache'
+        let startIdx = sequenceItemsByBlock.findIndex(v => v.blockId == this.stateCacheBlockId)
+        startIdx = -1
+        if (startIdx >= 0) {
+            contracts = this.stateCache
+            startIdx++ // because we start AFTER the last cached block
+        }
+        else {
+            contracts = new Map<string, ContractState>()
+            startIdx = 0
+        }
+
+        for (let idx = startIdx; idx < sequenceItemsByBlock.length; idx++) {
+            let { blockId, items } = sequenceItemsByBlock[idx]
+
             if (!items || !items.length) {
                 console.log(`empty contract...`)
                 continue
             }
-
-            if (this.stateCache.has(blockId))
-                continue
 
             for (let contractItem of items) {
                 switch (contractItem['type']) {
@@ -168,7 +175,7 @@ export class SmartContract {
                             console.error(`iteration does use an incorrect public key`)
                         }
 
-                        this.setLiveInstance(contractDescription.uuid, iterationId, this.createLiveInstance(contractDescription.uuid, iterationId, contractDescription.code, contracts))
+                        this.setLiveInstance(contractUuid, iterationId, this.createLiveInstance(contractUuid, iterationId, contractDescription.code, contracts))
 
                         contractState.contractIterations[iterationId] = {
                             description: packedDescription
@@ -188,7 +195,7 @@ export class SmartContract {
                         let liveInstance = this.getLiveInstance(contractUuid, iterationId)
                         if ('init' in liveInstance) {
                             try {
-                                let callResult = this.callContractInstance('init', undefined, liveInstance, contractState)
+                                let callResult = this.callContractInstance('init', undefined, liveInstance, contractState, true)
                                 if (callResult)
                                     console.log(`initialisation of contract ${contractUuid}@${iterationId} produced result : ${JSON.stringify(callResult)}`)
                             }
@@ -198,7 +205,7 @@ export class SmartContract {
                             }
                         }
                         else {
-                            console.warn(`no init method on contract ${contractUuid} for iteration ${iterationId}, ignore`)
+                            console.warn(`no init method on contract ${contractDescription.description} ${contractUuid} for iteration ${iterationId}, ignore`)
                         }
                     } break
 
@@ -232,7 +239,7 @@ export class SmartContract {
                         // TODO do parameter validation
 
                         try {
-                            let callResult = this.callContractInstance(method, args, liveInstance, contractState)
+                            let callResult = this.callContractInstance(method, args, liveInstance, contractState, true)
                             if (callResult)
                                 console.log(`call on ${contractUuid}@${iterationId}:${method} produced result : ${JSON.stringify(callResult)}`)
                         }
@@ -248,10 +255,11 @@ export class SmartContract {
 
             }
 
-            // store the contract state at the end of the block
-            let copy = new Map()
-            contracts.forEach((v, k) => copy.set(k, v))
-            this.stateCache.set(blockId, copy)
+            if (idx == sequenceItemsByBlock.length - 1) {
+                // store the contract state at the end of the block
+                this.stateCache = contracts
+                this.stateCacheBlockId = blockId
+            }
         }
 
         for (let [contractUuid, state] of contracts.entries()) {
@@ -262,11 +270,11 @@ export class SmartContract {
         }
     }
 
-    private callContractInstance(method: string, args: any, liveInstance: any, contractState: ContractState) {
+    private callContractInstance(method: string, args: any, liveInstance: any, contractState: ContractState, commitCall: boolean) {
         if (!(method in liveInstance))
             throw `method ${method} does not exist on contract, cannot apply`
 
-        console.log(`applying call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
+        console.log(`${commitCall ? 'applying' : 'simulating'} call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
 
         // make a copy of the current state
         let liveData = JSON.parse(JSON.stringify(contractState.instanceData))
@@ -282,7 +290,8 @@ export class SmartContract {
             }, [args])
 
             // commit the new state
-            contractState.instanceData = liveData
+            if (commitCall)
+                contractState.instanceData = liveData
 
             callResult && console.log(`call returned a result : ${JSON.stringify(callResult)}`)
 
@@ -333,7 +342,7 @@ export class SmartContract {
                     return false
                 }
 
-                return this.callContractInstance(method, args, this.getLiveInstance(uuid, iterationId), contractState)
+                return this.callContractInstance(method, args, this.getLiveInstance(uuid, iterationId), contractState, true)
             }
         }
 
@@ -388,8 +397,11 @@ export class SmartContract {
         }])
     }
 
-    async simulateCall(contractUuid: string, iterationId: number, method: string, args: object = null) {
-        // TODO run the call on the current contract state and return the produced value
-        // but do not try to mine anything !
+    async simulateCallContract(contractUuid: string, iterationId: number, method: string, args: object = null) {
+        let liveInstance = this.getLiveInstance(contractUuid, iterationId)
+        if (!liveInstance)
+            return undefined
+
+        return this.callContractInstance(method, args, liveInstance, this.stateCache.get(contractUuid), false)
     }
 }
