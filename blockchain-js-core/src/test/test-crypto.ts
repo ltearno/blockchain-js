@@ -13,12 +13,31 @@ async function test() {
     });
 
     const secret = `k${Math.random()}`
-    const msg = { msg: 'salut', num: 5 }
+    let msg: any = { msg: 'salut', num: 5 }
     for (let i = 0; i < 100; i++)
+        //msg['m' + i] = 'lkjhlkjhlkjhlkjhlkjhlk jkh lkzje hlzkj helkjz hlezkjh lkjh'
         msg['m' + i] = 'helloéé^嗨，先生dzaldlhazkj dlazk嗨，先生jdh lzadg zaksj azhgkazjhgnkzejfhg zekfjh gfzjhg' + i * 2
 
-    const encryptedAes = HashTools.encryptAes(msg, secret)
-    const decryptedAes = HashTools.decryptAes(encryptedAes, secret)
+    let encryptedAes = HashTools.encryptAes(msg, secret)
+    let decryptedAes = HashTools.decryptAes(encryptedAes, secret)
+    if (!HashTools.sameObjects(msg, decryptedAes)) {
+        console.error(`error in AES 1`)
+        return
+    }
+
+    /*encryptedAes = HashTools.encryptAesEx(msg, secret)
+    decryptedAes = HashTools.decryptAesEx(encryptedAes, secret)
+    if (!HashTools.sameObjects(msg, decryptedAes)) {
+        console.error(`error in AES 1`)
+        return
+    }*/
+
+    encryptedAes = HashTools.encryptAes(HashTools.encryptAes(msg, secret), secret)
+    decryptedAes = HashTools.decryptAes(HashTools.decryptAes(encryptedAes, secret), secret)
+    if (!HashTools.sameObjects(msg, decryptedAes)) {
+        console.error(`error in AES 2`)
+        return
+    }
 
     const { publicKey, privateKey } = await HashTools.generateRsaKeyPair()
 
@@ -64,9 +83,11 @@ async function test() {
 
 
 
-
-    let encryptedRsa = HashTools.encryptRsa(msg, publicKey)
-    let decryptedRsa = HashTools.decryptRsa(encryptedRsa, privateKey)
+    //msg = 'hello !'
+    console.log(`clear: ${JSON.stringify(msg)}`)
+    let encryptedRsa = HashTools.encryptHybrid(msg, publicKey)
+    let decryptedRsa = HashTools.decryptHybrid(encryptedRsa, privateKey)
+    console.log(`decrypted: ${JSON.stringify(decryptedRsa)}`)
 
     //let encryptedRsaP = HashTools.encryptRsaPrivate(msg, privateKey)
     //let decryptedRsaP = HashTools.decryptRsaPublic(encryptedRsaP, publicKey)
