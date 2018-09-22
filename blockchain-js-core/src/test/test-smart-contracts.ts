@@ -30,7 +30,7 @@ async function main() {
                 console.log('name : ' + this.name)
                 console.log('description : ' + this.description)
                 console.log('currentIterationId : ' + this.currentIterationId)
-                console.log('publicKey : ' + this.publicKey.substr(0,10)))
+                console.log('publicKey : ' + this.publicKey.substr(0,10))
 
                 if(args && args.error)
                     throw 'you wanted an error isnt it ?'
@@ -58,9 +58,9 @@ async function main() {
                 
                 this.data.registre[args.name] = args.ip
 
-                console.log('current counter : ' + stateOfContract('${counterContractUuid}').counter)
-                callContract('${counterContractUuid}', 0, 'inc', {inc:5})
-                console.log('after call counter : ' + stateOfContract('${counterContractUuid}').counter)
+                //console.log('current counter : ' + stateOfContract('${counterContractUuid}').counter)
+                //callContract('${counterContractUuid}', 0, 'inc', {inc:5})
+                //console.log('after call counter : ' + stateOfContract('${counterContractUuid}').counter)
 
                 console.log('registered name ' + args.name + ' to ' + args.ip + ' while counter contract state is ' + JSON.stringify(stateOfContract('${counterContractUuid}')))
             }
@@ -92,21 +92,21 @@ async function main() {
         }`
     )
 
-    await smartContract.callContract(counterContractUuid, 0, 'test')
-    await smartContract.callContract(counterContractUuid, 0, 'inc', { inc: 4 })
-    await smartContract.callContract(counterContractUuid, 0, 'inc')
-    await smartContract.callContract(counterContractUuid, 0, 'inc', { error: true })
+    //await smartContract.callContract(counterContractUuid, 0, 'test')
+    //await smartContract.callContract(counterContractUuid, 0, 'inc', { inc: 4 })
+    //await smartContract.callContract(counterContractUuid, 0, 'inc')
+    //await smartContract.callContract(counterContractUuid, 0, 'inc', { error: true })
 
     let n = 0
     while (true) {
         await smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n}` })
-        await smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 1}` })
-        await smartContract.callContract(counterContractUuid, 0, 'inc')
-        await smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 2}` })
+        //await smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 1}` })
+        //await smartContract.callContract(counterContractUuid, 0, 'inc')
+        //await smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 2}` })
 
-        await miner.mineData(10)
+        //await miner.mineData(10)
         console.log(`\n\n\nbreathing...\n\n\n`)
-        //await TestTools.wait(2000)
+        await TestTools.wait(2000)
 
         //for (let j = 0; j < 10; j++)
         //    await smartContract.simulateCallContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 2}` })

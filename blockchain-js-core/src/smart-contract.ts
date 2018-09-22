@@ -175,8 +175,6 @@ export class SmartContract {
                             console.error(`iteration does use an incorrect public key`)
                         }
 
-                        this.setLiveInstance(contractUuid, iterationId, this.createLiveInstance(contractUuid, iterationId, contractDescription.code, contracts))
-
                         contractState.contractIterations[iterationId] = {
                             description: packedDescription
                         }
@@ -185,6 +183,14 @@ export class SmartContract {
                         if (!contractState.contractPublicKey)
                             contractState.contractPublicKey = HashTools.extractPackedDataPublicKey(packedDescription)
 
+                        let liveInstance = this.createLiveInstance(contractUuid, iterationId, contractDescription.code, contracts)
+                        if (!liveInstance) {
+                            console.error(`cannot create live instance for contract ${contractDescription.name} ${contractUuid}`)
+                            continue
+                        }
+
+                        this.setLiveInstance(contractUuid, iterationId, liveInstance)
+
                         /*console.log(`public key : ${HashTools.extractPackedDataPublicKey(packedDescription).substr(0, 15)}`)
                         console.log(`signature  : ${HashTools.extractPackedDataSignature(packedDescription)}`)
                         console.log(`description:`)
@@ -192,7 +198,6 @@ export class SmartContract {
 
                         // call init on live instance (if init method is present)
                         // This is the opportunity for the contract to upgrade its data structure : never will it be called again with the previous iteration
-                        let liveInstance = this.getLiveInstance(contractUuid, iterationId)
                         if ('init' in liveInstance) {
                             try {
                                 let callResult = this.callContractInstance('init', undefined, liveInstance, contractState, true)
@@ -271,6 +276,9 @@ export class SmartContract {
     }
 
     private callContractInstance(method: string, args: any, liveInstance: any, contractState: ContractState, commitCall: boolean) {
+        if (!liveInstance)
+            throw `liveInstance is null, cannot call contract method`
+
         if (!(method in liveInstance))
             throw `method ${method} does not exist on contract, cannot apply`
 
@@ -366,6 +374,7 @@ export class SmartContract {
             return liveInstance
         }
         catch (error) {
+            console.error(`cannot create live instance of smart contract, probably because of Javascript error\n${error}`)
             return null
         }
     }
