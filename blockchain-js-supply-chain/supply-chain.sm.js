@@ -6,8 +6,42 @@
  * All of them must be registered.
  * 
  * Identity is provided by the 'identity-registry-1' contract
+ * 
+ * TODO
+ * 
+ * from time to time give randomly choosen user a randomly choosen item (to incentive to use the chain)
+ * 
+ * grouper par lot :
+ * on ne peut revendre les parties
+ * mais on peut vendre un ensemble (itemId devient celui du ask validé)
  */
 ((() => {
+    const ITEM_BASE = [
+        'roue',
+        'pédale',
+        'guidon',
+        'chaîne',
+        'cadre',
+        'freinage',
+        'klaxon',
+        'selle',
+        'pneu',
+        'éclairage'
+    ]
+
+    const BALANCE_AT_ACCOUNT_CREATION = 10
+
+    const PACKET_QUANTITY = 10
+
+    const NB_ITEMS_PACKET_AT_ACCOUNT_CREATION = 3
+
+    let changeItemCount = (account, itemId, change) => {
+        if (!(itemId in account.items))
+            account.items[itemId] = change
+        else
+            account.items[itemId] += change
+    }
+
     return {
         /**
          */
@@ -42,9 +76,22 @@
                 return result % modulo
             }
 
+            let items = {}
+
+            // for debug, we know accounts will have this item
+            items[ITEM_BASE[0]] = PACKET_QUANTITY
+
+            for (let i = 0; i < NB_ITEMS_PACKET_AT_ACCOUNT_CREATION; i++) {
+                let item = ITEM_BASE[random(ITEM_BASE.length)]
+                if (item in items)
+                    items[item] += PACKET_QUANTITY
+                else
+                    items[item] = PACKET_QUANTITY
+            }
+
             this.data.users[email] = {
-                items: ['wood', 'water', 'ball'],
-                balance: 10
+                items,
+                balance: BALANCE_AT_ACCOUNT_CREATION
             }
 
             console.log(`account registered!`, this.data.users[email])
@@ -108,7 +155,7 @@
                 return null
             }
 
-            if (!lib.checkStringArgs(bid, ['email', 'id', 'askId', 'description', 'specification']))
+            if (!lib.checkStringArgs(bid, ['email', 'id', 'askId', 'itemId', 'description', 'specification']))
                 return null
             if (!lib.checkArgs(bid, ['askIndex', 'price']))
                 return null
@@ -124,6 +171,10 @@
 
             return true
         },
+
+        // comment bid... (for discussions...)
+        // change bid price
+        // update ask...
 
         selectBid: function (args) {
             let selection = callContract(null, 'identity-registry-1', 0, 'signIn', args)
@@ -164,20 +215,33 @@
                 return null
             }
 
-            debugger;
-
             // transfer money
             let buyer = this.data.users[ask.email]
             let seller = this.data.users[bid.email]
+
             if (buyer.balance < bid.price) {
                 console.log(`buyer does not have enough money ${buyer.balance} ${bid.price} !`)
                 return null
             }
 
+            if (!(bid.itemId in seller.items) || seller.items[bid.itemId] <= 0) {
+                console.log(`seller does not have the item ${bid.itemId}`)
+                return null
+            }
+
             askItem.bidId = bid.id
+            bid.selected = true
+
             buyer.balance -= bid.price
             seller.balance += bid.price
-            // TODO : remove item from the seller
+
+            changeItemCount(seller, bid.itemId, -1)
+
+            // when all asks have been fulfilled, buyer gets rewarded with a new item
+            if (ask.asks.every(askItem => askItem.bidId != null)) {
+                changeItemCount(buyer, bid.id, 1)
+                console.log(`congratulations to user who just got his new item ${bid.id} !`)
+            }
 
             console.log(`bid successfully selected !!!`)
 

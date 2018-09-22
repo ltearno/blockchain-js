@@ -121,6 +121,12 @@ async function main() {
         return
     }
 
+    let supplyChainCall = async (method, data, account) => {
+        data.email = account.email
+        let callId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, method, HashTools.signAndPackData(data, account.keys.privateKey))
+        return await waitReturn(smartContract, publishBidCallId)
+    }
+
     // publish a bid
     let bidId = await HashTools.hashString(Math.random() + '')
     let publishBidCallId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, 'publishBid', HashTools.signAndPackData({
@@ -128,6 +134,7 @@ async function main() {
         id: bidId,
         askId,
         askIndex: 0,
+        itemId: 'roue', // we known we have it, because of the HACK !!!
         title: `Roue lumineuse`,
         price: 1.3,
         description: `Une roue qui s'allume sans pile`,

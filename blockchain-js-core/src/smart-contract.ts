@@ -380,6 +380,8 @@ export class SmartContract {
                 return this.callContractInstance(callId, method, args, this.getLiveInstance(uuid, iterationId), contractState, returnValues, true)
             },
 
+            parseInt,
+
             lib: {
                 checkArgs: (args, names) => {
                     let undefinedArgs = names.filter(n => !(n in args))
