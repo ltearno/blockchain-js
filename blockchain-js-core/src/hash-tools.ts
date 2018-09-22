@@ -173,7 +173,7 @@ interface SignedAndPackedDataInternal extends SignedAndPackedData {
     }
 }
 
-export function signAndPackData(data: object, privateKeyPem: string) {
+export function signAndPackData(data: object | string | number | boolean, privateKeyPem: string) {
     var md = forge.md.sha1.create()
     md.update(OrderedJson.stringify(data), 'utf8')
 
