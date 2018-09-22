@@ -17,6 +17,7 @@ export interface AskSummary {
     // id of an Ask is id of AskSummary + order in the asks list
     asks: {
         description: string
+        acceptedBidId: string
     }[]
 }
 
@@ -33,9 +34,6 @@ export interface Bid {
 
     // machine understandable (for showing an icon, a color etc...)
     specification: string
-
-    // set by the asker
-    selected: boolean
 }
 
 export interface State {

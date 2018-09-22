@@ -409,7 +409,9 @@ export class SmartContract {
 
                 verifyPackedData: HashTools.verifyPackedData,
                 extractPackedDataBody: HashTools.extractPackedDataBody,
-                extractPackedDataPublicKey: HashTools.extractPackedDataPublicKey
+                extractPackedDataPublicKey: HashTools.extractPackedDataPublicKey,
+
+                hash: HashTools.hashString
             }
         }
 
