@@ -16,18 +16,25 @@
     },
 
     registerIdentity: function (args) {
-        if (!lib.checkStringArgs(args, ['email', 'publicKey', 'comment']))
-            return false
+        let signedData = lib.extractPackedDataBody(args)
+        if (!lib.checkStringArgs(signedData, ['email', 'comment']))
+            return null
+
+        if (!lib.verifyPackedData(args)) {
+            console.warn(`signature invalid for registerIdentity ${signedEmail}`)
+            return null
+        }
+
+        let publicKey = lib.extractPackedDataPublicKey(args)
 
         let {
             email,
-            publicKey,
             comment
-        } = args
+        } = signedData
 
         if (email in this.data.identities) {
             console.warn(`already registered identity ${email}`)
-            return false
+            return null
         }
 
         this.data.identities[email] = {
