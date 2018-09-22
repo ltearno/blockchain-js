@@ -79,7 +79,7 @@
             let items = {}
 
             // for debug, we know accounts will have this item
-            items[ITEM_BASE[0]] = PACKET_QUANTITY
+            //items[ITEM_BASE[0]] = PACKET_QUANTITY
 
             for (let i = 0; i < NB_ITEMS_PACKET_AT_ACCOUNT_CREATION; i++) {
                 let item = ITEM_BASE[random(ITEM_BASE.length)]
