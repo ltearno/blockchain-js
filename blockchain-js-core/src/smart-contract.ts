@@ -122,12 +122,16 @@ export class SmartContract {
 
         // start from : 'go reverse from the end until finding something in the cache'
         // TODO should search reverse for performance !
-        let startIdx = sequenceItemsByBlock.findIndex(v => v.blockId == this.stateCacheBlockId)
-        if (startIdx >= 0) {
-            state = this.stateCache
-            startIdx++ // because we start AFTER the last cached block
+        let startIdx
+        for (startIdx = sequenceItemsByBlock.length - 1; startIdx >= 0; startIdx--) {
+            if (sequenceItemsByBlock[startIdx].blockId == this.stateCacheBlockId) {
+                state = this.stateCache
+                startIdx++ // because we start AFTER the last cached block
+                break
+            }
         }
-        else {
+        //let startIdx = sequenceItemsByBlock.findIndex(v => v.blockId == this.stateCacheBlockId)
+        if (startIdx < 0) {
             state = {
                 contracts: new Map(),
                 returnValues: new Map()
