@@ -43,14 +43,17 @@
      * check identity
      */
     signIn: function (args) {
-        debugger;
-
-        if (!lib.checkStringArgs(args, ['signedEmail']))
+        if (!lib.checkArgs(args, ['data']))
             return null
 
-        let packedData = JSON.parse(args.signedEmail)
+        let packedData = args.data
 
-        let signedEmail = lib.extractPackedDataBody(packedData)
+        let signedData = lib.extractPackedDataBody(packedData)
+
+        if (!lib.checkStringArgs(signedData, ['email']))
+            return null
+
+        let signedEmail = signedData.email
         if (!(signedEmail in this.data.identities)) {
             console.warn(`user not registered for signIn`)
             return null
@@ -58,7 +61,7 @@
 
         let knownIdentity = this.data.identities[signedEmail]
         let publicKey = lib.extractPackedDataPublicKey(packedData)
-        if (publicKey != knownIdentity.publicKey) {
+        if (publicKey !== knownIdentity.publicKey) {
             console.warn(`key invalid for signIn`)
             return null
         }
@@ -70,6 +73,6 @@
 
         console.log(`signIn successful for ${signedEmail}`)
 
-        return signedEmail
+        return signedData
     }
 })

@@ -10,11 +10,32 @@ export interface UserSpecification {
     publicKey: string
 }
 
-export interface Bids {
+export interface AskSummary {
     id: string
-    creatorEmail: string
+    creator: string
     title: string
-    asks: { id: string; description: string }
+    // id of an Ask is id of AskSummary + order in the asks list
+    asks: {
+        description: string
+    }[]
+}
+
+export interface Bid {
+    id: string
+
+    askSummaryId: string
+    askIndex: number
+
+    price: number
+
+    // human readable text description
+    description: string
+
+    // machine understandable (for showing an icon, a color etc...)
+    specification: string
+
+    // set by the asker
+    selected: boolean
 }
 
 export interface State {
@@ -97,24 +118,30 @@ export interface SupplyChainEngine {
     createAccount(creatorEmail: PackedAndSigned<string>)
 
     /**
-     * Bids :
+     * Ask :
      * 
      * - initiated : public, but not yet closed. offers are made against this Bids
-     * - closed : all asks are fullfilled, all offers have been choosen by the initiator of the Bids, coins and items are updated
+     * - closed : all asks are fullfilled => coins and items are updated
      */
-    publishBids(description: PackedAndSigned<Bids[]>)
+    publishAsk(description: PackedAndSigned<AskSummary>)
 
-    // offerId signed by Bids creator
-    selectOffer(offer: PackedAndSigned<string>)
-
-    closeBids(Bids: PackedAndSigned<{ BidsId: string; }>)
+    /**
+     * Select an offer, signed with the ask creator
+     * 
+     * The offer is then unavailable for other participants
+     * When all ask's offers have been selected, the ask is closed and coins and items are updated
+     * 
+     * All that happens only if the provider has enough coins !
+     */
+    selectBid(bidId: PackedAndSigned<string>)
 
     /**
      * Offer :
      * 
-     * - not choosen : (the offer is selected by the first Bids in the chain to select it)
+     * - not selected : (the offer is selected by the first Bids in the chain to select it)
+     * - selected : the offer has been selected by the ask made for it
      */
-    publishOffer(offer: PackedAndSigned<{ demandId: string; itemId: string; coins: number; description: string }>)
+    publishBid(bid: PackedAndSigned<Bid>)
 }
 
 export type PackedAndSigned<T> = string

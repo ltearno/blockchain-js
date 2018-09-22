@@ -29,45 +29,75 @@ async function main() {
     const badKeys = await HashTools.generateRsaKeyPair()
 
     const identityRegistryContractUuid = "identity-registry-1"
+    const supplyChainRegistryContractUuid = "supply-chain-v1"
 
-    let scriptContent = fs.readFileSync('identity-registry.sm.js', { encoding: 'utf8' })
+    smartContract.publishContract(
+        keys.privateKey,
+        identityRegistryContractUuid,
+        'IdentityRegistry contract v1',
+        'A simple identity provider',
+        fs.readFileSync('identity-registry.sm.js', { encoding: 'utf8' })
+    )
 
-    smartContract.publishContract(keys.privateKey, identityRegistryContractUuid, 'IdentityRegistry contract v1', 'A simple identity provider', scriptContent)
+    smartContract.publishContract(
+        keys.privateKey,
+        supplyChainRegistryContractUuid,
+        'SupplyChain contract v1',
+        'A simple supply chain marketplace smart contract',
+        fs.readFileSync('supply-chain.sm.js', { encoding: 'utf8' })
+    )
 
-    smartContract.callContract(identityRegistryContractUuid, 0, 'registerIdentity', {
+    await smartContract.callContract(identityRegistryContractUuid, 0, 'registerIdentity', {
         email: `ltearno@blockchain-js.com`,
         comment: `I am a randomly generated identity at time ${new Date().toISOString()}`,
         publicKey: keys.publicKey
     })
 
-    console.log(`waiting mining contract and register identity`)
-    setTimeout(() => {
-        setInterval(async () => {
-            smartContract.callContract(identityRegistryContractUuid, 0, 'registerIdentity', {
-                email: `${(await HashTools.hashString('' + Math.random())).substr(0, 4)}@blockchain-js.com`,
-                comment: `I am a randomly generated identity at time ${new Date().toISOString()}`,
-                publicKey: keys.publicKey
-            })
+    await waitUntil(async () => {
+        return (await smartContract.simulateCallContract(identityRegistryContractUuid, 0, 'signIn', {
+            data: HashTools.signAndPackData({ email: 'ltearno@blockchain-js.com' }, keys.privateKey)
+        })) != null
+    })
 
-            let signedIn = await smartContract.simulateCallContract(identityRegistryContractUuid, 0, 'signIn', {
-                signedEmail: JSON.stringify(HashTools.signAndPackData('ltearno@blockchain-js.com', keys.privateKey))
-            })
+    console.log(`signedIn on blockchain !`)
 
-            console.log(`signedIn from app : ${signedIn}`)
+    let createAccountCallId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, 'createAccount', { data: HashTools.signAndPackData({ email: 'ltearno@blockchain-js.com' }, keys.privateKey) })
 
-            await smartContract.simulateCallContract(identityRegistryContractUuid, 0, 'signIn', {
-                signedEmail: JSON.stringify(HashTools.signAndPackData('ltearno2@blockchain-js.com', keys.privateKey))
-            })
+    await waitUntil(() => smartContract.hasReturnValue(createAccountCallId))
 
-            console.log(`signedIn from app : ${signedIn}`)
+    let account = smartContract.getReturnValue(createAccountCallId)
+    if (!account) {
+        console.log(`account cannot be created`)
+        return
+    }
+    console.log(`account : ${JSON.stringify(account)}`)
 
-            signedIn = await smartContract.simulateCallContract(identityRegistryContractUuid, 0, 'signIn', {
-                signedEmail: JSON.stringify(HashTools.signAndPackData('ltearno@blockchain-js.com', badKeys.privateKey))
-            })
+    // todo : create two accounts
 
-            console.log(`signedIn from app : ${signedIn}`)
-        }, 1000)
-    }, 2000)
+    // check accounts
+
+    // publish an ask
+
+    // list asks
+
+    // publish a bid
+
+    // list bids
+
+    // select bid
+
+    // check accounts
 }
 
 main()
+
+async function waitUntil(condition: () => Promise<boolean>) {
+    while (!await condition())
+        await wait(500)
+}
+
+function wait(duration: number) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => resolve(), duration)
+    })
+}

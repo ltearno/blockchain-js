@@ -9,6 +9,7 @@ import * as SequenceStorage from './sequence-storage'
  * - add an identifier (known as 'colony' name) to have segregation between multiple smart contract realms...
  * - options on contracts : can other read state ? can be updated ? list of pubKeys for changing the contract...
  * - methods could be public, private, requiring a sig and so on...
+ * - generate an historic of all that happens on a contract
  * 
  * This should implement basic smart contract functionality :
  * 
@@ -380,6 +381,16 @@ export class SmartContract {
             },
 
             lib: {
+                checkArgs: (args, names) => {
+                    let undefinedArgs = names.filter(n => !(n in args))
+                    if (undefinedArgs.length) {
+                        console.warn(`missing argument(s) ${undefinedArgs.join()}`)
+                        return false
+                    }
+
+                    return true
+                },
+
                 checkStringArgs: (args, names) => {
                     let undefinedArgs = names.filter(n => !(n in args))
                     if (undefinedArgs.length) {
@@ -462,7 +473,7 @@ export class SmartContract {
         return callId
     }
 
-    simulateCallContract(contractUuid: string, iterationId: number, method: string, args: object = null) {
+    async simulateCallContract(contractUuid: string, iterationId: number, method: string, args: object = null) {
         let liveInstance = this.getLiveInstance(contractUuid, iterationId)
         if (!liveInstance)
             return undefined
