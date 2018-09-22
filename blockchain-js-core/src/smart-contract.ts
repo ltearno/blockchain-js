@@ -308,7 +308,8 @@ export class SmartContract {
             return callResult
         }
         catch (error) {
-            console.warn('error while executing smart contract code, reverting changes', error)
+            console.warn('error while executing smart contract code, reverting changes. Error :\n\n', error)
+            console.warn('\r')
 
             throw error
         }

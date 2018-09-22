@@ -27,9 +27,9 @@ async function main() {
 
     const keys = await HashTools.generateRsaKeyPair()
 
-    const nameRegistryContractUuid = "name-registry-1"
+    const identityRegistryContractUuid = "identity-registry-1"
 
-    let scriptContent = fs.readFileSync('name-registry.sm.js', { encoding: 'utf8' })
+    let scriptContent = fs.readFileSync('identity-registry.sm.js', { encoding: 'utf8' })
     if (!scriptContent.startsWith("return")) {
         console.error(`script should begin with "return ..."`)
         return
@@ -37,9 +37,15 @@ async function main() {
 
     scriptContent = scriptContent.substr("return".length)
 
-    smartContract.publishContract(keys.privateKey, nameRegistryContractUuid, 'NameRegistry contract v1 (beta)', 'A DNS-like registry (very dumb)', scriptContent)
+    smartContract.publishContract(keys.privateKey, identityRegistryContractUuid, 'IdentityRegistry contract v1', 'A simple identity provider', scriptContent)
 
-    setInterval(async () => smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `toto.${await HashTools.hashString('' + Math.random())}`, "ip": await HashTools.hashString('' + Math.random()) }), 5)
+    setInterval(async () => {
+        smartContract.callContract(identityRegistryContractUuid, 0, 'registerIdentity', {
+            email: `${(await HashTools.hashString('' + Math.random())).substr(0, 4)}@blockchain-js.com`,
+            comment: `I am a randomly generated identity at time ${new Date().toISOString()}`,
+            publicKey: keys.publicKey
+        })
+    }, 500)
 }
 
 main()
