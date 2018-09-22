@@ -1,3 +1,10 @@
+/**
+ * This is a VERY VERY basic identity server
+ * 
+ * Really the main problem is reapay attacks.
+ * 
+ * There is a scheme to prevent that that I invented, will be implemented later on
+ */
 ({
     /**
      * identity registry
@@ -32,10 +39,12 @@
         return true
     },
 
-    // not to be called on chain !
+    /**
+     * check identity
+     */
     signIn: function (args) {
         debugger;
-        
+
         if (!lib.checkStringArgs(args, ['signedEmail']))
             return null
 

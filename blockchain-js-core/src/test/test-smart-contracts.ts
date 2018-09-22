@@ -53,16 +53,18 @@ async function main() {
             register: function(args) {
                 if(args.name in this.data.registre){
                     console.warn('already registered name ' + args.name)
-                    return
+                    return false
                 }
                 
                 this.data.registre[args.name] = args.ip
 
                 //console.log('current counter : ' + stateOfContract('${counterContractUuid}').counter)
-                //callContract('${counterContractUuid}', 0, 'inc', {inc:5})
+                //callContract(null, '${counterContractUuid}', 0, 'inc', {inc:5})
                 //console.log('after call counter : ' + stateOfContract('${counterContractUuid}').counter)
 
                 console.log('registered name ' + args.name + ' to ' + args.ip + ' while counter contract state is ' + JSON.stringify(stateOfContract('${counterContractUuid}')))
+
+                return true
             }
         }`
     )
@@ -78,10 +80,10 @@ async function main() {
                     return value
                 
                 // we can do that, it works !
-                // callContract('${counterContractUuid}', 0, 'inc', {inc:42})
+                // callContract(null, '${counterContractUuid}', 0, 'inc', {inc:42})
 
-                let v1 = callContract(this.uuid, 0, 'fibonacci', {n:value-1})
-                let v2 = callContract(this.uuid, 0, 'fibonacci', {n:value-2})
+                let v1 = callContract(null, this.uuid, 0, 'fibonacci', {n:value-1})
+                let v2 = callContract(null, this.uuid, 0, 'fibonacci', {n:value-2})
                 
                 let result = v1 + v2
 
@@ -97,9 +99,13 @@ async function main() {
     //await smartContract.callContract(counterContractUuid, 0, 'inc')
     //await smartContract.callContract(counterContractUuid, 0, 'inc', { error: true })
 
+    let callIds = new Set<string>()
+
     let n = 0
     while (true) {
-        await smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n}` })
+        let callId = await smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n}` })
+        callIds.add(callId)
+        console.log(`calledId ${callId}`)
         //await smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 1}` })
         //await smartContract.callContract(counterContractUuid, 0, 'inc')
         //await smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 2}` })
@@ -112,6 +118,14 @@ async function main() {
         //    await smartContract.simulateCallContract(nameRegistryContractUuid, 0, 'register', { name: `name-${n}`, ip: `192.168.0.${n + 2}` })
 
         n++
+
+        for (let callId of callIds) {
+
+            if (smartContract.hasReturnValue(callId)) {
+                console.log(`CALL RETURN VALUE ${callId} :  ${smartContract.getReturnValue(callId)}`)
+                callIds.delete(callId)
+            }
+        }
 
         //smartContract.callContract(fibonacciContractUuid, 0, 'fibonacci', { n })
     }
