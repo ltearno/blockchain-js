@@ -121,17 +121,16 @@ async function main() {
         return
     }
 
-    let supplyChainCall = async (method, data, account) => {
+    let supplyChainCall = async (method, account, data) => {
         data.email = account.email
         let callId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, method, HashTools.signAndPackData(data, account.keys.privateKey))
-        return await waitReturn(smartContract, publishBidCallId)
+        return await waitReturn(smartContract, callId)
     }
 
     // publish a bid
-    let bidId = await HashTools.hashString(Math.random() + '')
-    let publishBidCallId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, 'publishBid', HashTools.signAndPackData({
-        email: account2.email,
-        id: bidId,
+    let bid1Id = await HashTools.hashString(Math.random() + '')
+    if (! await supplyChainCall('publishBid', account2, {
+        id: bid1Id,
         askId,
         askIndex: 0,
         itemId: 'roue', // we known we have it, because of the HACK !!!
@@ -139,19 +138,36 @@ async function main() {
         price: 1.3,
         description: `Une roue qui s'allume sans pile`,
         specification: `background-color:red;`
-    }, account2.keys.privateKey))
-    if (! await waitReturn(smartContract, publishBidCallId)) {
-        console.error(`cannot publish bid !`)
+    })) {
+        console.error(`cannot publish bid 1 !`)
         return
     }
 
-    // select bid
-    let selectBidCallId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, 'selectBid', HashTools.signAndPackData({
-        email: account1.email,
-        bidId
-    }, account1.keys.privateKey))
-    if (! await waitReturn(smartContract, selectBidCallId)) {
-        console.error(`cannot publish bid !`)
+    // publish another bid
+    let bid2Id = await HashTools.hashString(Math.random() + '')
+    if (! await supplyChainCall('publishBid', account2, {
+        id: bid2Id,
+        askId,
+        askIndex: 1,
+        itemId: 'roue', // we known we have it, because of the HACK !!!
+        title: `Roue ferme`,
+        price: 1.2,
+        description: `Une roue classique`,
+        specification: `background-color:blue;`
+    })) {
+        console.error(`cannot publish bid 2 !`)
+        return
+    }
+
+    // select bid 1
+    if (! await supplyChainCall('selectBid', account1, { bidId: bid1Id })) {
+        console.error(`cannot select bid 1 !`)
+        return
+    }
+
+    // select bid 2
+    if (! await supplyChainCall('selectBid', account1, { bidId: bid2Id })) {
+        console.error(`cannot select bid 2 !`)
         return
     }
 
