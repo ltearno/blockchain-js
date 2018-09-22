@@ -78,5 +78,3 @@ export interface BlockchainEventMap {
 export interface NodeEventListener<K extends keyof BlockchainEventMap> {
     (event: BlockchainEventMap[K]): any
 }
-
-document.body.addEventListener
