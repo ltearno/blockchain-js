@@ -160,8 +160,18 @@
             if (!lib.checkArgs(bid, ['askIndex', 'price']))
                 return null
 
+            if (!(bid.email in this.data.users)) {
+                console.log(`user has no account to publish bid !`)
+                return
+            }
+
             if (bid.id in this.data.bids) {
                 console.log(`bid ${bid.id} already exists`)
+                return null
+            }
+
+            if (!this.data.users[bid.email].items[bid.itemId]) {
+                console.log(`insufficient items to bid ${bid.itemId} !`)
                 return null
             }
 
@@ -239,7 +249,7 @@
 
             // when all asks have been fulfilled, buyer gets rewarded with a new item
             if (ask.asks.every(askItem => askItem.bidId != null)) {
-                changeItemCount(buyer, bid.id, 1)
+                changeItemCount(buyer, ask.id, 1)
                 console.log(`congratulations to user who just got his new item ${bid.id} !`)
             }
 

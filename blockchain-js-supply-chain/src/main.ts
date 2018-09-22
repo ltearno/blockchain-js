@@ -63,6 +63,12 @@ async function main() {
         fs.readFileSync('supply-chain.sm.js', { encoding: 'utf8' })
     )
 
+    let supplyChainCall = async (method, account, data) => {
+        data.email = account.email
+        let callId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, method, HashTools.signAndPackData(data, account.keys.privateKey))
+        return await waitReturn(smartContract, callId)
+    }
+
     async function registerIdentity(account) {
         await smartContract.callContract(identityRegistryContractUuid, 0, 'registerIdentity', {
             email: account.email,
@@ -76,10 +82,7 @@ async function main() {
 
         console.log(`identity registered with email ${account.email}`)
 
-
-        let createAccountCallId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, 'createAccount', HashTools.signAndPackData({ email: account.email }, account.keys.privateKey))
-        await waitUntil(() => smartContract.hasReturnValue(createAccountCallId))
-        if (!smartContract.getReturnValue(createAccountCallId)) {
+        if (!await supplyChainCall('createAccount', account, {})) {
             console.log(`account cannot be created`)
             return
         }
@@ -94,18 +97,16 @@ async function main() {
         console.log(`account : ${JSON.stringify(account)}`)
     }
 
+    // register two accounts
     await registerIdentity(account1)
     await registerIdentity(account2)
 
-    // todo : create two accounts
-
     // publish an ask
     let askId = await HashTools.hashString(Math.random() + '')
-    let publishAskCallId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, 'publishAsk', HashTools.signAndPackData({
-        email: account1.email,
+    if (!await supplyChainCall('publishAsk', account1, {
         id: askId,
-        title: `Fabrication d'un vélo`,
-        description: `Il faut faire un vélo ensemble`,
+        title: `Un vélo`,
+        description: `On désire mener la conception de la supply chain d'un nouveau genre de vélo ensemble`,
         asks: [
             {
                 description: `roue`
@@ -114,17 +115,9 @@ async function main() {
                 description: `pédale`
             }
         ]
-    }, account1.keys.privateKey))
-
-    if (! await waitReturn(smartContract, publishAskCallId)) {
+    })) {
         console.error(`cannot publish ask !`)
         return
-    }
-
-    let supplyChainCall = async (method, account, data) => {
-        data.email = account.email
-        let callId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, method, HashTools.signAndPackData(data, account.keys.privateKey))
-        return await waitReturn(smartContract, callId)
     }
 
     // publish a bid
