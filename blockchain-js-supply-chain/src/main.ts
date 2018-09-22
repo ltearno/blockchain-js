@@ -188,3 +188,30 @@ function wait(duration: number) {
         setTimeout(() => resolve(), duration)
     })
 }
+
+/**
+ * TODO : scaled testing
+ * 
+ * 
+ * en standard quand on fait un call à un smart contract :
+ *  
+ * - on regarde le block-head actuel
+ * - on envoie la data à miner
+ * - on attend soit d'avoir un résultat, soit que le block témoin soit hors-chaine ou au moins X blocks en bas
+ * 
+ * => et on refait le call tant que cela ne marche pas
+ * 
+ * => TODO : quand on fait un call, on dit un block référence et une longueur max de chaine : le call ne se fait que si la data correspondante est dans cet intervalle
+ * 
+ * tester avoir :
+ * 
+ * - plein de petits noeuds (pour simuler les téléphones des gens)
+ * - connectés par la mise en relation (rencontres)
+ * - des bots qui font des choses au hasard :
+ *      - **considérant un prix constant par item**
+ *      - s'ouvrir un compte
+ *      - en boucle :
+ *          - regarder s'il y a des demandes à pourvoir auxquelles on n'a pas répondu, proposer au hasard dans les items possédés
+ *          - si on a assez de sous (?), emettre une demande
+ *          - valider les propositions reçues si necessaire
+ */
