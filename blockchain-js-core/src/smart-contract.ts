@@ -332,7 +332,7 @@ export class SmartContract {
             return callResult
         }
         catch (error) {
-            console.warn('error while executing smart contract code, reverting changes. Error :\n\n', error)
+            console.warn(`error while executing smart contract code ${contractState.uuid} ${method} ${JSON.stringify(args)}, reverting changes. Error :\n\n`, error)
             console.warn('\r')
 
             throw error

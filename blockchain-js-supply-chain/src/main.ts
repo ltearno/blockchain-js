@@ -54,29 +54,44 @@ async function main() {
     })
 
     await waitUntil(async () => {
-        return (await smartContract.simulateCallContract(identityRegistryContractUuid, 0, 'signIn', {
-            data: HashTools.signAndPackData({ email: 'ltearno@blockchain-js.com' }, keys.privateKey)
-        })) != null
+        return (await smartContract.simulateCallContract(identityRegistryContractUuid, 0, 'signIn', HashTools.signAndPackData({ email: 'ltearno@blockchain-js.com' }, keys.privateKey))) != null
     })
 
     console.log(`signedIn on blockchain !`)
 
-    let createAccountCallId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, 'createAccount', { data: HashTools.signAndPackData({ email: 'ltearno@blockchain-js.com' }, keys.privateKey) })
-
+    let createAccountCallId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, 'createAccount', HashTools.signAndPackData({ email: 'ltearno@blockchain-js.com' }, keys.privateKey))
     await waitUntil(() => smartContract.hasReturnValue(createAccountCallId))
-
     let account = smartContract.getReturnValue(createAccountCallId)
     if (!account) {
         console.log(`account cannot be created`)
-        return
     }
+
+    console.log(`waiting for account...`)
+    await waitUntil(async () => {
+        return (await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'hasAccount', {
+            email: 'ltearno@blockchain-js.com'
+        })) == true
+    })
+
     console.log(`account : ${JSON.stringify(account)}`)
 
     // todo : create two accounts
 
-    // check accounts
-
     // publish an ask
+    let askId = await HashTools.hashString(Math.random() + '')
+    let publishAskCallId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, 'publishAsk', HashTools.signAndPackData({
+        email: 'ltearno@blockchain-js.com',
+        id: askId,
+        title: `Fabrication d'un vélo`,
+        description: `Il faut faire un vélo ensemble`,
+        asks: [`roue`, `pédale`]
+    }, keys.privateKey))
+
+    await waitUntil(() => smartContract.hasReturnValue(publishAskCallId))
+
+    let supplyChainState = await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'getState')
+    console.log(`Asks`, supplyChainState.asks)
+    console.log(`Bids`, supplyChainState.bids)
 
     // list asks
 

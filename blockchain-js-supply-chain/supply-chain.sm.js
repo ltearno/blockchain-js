@@ -20,7 +20,9 @@
     * @param data { email }, signed by the email's public key on identity smart contract
      */
     createAccount: function (args) {
-        let signInData = callContract(null, 'identity-registry-1', 0, 'signIn', { data: args.data })
+        console.log(`creating account...`)
+
+        let signInData = callContract(null, 'identity-registry-1', 0, 'signIn', args)
         if (!signInData || !signInData.email) {
             console.log(`signIn failed`)
             return null
@@ -43,15 +45,47 @@
         return this.data.users[email]
     },
 
+    hasAccount: function (args) {
+        if (!lib.checkStringArgs(args, ['email']))
+            return false
+
+        return args.email in this.data.users
+    },
+
+    getState: function () {
+        return this.data
+    },
+
     /**
      * Ask :
      * 
      * - initiated : public, but not yet closed. offers are made against this Bids
      * - closed : all asks are fullfilled => coins and items are updated
      * 
-     * @param data { id, creator, title, description, asks : { description: string }[] }, signed by the ask's creator's email's public key on identity smart contract
+     * @param data { email, id, title, description, asks : { description: string }[] }, signed by the ask's creator's email's public key on identity smart contract
      */
-    publishAsk: function (data) {
+    publishAsk: function (args) {
+        let ask = callContract(null, 'identity-registry-1', 0, 'signIn', args)
+        if (!ask || !ask.email) {
+            console.log(`signIn failed`)
+            return null
+        }
+
+        let email = ask.email
+
+        if (!lib.checkStringArgs(ask, ['email', 'id', 'title', 'description']))
+            return null
+        if (!lib.checkArgs(ask, ['asks']))
+            return null
+
+        if (ask.id in this.data.asks) {
+            console.error(`ask already existing`)
+            return null
+        }
+
+        this.data.asks[ask.id] = ask
+
+        console.log(`'ask' ${ask.id} just added !`)
     },
 
     /**
