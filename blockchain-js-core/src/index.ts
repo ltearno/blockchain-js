@@ -13,6 +13,7 @@ import * as NodeImpl from './node-impl'
 import * as NodeTransfer from './node-transfer'
 import * as NodeNetworkClient from './node-network-client'
 import * as WebsocketConnector from './websocket-connector'
+import * as MinerImpl from './miner-impl'
 
 export {
     Block,
@@ -29,5 +30,6 @@ export {
     NodeImpl,
     NodeTransfer,
     NodeNetworkClient,
-    WebsocketConnector
+    WebsocketConnector,
+    MinerImpl
 }
