@@ -1,4 +1,4 @@
-return {
+({
     /**
      * identity registry
      * 
@@ -9,15 +9,8 @@ return {
     },
 
     registerIdentity: function (args) {
-        if (!['email', 'publicKey', 'comment'].every(m => m in args)) {
-            console.warn('missing argument')
+        if (!lib.checkStringArgs(args, ['email', 'publicKey', 'comment']))
             return false
-        }
-
-        if (!['email', 'publicKey', 'comment'].every(m => typeof args[m] === 'string')) {
-            console.warn('wrong argument type')
-            return false
-        }
 
         let {
             email,
@@ -31,12 +24,43 @@ return {
         }
 
         this.data.identities[email] = {
-            email,
             publicKey,
             comment
         }
 
         console.log(`registered identity ${email}`)
         return true
+    },
+
+    // not to be called on chain !
+    signIn: function (args) {
+        debugger;
+        
+        if (!lib.checkStringArgs(args, ['signedEmail']))
+            return null
+
+        let packedData = JSON.parse(args.signedEmail)
+
+        let signedEmail = lib.extractPackedDataBody(packedData)
+        if (!(signedEmail in this.data.identities)) {
+            console.warn(`user not registered for signIn`)
+            return null
+        }
+
+        let knownIdentity = this.data.identities[signedEmail]
+        let publicKey = lib.extractPackedDataPublicKey(packedData)
+        if (publicKey != knownIdentity.publicKey) {
+            console.warn(`key invalid for signIn`)
+            return null
+        }
+
+        if (!lib.verifyPackedData(packedData)) {
+            console.warn(`signature invalid for signIn ${signedEmail}`)
+            return null
+        }
+
+        console.log(`signIn successful for ${signedEmail}`)
+
+        return signedEmail
     }
-}
+})
