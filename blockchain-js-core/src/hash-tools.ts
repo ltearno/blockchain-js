@@ -12,6 +12,10 @@ let cryptojs = require('crypto-js')
 import * as forge from 'node-forge'
 import * as OrderedJson from './ordered-json'
 
+export function sameObjects(a, b) {
+    return OrderedJson.stringify(a) == OrderedJson.stringify(b)
+}
+
 export const EMPTY_PAYLOAD_SHA = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
 
 export async function hashString(value: string): Promise<string> {
@@ -77,10 +81,6 @@ export function encryptAesEx(data: any, key) {
         console.error(`error aes !`)
 
     return result
-}
-
-export function sameObjects(a, b) {
-    return OrderedJson.stringify(a) == OrderedJson.stringify(b)
 }
 
 export function decryptAesEx(encrypted: string, key) {
