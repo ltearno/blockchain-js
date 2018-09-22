@@ -25,6 +25,13 @@ export async function hashString(value: string): Promise<string> {
     return hash.sha256().update(value).digest('hex')
 }
 
+export function hashStringSync(value: string): string {
+    if (value === "")
+        return EMPTY_PAYLOAD_SHA
+
+    return hash.sha256().update(value).digest('hex')
+}
+
 export function encryptAes(data: any, secret: string) {
     return cryptojs.AES.encrypt(JSON.stringify(data), secret).toString()
 }

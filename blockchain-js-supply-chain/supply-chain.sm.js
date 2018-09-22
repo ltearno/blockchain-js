@@ -35,6 +35,12 @@
             return null
         }
 
+        let random = (modulo) => {
+            let randomString = callContract(null, 'random-generator-v1', 0, 'generate', args)
+            let result = parseInt(randomString.substr(0, 8), 16)
+            return result % modulo
+        }
+
         this.data.users[email] = {
             items: ['wood', 'water', 'ball'],
             balance: 10
@@ -86,17 +92,6 @@
         console.log(`'ask' ${ask.id} just added !`)
 
         return true
-    },
-
-    /**
-     * Select an offer, signed with the ask creator
-     * 
-     * The offer is then unavailable for other participants
-     * When all ask's offers have been selected, the ask is closed and coins and items are updated
-     * 
-     * All that happens only if the provider has enough coins !
-     */
-    selectBid: function (data) {
     },
 
     /**

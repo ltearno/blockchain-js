@@ -37,6 +37,7 @@ async function main() {
 
     const identityRegistryContractUuid = "identity-registry-1"
     const supplyChainRegistryContractUuid = "supply-chain-v1"
+    const randomContractUuid = "random-generator-v1"
 
     smartContract.publishContract(
         account1.keys.privateKey,
@@ -47,10 +48,18 @@ async function main() {
     )
 
     smartContract.publishContract(
+        account2.keys.privateKey,
+        randomContractUuid,
+        'RandomGenerator contract v1',
+        'A simple random generator smart contract',
+        fs.readFileSync('random-generator.sm.js', { encoding: 'utf8' })
+    )
+
+    smartContract.publishContract(
         account1.keys.privateKey,
         supplyChainRegistryContractUuid,
         'SupplyChain contract v1',
-        'A simple supply chain marketplace smart contract',
+        'A simple gamified supply chain marketplace smart contract',
         fs.readFileSync('supply-chain.sm.js', { encoding: 'utf8' })
     )
 

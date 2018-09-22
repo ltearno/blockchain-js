@@ -411,7 +411,7 @@ export class SmartContract {
                 extractPackedDataBody: HashTools.extractPackedDataBody,
                 extractPackedDataPublicKey: HashTools.extractPackedDataPublicKey,
 
-                hash: HashTools.hashString
+                hash: HashTools.hashStringSync
             }
         }
 
