@@ -47,7 +47,7 @@ async function main() {
         }`
     )
 
-    setInterval(() => smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: "toto", "ip": "192.168.0.2" }), 1000)
+    setInterval(async () => smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `toto.${await HashTools.hashString('' + Math.random())}`, "ip": await HashTools.hashString('' + Math.random()) }), 1000)
 }
 
 main()

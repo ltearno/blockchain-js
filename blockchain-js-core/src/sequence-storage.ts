@@ -89,8 +89,7 @@ export class SequenceStorage {
         let sequenceItems = []
 
         await this.browser.browseBlocksReverse(head, blockInfo => {
-            console.log(`block: ${blockInfo.metadata.blockId}, depth=${blockInfo.metadata.blockCount}, confidence=${blockInfo.metadata.confidence}`)
-
+            //console.log(`block: ${blockInfo.metadata.blockId}, depth=${blockInfo.metadata.blockCount}, confidence=${blockInfo.metadata.confidence}`)
             let items = []
 
             this.appendSequencePartsFromBlock(blockInfo.block, items)
