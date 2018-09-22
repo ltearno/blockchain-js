@@ -25,14 +25,15 @@ async function main() {
     let smartContract = new SmartContract.SmartContract(node, Block.MASTER_BRANCH, 'tests', miner)
     smartContract.initialise()
 
-    let account1 = {
-        keys: await HashTools.generateRsaKeyPair(),
-        email: 'ltearno@blockchain-js.com'
+    let callContract = async (contractUuid, iterationId, method, account, data) => {
+        data.email = account.email
+        let callId = await smartContract.callContract(contractUuid, iterationId, method, account ? HashTools.signAndPackData(data, account.keys.privateKey) : data)
+        return await waitReturn(smartContract, callId)
     }
 
-    let account2 = {
+    let contractCreatorAccount = {
         keys: await HashTools.generateRsaKeyPair(),
-        email: 'isaia@blockchain-js.com'
+        email: 'god@blockchain-js.com'
     }
 
     const identityRegistryContractUuid = "identity-registry-1"
@@ -40,7 +41,7 @@ async function main() {
     const randomContractUuid = "random-generator-v1"
 
     smartContract.publishContract(
-        account1.keys.privateKey,
+        contractCreatorAccount.keys.privateKey,
         identityRegistryContractUuid,
         'IdentityRegistry contract v1',
         'A simple identity provider',
@@ -48,7 +49,7 @@ async function main() {
     )
 
     smartContract.publishContract(
-        account2.keys.privateKey,
+        contractCreatorAccount.keys.privateKey,
         randomContractUuid,
         'RandomGenerator contract v1',
         'A simple random generator smart contract',
@@ -56,50 +57,178 @@ async function main() {
     )
 
     smartContract.publishContract(
-        account1.keys.privateKey,
+        contractCreatorAccount.keys.privateKey,
         supplyChainRegistryContractUuid,
         'SupplyChain contract v1',
         'A simple gamified supply chain marketplace smart contract',
         fs.readFileSync('supply-chain.sm.js', { encoding: 'utf8' })
     )
 
-    let supplyChainCall = async (method, account, data) => {
-        data.email = account.email
-        let callId = await smartContract.callContract(supplyChainRegistryContractUuid, 0, method, HashTools.signAndPackData(data, account.keys.privateKey))
-        return await waitReturn(smartContract, callId)
-    }
+    let supplyChainCall = async (method, account, data) => callContract(supplyChainRegistryContractUuid, 0, method, account, data)
+
+
 
     async function registerIdentity(account) {
-        await smartContract.callContract(identityRegistryContractUuid, 0, 'registerIdentity', {
-            email: account.email,
-            comment: `I am a randomly generated identity at time ${new Date().toISOString()}`,
-            publicKey: account.keys.publicKey
-        })
-
-        await waitUntil(async () => {
-            return (await smartContract.simulateCallContract(identityRegistryContractUuid, 0, 'signIn', HashTools.signAndPackData({ email: account.email }, account.keys.privateKey))) != null
-        })
+        if (! await callContract(identityRegistryContractUuid, 0, 'registerIdentity', account, {
+            comment: `I am a randomly generated identity at time ${new Date().toISOString()}`
+        })) {
+            console.log(`failed to register identity`)
+            return null
+        }
 
         console.log(`identity registered with email ${account.email}`)
 
-        if (!await supplyChainCall('createAccount', account, {})) {
+        let identity = await supplyChainCall('createAccount', account, {})
+        if (!identity) {
             console.log(`account cannot be created`)
-            return
+            return null
         }
 
-        console.log(`waiting for account...`)
-        await waitUntil(async () => {
-            return (await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'hasAccount', {
-                email: account.email
-            })) == true
-        })
+        console.log(`created account : ${account.email}`)
 
-        console.log(`account : ${JSON.stringify(account)}`)
+        return identity
     }
 
     // register two accounts
+
+    let account1 = {
+        keys: await HashTools.generateRsaKeyPair(),
+        email: 'ltearno@blockchain-js.com'
+    }
     await registerIdentity(account1)
+
+    let account2 = {
+        keys: await HashTools.generateRsaKeyPair(),
+        email: 'isaia@blockchain-js.com'
+    }
     await registerIdentity(account2)
+
+    let flow = (obj) => Object.getOwnPropertyNames(obj).map(key => [key, obj[key]])
+
+    async function bot() {
+        let botAccount = {
+            keys: await HashTools.generateRsaKeyPair(),
+            email: `bot-${(await HashTools.hashString('' + Math.random())).substr(0, 5)}@blockchain-js.com`
+        }
+
+        if (!await registerIdentity(botAccount)) {
+            console.error(`failed to register bot identity`)
+            return
+        }
+
+        // publish an ask
+        await supplyChainCall('publishAsk', botAccount, {
+            id: await HashTools.hashString(Math.random() + ''),
+            title: `Something`,
+            description: `Something`,
+            asks: [
+                {
+                    description: `first`
+                },
+                {
+                    description: `second`
+                }
+            ]
+        })
+
+        let sendBidsFor = new Set<string>()
+
+        let countValidations = 0
+
+        while (true) {
+            await wait(1000 + Math.random() * 1000)
+
+            let supplyChainState = await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'getState')
+
+            if (countValidations >= 2) {
+                countValidations = 0
+
+                // publish an ask
+                await supplyChainCall('publishAsk', botAccount, {
+                    id: await HashTools.hashString(Math.random() + ''),
+                    title: `Something`,
+                    description: `Something`,
+                    asks: [
+                        {
+                            description: `first`
+                        },
+                        {
+                            description: `second`
+                        }
+                    ]
+                })
+
+                continue
+            }
+
+            // what can we offer ?
+            let itemIdToOffer = null
+            for (let itemId in supplyChainState.users[botAccount.email].items) {
+                if (supplyChainState.users[botAccount.email].items[itemId] > 0) {
+                    itemIdToOffer = itemId
+                    break
+                }
+
+            }
+            if (itemIdToOffer) {
+                let somethingSent = false
+
+                // to whom ?
+                for (let [askId, ask] of flow(supplyChainState.asks)) {
+                    if (ask.email == botAccount.email)
+                        continue
+
+                    let askIndex = ask.asks.findIndex(askItem => !askItem.bidId)
+                    if (askIndex >= 0 && !sendBidsFor.has(`${askId}--${askIndex}`)) {
+                        sendBidsFor.add(`${askId}--${askIndex}`)
+                        // publish a bid
+                        if (! await supplyChainCall('publishBid', botAccount, {
+                            id: await HashTools.hashString(Math.random() + ''),
+                            askId,
+                            askIndex,
+                            itemId: itemIdToOffer,
+                            title: `...`,
+                            price: 1,
+                            description: `...`,
+                            specification: ``
+                        })) {
+                            console.error(`cannot publish bid!`)
+                        }
+
+                        countValidations++
+
+                        somethingSent = true
+                        break
+                    }
+                }
+
+                if (somethingSent)
+                    continue
+            }
+
+            // valider les propositions reçues
+            for (let [bidId, bid] of flow(supplyChainState.bids)) {
+                let ask = supplyChainState.asks[bid.askId]
+                if (ask.email !== botAccount.email)
+                    continue
+
+                if (ask.asks[bid.askIndex].bidId)
+                    continue
+
+                if (! await supplyChainCall('selectBid', botAccount, { bidId: bidId })) {
+                    console.error(`cannot select bid !`)
+                }
+
+                countValidations++
+
+                break
+            }
+        }
+    }
+
+    bot()
+    bot()
+    //bot()
 
     // publish an ask
     let askId = await HashTools.hashString(Math.random() + '')
@@ -201,7 +330,7 @@ function wait(duration: number) {
  * 
  * => et on refait le call tant que cela ne marche pas
  * 
- * => TODO : quand on fait un call, on dit un block référence et une longueur max de chaine : le call ne se fait que si la data correspondante est dans cet intervalle
+ * => TODO : quand on fait un call, on dit un block référence et une longueur max de chaine : le call ne se fait que si la data correspondante est dans cet interval
  * 
  * tester avoir :
  * 
