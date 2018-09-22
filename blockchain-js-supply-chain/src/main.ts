@@ -1,3 +1,4 @@
+import * as fs from 'fs'
 import {
     Block,
     FullNode,
@@ -28,26 +29,17 @@ async function main() {
 
     const nameRegistryContractUuid = "name-registry-1"
 
-    smartContract.publishContract(keys.privateKey, nameRegistryContractUuid, 'NameRegistry contract v1 (beta)', 'A DNS-like registry (very dumb)', `
-        {
-            init: function() {
-                this.data.registre = {}
-            },
+    let scriptContent = fs.readFileSync('name-registry.sm.js', { encoding: 'utf8' })
+    if (!scriptContent.startsWith("return")) {
+        console.error(`script should begin with "return ..."`)
+        return
+    }
 
-            register: function(args) {
-                if(args.name in this.data.registre){
-                    console.warn('already registered name ' + args.name)
-                    return
-                }
-                
-                this.data.registre[args.name] = args.ip
+    scriptContent = scriptContent.substr("return".length)
 
-                console.log('registered name ' + args.name + ' to ' + args.ip)
-            }
-        }`
-    )
+    smartContract.publishContract(keys.privateKey, nameRegistryContractUuid, 'NameRegistry contract v1 (beta)', 'A DNS-like registry (very dumb)', scriptContent)
 
-    setInterval(async () => smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `toto.${await HashTools.hashString('' + Math.random())}`, "ip": await HashTools.hashString('' + Math.random()) }), 1000)
+    setInterval(async () => smartContract.callContract(nameRegistryContractUuid, 0, 'register', { name: `toto.${await HashTools.hashString('' + Math.random())}`, "ip": await HashTools.hashString('' + Math.random()) }), 5)
 }
 
 main()
