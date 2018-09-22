@@ -354,6 +354,28 @@ export class SmartContract {
                 }
 
                 return this.callContractInstance(method, args, this.getLiveInstance(uuid, iterationId), contractState, true)
+            },
+
+            lib: {
+                checkStringArgs: (args, names) => {
+                    let undefinedArgs = names.filter(n => !(n in args))
+                    if (undefinedArgs.length) {
+                        console.warn(`missing argument(s) ${undefinedArgs.join()}`)
+                        return false
+                    }
+
+                    let wrongTypeArgs = names.filter(n => typeof args[n] !== 'string')
+                    if (wrongTypeArgs.length) {
+                        console.warn(`wrong argument type(s) ${wrongTypeArgs.join()}`)
+                        return false
+                    }
+
+                    return true
+                },
+
+                verifyPackedData: HashTools.verifyPackedData,
+                extractPackedDataBody: HashTools.extractPackedDataBody,
+                extractPackedDataPublicKey: HashTools.extractPackedDataPublicKey
             }
         }
 
