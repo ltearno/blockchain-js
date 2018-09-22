@@ -208,7 +208,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     private async maybeUpdateHead(block: Block.Block, metadata: Block.BlockMetadata) {
         let oldHead = await this.blockChainHead(block.branch)
         if (metadata.isValid && this.compareBlockchains(metadata.blockId, oldHead) > 0) {
-            console.log(`new block ${metadata.blockId} is the new head of branch ${block.branch}`)
+            console.log(`new block ${metadata.blockId}, depth ${metadata.blockCount} is the new head of branch ${block.branch}`)
 
             this.setHead(block.branch, metadata.blockId)
         }
