@@ -98,7 +98,10 @@ export class SmartContract {
 
     private getLiveInstance(contractUuid: string, iterationId: number) {
         let byIterationId = this.contractsLiveInstances.get(contractUuid)
-        return byIterationId && byIterationId.get("" + iterationId)
+        let liveInstance = byIterationId && byIterationId.get("" + iterationId)
+        if (!liveInstance)
+            console.error(`cannot find liveinstance for ${contractUuid} ${iterationId}`)
+        return liveInstance
     }
 
     private stateCache = null
@@ -111,7 +114,6 @@ export class SmartContract {
 
         // start from : 'go reverse from the end until finding something in the cache'
         let startIdx = sequenceItemsByBlock.findIndex(v => v.blockId == this.stateCacheBlockId)
-        startIdx = -1
         if (startIdx >= 0) {
             contracts = this.stateCache
             startIdx++ // because we start AFTER the last cached block
