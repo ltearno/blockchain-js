@@ -47,7 +47,7 @@ export class MinerImpl {
      * 
      * TODO should be able to create a merge block
      */
-    async mineData(difficulty: number = 100, batchSize: number = -1): Promise<{ nbMinedBlocks: number, errors: any[] }> {
+    async mineData(difficulty: number = 10, batchSize: number = -1): Promise<{ nbMinedBlocks: number, errors: any[] }> {
         let dataToMineByBranch = this.dataToMineByBranch
         this.dataToMineByBranch = new Map()
 
