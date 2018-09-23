@@ -105,8 +105,6 @@ export class NodeBrowser {
     }
 
     private async storeBlock(blockId: string) {
-        console.log(`block event ${blockId}`)
-
         let block = (await this.node.blockChainBlockData(blockId, 1))[0]
         let metadata = (await this.node.blockChainBlockMetadata(blockId, 1))[0]
 

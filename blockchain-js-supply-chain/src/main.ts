@@ -136,7 +136,7 @@ async function main() {
         let countValidations = 0
 
         while (true) {
-            await wait(1000 + Math.random() * 1000)
+            await wait(5000 + Math.random() * 1000)
 
             let supplyChainState = await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'getState')
 
@@ -162,15 +162,15 @@ async function main() {
             }
 
             // what can we offer ?
-            let itemIdToOffer = null
+            let maybe = []
             for (let itemId in supplyChainState.users[botAccount.email].items) {
                 if (supplyChainState.users[botAccount.email].items[itemId] > 0) {
-                    itemIdToOffer = itemId
-                    break
+                    maybe.push(itemId)
                 }
-
             }
-            if (itemIdToOffer) {
+            if (maybe.length) {
+                let itemIdToOffer = maybe[Math.ceil(Math.random() * maybe.length)]
+
                 let somethingSent = false
 
                 // to whom ?
@@ -195,7 +195,7 @@ async function main() {
                             console.error(`cannot publish bid!`)
                         }
 
-                        countValidations++
+                        //countValidations++
 
                         somethingSent = true
                         break
@@ -223,12 +223,17 @@ async function main() {
 
                 break
             }
+
+            supplyChainState = await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'getState')
+            console.log(`Asks\n${JSON.stringify(Object.getOwnPropertyNames(supplyChainState.asks).length, null, 2)}`)
+            console.log(`Bids\n${JSON.stringify(Object.getOwnPropertyNames(supplyChainState.bids).length, null, 2)}`)
+            console.log(`Users\n${JSON.stringify(supplyChainState.users, null, 2)}`)
         }
     }
 
     bot()
     bot()
-    //bot()
+    bot()
 
     // publish an ask
     let askId = await HashTools.hashString(Math.random() + '')
@@ -295,9 +300,9 @@ async function main() {
 
     // check accounts
     let supplyChainState = await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'getState')
-    console.log(`Asks\n${JSON.stringify(supplyChainState.asks, null, 2)}`)
-    console.log(`Bids\n${JSON.stringify(supplyChainState.bids, null, 2)}`)
-    console.log(`Users\n${JSON.stringify(supplyChainState.users, null, 2)}`)
+    console.log(`Asks\n${JSON.stringify(Object.getOwnPropertyNames(supplyChainState.asks).length, null, 2)}`)
+    console.log(`Bids\n${JSON.stringify(Object.getOwnPropertyNames(supplyChainState.bids).length, null, 2)}`)
+    console.log(`Users\n${JSON.stringify(Object.getOwnPropertyNames(supplyChainState.users).length, null, 2)}`)
 }
 
 main()

@@ -59,7 +59,7 @@ async function main() {
                 this.data.registre[args.name] = args.ip
 
                 //console.log('current counter : ' + stateOfContract('${counterContractUuid}').counter)
-                //callContract(null, '${counterContractUuid}', 0, 'inc', {inc:5})
+                //callContract('${counterContractUuid}', 0, 'inc', {inc:5})
                 //console.log('after call counter : ' + stateOfContract('${counterContractUuid}').counter)
 
                 console.log('registered name ' + args.name + ' to ' + args.ip + ' while counter contract state is ' + JSON.stringify(stateOfContract('${counterContractUuid}')))
@@ -80,10 +80,10 @@ async function main() {
                     return value
                 
                 // we can do that, it works !
-                // callContract(null, '${counterContractUuid}', 0, 'inc', {inc:42})
+                // callContract('${counterContractUuid}', 0, 'inc', {inc:42})
 
-                let v1 = callContract(null, this.uuid, 0, 'fibonacci', {n:value-1})
-                let v2 = callContract(null, this.uuid, 0, 'fibonacci', {n:value-2})
+                let v1 = callContract(this.uuid, 0, 'fibonacci', {n:value-1})
+                let v2 = callContract(this.uuid, 0, 'fibonacci', {n:value-2})
                 
                 let result = v1 + v2
 

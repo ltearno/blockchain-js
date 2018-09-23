@@ -57,7 +57,7 @@
         createAccount: function (args) {
             console.log(`creating account...`)
 
-            let signInData = callContract(null, 'identity-registry-1', 0, 'signIn', args)
+            let signInData = callContract('identity-registry-1', 0, 'signIn', args)
             if (!signInData || !signInData.email) {
                 console.log(`signIn failed`)
                 return null
@@ -71,7 +71,7 @@
             }
 
             let random = (modulo) => {
-                let randomString = callContract(null, 'random-generator-v1', 0, 'generate', args)
+                let randomString = callContract('random-generator-v1', 0, 'generate', args)
                 let result = parseInt(randomString.substr(0, 8), 16)
                 return result % modulo
             }
@@ -119,7 +119,7 @@
          * @param data { email, id, title, description, asks : { description: string, acceptedBidId: string }[] }, signed by the ask's creator's email's public key on identity smart contract
          */
         publishAsk: function (args) {
-            let ask = callContract(null, 'identity-registry-1', 0, 'signIn', args)
+            let ask = callContract('identity-registry-1', 0, 'signIn', args)
             if (!ask) {
                 console.log(`signIn failed`)
                 return null
@@ -149,7 +149,7 @@
          * - selected : the offer has been selected by the ask made for it
          */
         publishBid: function (args) {
-            let bid = callContract(null, 'identity-registry-1', 0, 'signIn', args)
+            let bid = callContract('identity-registry-1', 0, 'signIn', args)
             if (!bid) {
                 console.log(`signIn failed`)
                 return null
@@ -187,7 +187,7 @@
         // update ask...
 
         selectBid: function (args) {
-            let selection = callContract(null, 'identity-registry-1', 0, 'signIn', args)
+            let selection = callContract('identity-registry-1', 0, 'signIn', args)
             if (!selection) {
                 console.log(`signIn failed`)
                 return null
@@ -253,7 +253,7 @@
                 console.log(`congratulations to user who just got his new item ${bid.id} !`)
             }
 
-            console.log(`bid successfully selected !!!`)
+            console.error(`bid successfully selected !!!`)
 
             return true
         }

@@ -74,7 +74,7 @@
             return null
         }
 
-        console.log(`signIn successful for ${signedEmail}`)
+        //console.log(`signIn successful for ${signedEmail}`)
 
         return signedData
     }

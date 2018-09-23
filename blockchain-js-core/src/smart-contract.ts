@@ -116,8 +116,6 @@ export class SmartContract {
     private stateCacheBlockId = null
 
     private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
-        console.log(`updating smart contracts statuses because sequence item has changed`)
-
         let state: MachineState
 
         // start from : 'go reverse from the end until finding something in the cache'
@@ -285,11 +283,13 @@ export class SmartContract {
             }
         }
 
-        for (let [contractUuid, contractState] of state.contracts.entries()) {
-            console.log(``)
-            console.log(`Smart contract ${contractUuid}, current iteration : ${contractState.currentContractIterationId}`)
-            console.log(` pubKey : ${contractState.contractPublicKey.substr(0, 20)}`)
-            console.log(`instance resolved state: ${JSON.stringify(contractState.instanceData, null, 2)}`)
+        if (false) {
+            for (let [contractUuid, contractState] of state.contracts.entries()) {
+                console.log(``)
+                console.log(`Smart contract ${contractUuid}, current iteration : ${contractState.currentContractIterationId}`)
+                console.log(` pubKey : ${contractState.contractPublicKey.substr(0, 20)}`)
+                console.log(`instance resolved state: ${JSON.stringify(contractState.instanceData, null, 2)}`)
+            }
         }
     }
 
@@ -310,10 +310,13 @@ export class SmartContract {
         if (!(method in liveInstance))
             throw `method ${method} does not exist on contract, cannot apply`
 
-        console.log(`${commitCall ? 'applying' : 'simulating'} call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
+        if (commitCall) {
+            //console.log(`applying call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
+            console.log(`applying call to method ${method} of smart contract ${contractState.uuid}`)
+        }
 
         // make a copy of the current state
-        let liveData = JSON.parse(JSON.stringify(contractState.instanceData))
+        let backup = JSON.stringify(contractState.instanceData)
 
         try {
             let callResult = liveInstance[method].apply({
@@ -322,14 +325,10 @@ export class SmartContract {
                 description: contractState.description,
                 currentIterationId: contractState.currentContractIterationId,
                 publicKey: contractState.contractPublicKey,
-                data: liveData
+                data: contractState.instanceData
             }, [args])
 
-            callResult && console.log(`call returned a result : ${JSON.stringify(callResult)}`)
-
-            // commit the new state
-            if (commitCall)
-                contractState.instanceData = liveData
+            //callResult && console.log(`call returned a result : ${JSON.stringify(callResult)}`)
 
             callId && resultValues && !resultValues.has(callId) && resultValues.set(callId, callResult)
 
@@ -338,6 +337,8 @@ export class SmartContract {
         catch (error) {
             console.warn(`error while executing smart contract code ${contractState.uuid} ${method} ${JSON.stringify(args)}, reverting changes. Error :\n\n`, error)
             console.warn('\r')
+
+            contractState.instanceData = JSON.parse(backup)
 
             throw error
         }
@@ -350,9 +351,9 @@ export class SmartContract {
             JSON,
 
             console: {
-                log: (text) => console.log(`### SMART CONTRACT ${contractUuid}@${iterationId} LOG: ${text}`),
-                warn: (text) => console.warn(`### SMART CONTRACT ${contractUuid}@${iterationId} WARNING: ${text}`),
-                error: (text) => console.error(`### SMART CONTRACT ${contractUuid}@${iterationId} ERROR: ${text}`)
+                log: (text, obj) => console.log(`### ${contractUuid}@${iterationId}     LOG: ${text}`, obj),
+                warn: (text, obj) => console.warn(`### ${contractUuid}@${iterationId} WARNING: ${text}`, obj),
+                error: (text, obj) => console.error(`### ${contractUuid}@${iterationId}   ERROR: ${text}`, obj)
             },
 
             stateOfContract: (uuid) => {
@@ -371,7 +372,7 @@ export class SmartContract {
                 return JSON.parse(JSON.stringify(contractState.instanceData))
             },
 
-            callContract: (callId, uuid, iterationId, method, args) => {
+            callContract: (uuid, iterationId, method, args) => {
                 if (!liveInstance)
                     throw 'no live instance, are you trying to do something weird?'
 
@@ -381,7 +382,7 @@ export class SmartContract {
                     return false
                 }
 
-                return this.callContractInstance(callId, method, args, this.getLiveInstance(uuid, iterationId), contractState, returnValues, true)
+                return this.callContractInstance(null, method, args, this.getLiveInstance(uuid, iterationId), contractState, returnValues, true)
             },
 
             parseInt,

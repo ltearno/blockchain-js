@@ -79,7 +79,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     // process block's metadata
     // update head if required (new block is valid and has the longest chain)
     async registerBlock(blockId: string, block: Block.Block): Promise<Block.BlockMetadata> {
-        console.log(`receive block ${blockId}`)
+        //console.log(`receive block ${blockId}`)
 
         if (!blockId || !block) {
             console.error(`invalid block`)
@@ -290,7 +290,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         headLog.push(blockId)
 
-        console.log(`new head on branch ${branch} : ${blockId.substring(0, 5)}`)
+        //console.log(`new head on branch ${branch} : ${blockId.substring(0, 5)}`)
 
         this.notifyEvent({
             type: 'head',
