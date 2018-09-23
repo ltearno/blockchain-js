@@ -1,0 +1,117 @@
+<!-- based on
+    https://bl.ocks.org/mbostock/4348373
+    https://bl.ocks.org/maybelinot/5552606564ef37b5de7e47ed2b7dc099
+    http://bl.ocks.org/metmajer/5480307
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        path {
+            stroke: #fff;
+            fill-rule: evenodd;
+        }
+
+        .tooltip {
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+            background-color: #eeeeee;
+            padding: 5px;
+            position: absolute;
+            z-index: 1
+        }
+    </style>
+</head>
+
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+    <script>
+
+        // load json profile file from url
+        var profile = location.href.split("?")[1]
+        if (!profile) {
+            document.write("provide profile name as profile.html#profilename")
+            throw 0
+        }
+
+        var width = window.innerWidth
+        var height = window.innerHeight
+        var radius = Math.min(width, height) / 2
+
+        var x = d3.scale.linear().range([0, 2 * Math.PI])
+        var y = d3.scale.sqrt().range([0, radius])
+        var color = d3.scale.category20c()
+
+        var partition = d3.layout.partition().value(function (d) {
+            return (d.functionName == '(program)') ? 1 : d.hitCount + 1
+        })
+
+        var arc = d3.svg.arc()
+            .startAngle(function (d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x))) })
+            .endAngle(function (d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx))) })
+            .innerRadius(function (d) { return Math.max(0, y(d.y)) })
+            .outerRadius(function (d) { return Math.max(0, y(d.y + d.dy)) })
+
+        // create main svg element, responsive and centered
+        var svg = d3.select("body").append("svg")
+            .attr("viewBox", "0 0 " + width + " " + height)
+            .append("g")
+            .attr("transform", "translate(" + width / 2 + "," + (height / 2 + 10) + ")")
+
+        // create tooltip element
+        var tooltip = d3.select("body")
+            .append("div")
+            .attr("class", "tooltip")
+
+        d3.json(profile, function (error, root) {
+            if (error)
+                return error.statusText ? document.write(error.statusText) : document.write(error)
+
+            // draw the sunburst
+            svg.selectAll("path")
+                .data(partition.nodes(root.head))
+                .enter().append("path")
+                .attr("d", arc)
+                .style("fill", function (d) {
+                    return color((d.children ? d : d.parent).id)
+                })
+                // zoom on click
+                .on("click", function (d) {
+                    var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
+                        yd = d3.interpolate(y.domain(), [d.y, 1]),
+                        yr = d3.interpolate(y.range(), [d.y ? 20 : 0, radius]);
+
+                    svg.transition()
+                        .duration(750)
+                        .tween("scale", function () {
+                            return function (t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); };
+                        })
+                        .selectAll("path")
+                        .attrTween("d", function (d) { return function () { return arc(d); }; });
+                })
+                // show tooltip on hovering
+                .on("mouseover", function (d) {
+                    tooltip.html(function () {
+                        var name = d.functionName + ' (' + d.url + ':' + d.lineNumber + ')'
+                        return '<strong>' + name + '</strong><br> (' + d.hitCount + ')'
+                    })
+                    tooltip.transition()
+                        .duration(150)
+                        .style("opacity", 0.8)
+                })
+                .on("mousemove", function (d) {
+                    tooltip
+                        .style("top", (d3.event.pageY - 10) + "px")
+                        .style("left", (d3.event.pageX + 10) + "px")
+                })
+                .on("mouseout", function () {
+                    tooltip.style("opacity", 0)
+                })
+        })
+    </script>
+</body>
+
+</html>

@@ -9,7 +9,8 @@
   },
   "private": true,
   "dependencies": {
-    "blockchain-js-core": "1.0.3"
+    "blockchain-js-core": "1.0.3",
+    "v8-profiler": "5.7.0"
   },
   "devDependencies": {
     "typescript": "3.0.3",

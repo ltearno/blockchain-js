@@ -46,7 +46,8 @@ export async function generateRsaKeyPair() {
         const rsa = forge.pki.rsa
 
         try {
-            rsa.generateKeyPair({ bits: 2048, workers: 2 }, (err, keyPair) => {
+            // should be 2048 !
+            rsa.generateKeyPair({ bits: 512, workers: 2 }, (err, keyPair) => {
                 if (err) {
                     reject(err)
                     return

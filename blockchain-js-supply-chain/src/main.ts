@@ -18,7 +18,23 @@ import {
     WebsocketConnector
 } from 'blockchain-js-core'
 
+const profiler = require('v8-profiler')
+
+const PROFILE = true
+
 async function main() {
+    if (PROFILE) {
+        const profileId = `${Date.now()}.profile`
+        profiler.startProfiling(profileId)
+        setTimeout(() => {
+            const profile = JSON.stringify(profiler.stopProfiling(profileId))
+            fs.writeFile(profileId, profile, () => {
+                console.log(`profiling done to ${profileId}`)
+                process.exit()
+            })
+        }, 45000)
+    }
+
     let node = new NodeImpl.NodeImpl()
     let miner = new MinerImpl.MinerImpl(node)
 
@@ -136,7 +152,7 @@ async function main() {
         let countValidations = 0
 
         while (true) {
-            await wait(1000 + Math.random() * 1000)
+            await wait(500 + Math.random() * 1000)
 
             let supplyChainState = await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'getState')
 
@@ -224,6 +240,8 @@ async function main() {
                 break
             }
 
+            await miner.mineData()
+
             supplyChainState = await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'getState')
             console.log(`Asks\n${JSON.stringify(Object.getOwnPropertyNames(supplyChainState.asks).length, null, 2)}`)
             console.log(`Bids\n${JSON.stringify(Object.getOwnPropertyNames(supplyChainState.bids).length, null, 2)}`)
@@ -231,6 +249,8 @@ async function main() {
         }
     }
 
+    bot()
+    bot()
     bot()
     bot()
     bot()
