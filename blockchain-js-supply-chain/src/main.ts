@@ -136,7 +136,7 @@ async function main() {
         let countValidations = 0
 
         while (true) {
-            await wait(5000 + Math.random() * 1000)
+            await wait(1000 + Math.random() * 1000)
 
             let supplyChainState = await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'getState')
 

@@ -37,7 +37,7 @@ export class MinerImpl {
                     this.schedule()
                 }
             })
-        }, 20)
+        }, 200)
     }
 
     /**
