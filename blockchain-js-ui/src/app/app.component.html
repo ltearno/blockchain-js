@@ -26,12 +26,12 @@
       <div class="field">
         <label class="label">Pseudo</label>
         <div class="control">
-          <input #pseudo class='input' (keyup.enter)='setPseudo(pseudo.value, true)' type="text" [value]='proposedPseudo' size="30"
-            placeholder="Your pseudo">
+          <input #pseudo class='input' (keyup.enter)='setPseudo(pseudo.value, true)' type="text" [value]='proposedPseudo'
+            size="30" placeholder="Your pseudo">
         </div>
       </div>
       <button class='button is-link' (click)='setPseudo(pseudo.value, true)'>Connect to the blockchain</button>
-      <br/>
+      <br />
       <a (click)='setPseudo(pseudo.value, false)'>connect to local node only</a>
     </div>
   </div>
@@ -56,8 +56,8 @@
   <div *ngIf='userStarted && selectedTab==1'>
     <div *ngIf='!autoP2P && !(fullNode.peerInfos?.length)' class="container is-fluid">
       <button class='button is-success' (click)='toggleAutoP2P()'>Enable peer to peer connectivity</button>
-      <br/>
-      <br/>
+      <br />
+      <br />
     </div>
 
     <div class="container is-fluid">
@@ -95,18 +95,16 @@
       </div>
     </div>
 
-    <div *ngIf='state[selectedBranch]?.blocks' class="container is-fluid">
-      <div *ngFor="let block of state[selectedBranch].blocks; index as i">
-        <div *ngFor="let item of block.blockData.data">
-          <div *ngIf='(!item.id) || (!item.message) || (!item.author)'>{{item | json}}</div>
-          <div *ngIf='item.id && item.message && item.author'>
-            <span *ngIf='item?.encrypted' class="icon">
-              <i class="mdi mdi-lock"></i>
-            </span>
-            <span style='font-size:80%;'>{{item?.author}}:&nbsp;&nbsp;</span>
-            <span *ngIf='!(item?.encrypted)'>{{item?.message}}</span>
-            <span *ngIf='item?.encrypted'>{{decypher(item.message)}}</span>
-          </div>
+    <div *ngIf='messages' class="container is-fluid">
+      <div *ngFor="let item of messages">
+        <div *ngIf='(!item.id) || (!item.message) || (!item.author)'>{{item | json}}</div>
+        <div *ngIf='item.id && item.message && item.author'>
+          <span *ngIf='item?.encrypted' class="icon">
+            <i class="mdi mdi-lock"></i>
+          </span>
+          <span style='font-size:80%;'>{{item?.author}}:&nbsp;&nbsp;</span>
+          <span *ngIf='!(item?.encrypted)'>{{item?.message}}</span>
+          <span *ngIf='item?.encrypted'>{{decypher(item.message)}}</span>
         </div>
       </div>
     </div>
@@ -141,13 +139,13 @@
           <input type="number" min="1" max="20" class="input" [(ngModel)]='desiredNbOutgoingPeers'>
         </div>
       </div>
-      <br/>
+      <br />
     </div>
 
     <div class="container is-fluid" *ngIf='!p2pBroker.ready'>
       <div class='box' style='color:red;'>Peer to peer connectivity is not ready</div>
 
-      <br/>
+      <br />
     </div>
 
     <div class="container is-fluid" *ngIf="fullNode.peerInfos.length">
@@ -166,7 +164,7 @@
         </ul>
       </div>
 
-      <br/>
+      <br />
     </div>
 
     <div class="container is-fluid">
@@ -215,7 +213,7 @@
         </div>
       </div>
     </div>
-    <br/>
+    <br />
     <div class="container is-fluid">
       <div class="box">
         <h2 class='subtitle'>Branch management</h2>
@@ -230,17 +228,17 @@
         <div *ngIf='state[selectedBranch]'>
           <div *ngIf='state[selectedBranch].blocks.length'>
             head block id: {{state[selectedBranch].blocks[0].blockMetadata.blockId}}
-            <br/> valid: {{state[selectedBranch].blocks[0].blockMetadata.isValid}}
-            <br/> branch: {{state[selectedBranch].blocks[0].blockData?.branch}}
-            <br/> previous blocks: {{state[selectedBranch].blocks[0].blockData?.previousBlockIds | json}}
-            <br/> confidence: {{state[selectedBranch].blocks[0].blockMetadata.confidence}}
-            <br/> blockCount: {{state[selectedBranch].blocks[0].blockMetadata.blockCount}}
-            <br/> validityProof: {{state[selectedBranch].blocks[0].blockData?.validityProof | json}}
+            <br /> valid: {{state[selectedBranch].blocks[0].blockMetadata.isValid}}
+            <br /> branch: {{state[selectedBranch].blocks[0].blockData?.branch}}
+            <br /> previous blocks: {{state[selectedBranch].blocks[0].blockData?.previousBlockIds | json}}
+            <br /> confidence: {{state[selectedBranch].blocks[0].blockMetadata.confidence}}
+            <br /> blockCount: {{state[selectedBranch].blocks[0].blockMetadata.blockCount}}
+            <br /> validityProof: {{state[selectedBranch].blocks[0].blockData?.validityProof | json}}
           </div>
         </div>
       </div>
     </div>
-    <br/>
+    <br />
     <div class="container is-fluid" *ngIf="encryptionKey.endsWith('stacklabs')">
       <div class="box">
         <h2 class='subtitle'>Automining</h2>
@@ -258,10 +256,11 @@
         </div>
 
         <div class="field">
-          <button (click)='toggleAutomine(minedData.value, automineTimer.value)' class='button is-link'>{{autoMining ? 'disable' : 'enable'}} auto-mining</button>
+          <button (click)='toggleAutomine(minedData.value, automineTimer.value)' class='button is-link'>{{autoMining ?
+            'disable' : 'enable'}} auto-mining</button>
         </div>
       </div>
-      <br/>
+      <br />
     </div>
     <div class="container is-fluid">
       <div class="box">

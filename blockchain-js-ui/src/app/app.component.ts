@@ -57,7 +57,18 @@ export class AppComponent {
   maxNumberDisplayedMessages = 100
 
   selectedTab = 1
-  selectedBranch = Block.MASTER_BRANCH
+  _selectedBranch = Block.MASTER_BRANCH
+
+  private messageSequence: SequenceStorage.SequenceStorage
+
+  get selectedBranch() {
+    return this._selectedBranch
+  }
+
+  set selectedBranch(branch: string) {
+    this.selectedBranch = branch
+    this.messageSequence.setBranch(branch)
+  }
 
   fullNode: FullNode.FullNode = null
   logs: string[] = []
@@ -186,6 +197,28 @@ export class AppComponent {
     this.nextLoad = { branch, blockId }
   }
 
+  private messages = []
+  private lastMessagesBlockId = ''
+
+  private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
+    let startIdx
+    for (startIdx = sequenceItemsByBlock.length - 1; startIdx >= 0; startIdx--) {
+      if (sequenceItemsByBlock[startIdx].blockId == this.lastMessagesBlockId) {
+        startIdx++ // because we start AFTER the last cached block
+        break
+      }
+    }
+    if (startIdx < 0)
+      startIdx = 0
+
+    for (let idx = startIdx; idx < sequenceItemsByBlock.length; idx++) {
+      let { blockId, items } = sequenceItemsByBlock[idx]
+      this.messages = this.messages.concat(items)
+    }
+
+    this.lastMessagesBlockId = sequenceItemsByBlock[sequenceItemsByBlock.length - 1].blockId
+  }
+
   private async loadState(branch: string, blockId: string) {
     if (this.state && this.state[branch] && this.state[branch].head == blockId)
       return
@@ -245,6 +278,15 @@ export class AppComponent {
       this.log(`new head on branch '${event.branch}': ${event.headBlockId.substr(0, 7)}`)
       this.triggerLoad(event.branch, event.headBlockId)
     })
+
+    this.messageSequence = new SequenceStorage.SequenceStorage(
+      this.fullNode.node,
+      this.selectedBranch,
+      `demo-chat-v1`,
+      this.fullNode.miner)
+    this.messageSequence.initialise()
+
+    this.messageSequence.addEventListener('change', (sequenceItemsByBlock) => this.updateStatusFromSequence(sequenceItemsByBlock))
   }
 
   setPseudo(pseudo, peerToPeer) {
@@ -337,9 +379,12 @@ export class AppComponent {
 
       this.log(`start mining...`)
 
+      this.messageSequence.addItems([dataItem])
+
+      /** TODO : refactor this : mining difficulty adjustment and selecte dbranch
       this.fullNode.miner.addData(this.selectedBranch, dataItem)
       let mineResult = await this.fullNode.miner.mineData(this.miningDifficulty, 30)
-      this.log(`finished mining: ${JSON.stringify(mineResult)}`)
+      this.log(`finished mining: ${JSON.stringify(mineResult)}`)*/
     }
     catch (error) {
       this.log(`error mining: ${JSON.stringify(error)}`)
