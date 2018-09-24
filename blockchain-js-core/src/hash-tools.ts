@@ -19,17 +19,27 @@ export function sameObjects(a, b) {
 export const EMPTY_PAYLOAD_SHA = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
 
 export async function hashString(value: string): Promise<string> {
-    if (value === "")
+    var md = forge.md.sha256.create();
+    md.update(value);
+    return md.digest().toHex()
+
+    /*if (value === "")
         return EMPTY_PAYLOAD_SHA
 
-    return hash.sha256().update(value).digest('hex')
+    return hash.sha256().update(value).digest('hex')*/
 }
 
 export function hashStringSync(value: string): string {
-    if (value === "")
-        return EMPTY_PAYLOAD_SHA
+    var md = forge.md.sha256.create();
+    md.update(value);
+    return md.digest().toHex()
 
-    return hash.sha256().update(value).digest('hex')
+    /*
+        if (value === "")
+            return EMPTY_PAYLOAD_SHA
+    
+        return hash.sha256().update(value).digest('hex')
+        */
 }
 
 export function encryptAes(data: any, secret: string) {
