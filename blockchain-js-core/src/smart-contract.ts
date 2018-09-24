@@ -283,14 +283,14 @@ export class SmartContract {
             }
         }
 
-        if (false) {
+        /*if (false) {
             for (let [contractUuid, contractState] of state.contracts.entries()) {
                 console.log(``)
                 console.log(`Smart contract ${contractUuid}, current iteration : ${contractState.currentContractIterationId}`)
-                console.log(` pubKey : ${contractState.contractPublicKey.substr(0, 20)}`)
+                console.log(`pubKey : ${contractState.contractPublicKey.substr(0, 20)}`)
                 console.log(`instance resolved state: ${JSON.stringify(contractState.instanceData, null, 2)}`)
             }
-        }
+        }*/
     }
 
     /**
