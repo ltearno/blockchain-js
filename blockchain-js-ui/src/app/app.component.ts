@@ -245,39 +245,6 @@ export class AppComponent {
       this.log(`new head on branch '${event.branch}': ${event.headBlockId.substr(0, 7)}`)
       this.triggerLoad(event.branch, event.headBlockId)
     })
-
-    alert('forge test')
-    let forge = require('node-forge')
-    var rsa = forge.pki.rsa
-    var keypair = rsa.generateKeyPair({ bits: 2048, e: 0x10001 })
-    console.log(`keypair: ${keypair.privateKey} ${keypair.publicKey}`)
-    console.log('publickey pem: ', forge.pki.publicKeyToPem(keypair.publicKey))
-    console.log('privatekey pem: ', forge.pki.privateKeyToPem(keypair.privateKey))
-    rsa.generateKeyPair({ bits: 2048, workers: 2 }, function (err, keypair) {
-      console.log(`keypair: ${keypair.privateKey} ${keypair.publicKey}`)
-    })
-
-    /*let miner = this.fullNode.miner
-    let smartContract = new SmartContract.SmartContract(this.fullNode.node, Block.MASTER_BRANCH, miner)
-    smartContract.initialise()
-    const keys = HashTools.generateRsaKeyPair()
-    const counterContractUuid = "counter-contract-101-for-me"
-    smartContract.publishContract(keys.privateKey, counterContractUuid, 'Counter contract v1 (beta)', 'A very simple counter', `
-        {
-            init: function() {
-                this.data.counter = 0
-            },
-
-            inc: function(args) {
-                let inc = (args && args.inc) || 1
-
-                this.data.counter += inc
-
-                console.log("counter increment by " + inc + ", new value = " + this.data.counter)
-            }
-        }`
-    )
-    setInterval(() => smartContract.callContract(counterContractUuid, 0, 'inc'), 500)*/
   }
 
   setPseudo(pseudo, peerToPeer) {
