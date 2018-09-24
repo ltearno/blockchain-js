@@ -37,7 +37,7 @@ export class MinerImpl {
                     this.schedule()
                 }
             })
-        }, 200)
+        }, 500)
     }
 
     /**
@@ -48,11 +48,17 @@ export class MinerImpl {
      * TODO should be able to create a merge block
      */
     async mineData(difficulty: number = 10, batchSize: number = -1): Promise<{ nbMinedBlocks: number, errors: any[] }> {
+        if (!this.dataToMineByBranch.size)
+            return { nbMinedBlocks: 0, errors: [] }
+
         let dataToMineByBranch = this.dataToMineByBranch
         this.dataToMineByBranch = new Map()
 
         let nbMinedBlocks = 0
         let errors = []
+
+        let startTime = Date.now()
+        console.log("START MINING")
 
         for (let entry of dataToMineByBranch.entries()) {
             let branch = entry[0]
@@ -85,6 +91,10 @@ export class MinerImpl {
 
             nbMinedBlocks++
         }
+
+        let endTime = Date.now()
+
+        console.log(`MINING TIME: ${endTime - startTime}, mined blocks : ${nbMinedBlocks}`)
 
         return { nbMinedBlocks, errors }
     }
