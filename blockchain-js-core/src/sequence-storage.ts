@@ -61,6 +61,11 @@ export class SequenceStorage {
         this.node = null
     }
 
+    setBranch(branch: string) {
+        this.branch = branch
+        this.updateFromNode()
+    }
+
     addItems(items: any[]) {
         this.miner.addData(this.branch, {
             tag: SEQUENCE_TAG,
