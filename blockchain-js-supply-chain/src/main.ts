@@ -20,7 +20,7 @@ import {
 
 const profiler = require('v8-profiler')
 
-const PROFILE = true
+const PROFILE = false
 
 async function main() {
     if (PROFILE) {
@@ -121,6 +121,44 @@ async function main() {
 
     let flow = (obj) => Object.getOwnPropertyNames(obj).map(key => [key, obj[key]])
 
+    function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    async function printSummary() {
+        let supplyChainState = await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'getState')
+
+        let nbClosedAsks = 0
+        let nbOpenAsks = 0
+
+        for (let askId in supplyChainState.asks) {
+            let ask = supplyChainState.asks[askId]
+            if (ask.asks.every(askItem => askItem.bidId != null))
+                nbClosedAsks++
+            else
+                nbOpenAsks++
+        }
+
+        let nbSelectedBids = 0
+        let nbUnselectedBids = 0
+
+        for (let bidId in supplyChainState.bids) {
+            let bid = supplyChainState.bids[bidId]
+            if (bid.selected)
+                nbSelectedBids++
+            else
+                nbUnselectedBids++
+        }
+
+        console.log(`Users\n${JSON.stringify(supplyChainState.users, null, 2)}`)
+        console.log(`Asks: ${Object.getOwnPropertyNames(supplyChainState.asks).length}, opened : ${nbOpenAsks}, closed : ${nbClosedAsks}`)
+        console.log(`Bids: ${Object.getOwnPropertyNames(supplyChainState.bids).length}, unsel : ${nbUnselectedBids}, sel : ${nbSelectedBids}`)
+    }
+
     async function bot() {
         let botAccount = {
             keys: await HashTools.generateRsaKeyPair(),
@@ -152,7 +190,7 @@ async function main() {
         let countValidations = 0
 
         while (true) {
-            await wait(500 + Math.random() * 1000)
+            await wait(10)
 
             let supplyChainState = await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'getState')
 
@@ -190,7 +228,7 @@ async function main() {
                 let somethingSent = false
 
                 // to whom ?
-                for (let [askId, ask] of flow(supplyChainState.asks)) {
+                for (let [askId, ask] of shuffle(flow(supplyChainState.asks))) {
                     if (ask.email == botAccount.email)
                         continue
 
@@ -241,13 +279,10 @@ async function main() {
             }
 
             await miner.mineData()
-
-            supplyChainState = await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'getState')
-            console.log(`Asks\n${JSON.stringify(Object.getOwnPropertyNames(supplyChainState.asks).length, null, 2)}`)
-            console.log(`Bids\n${JSON.stringify(Object.getOwnPropertyNames(supplyChainState.bids).length, null, 2)}`)
-            console.log(`Users\n${JSON.stringify(supplyChainState.users, null, 2)}`)
         }
     }
+
+    setInterval(async () => await printSummary(), 5000)
 
     bot()
     bot()
@@ -317,12 +352,6 @@ async function main() {
         console.error(`cannot select bid 2 !`)
         return
     }
-
-    // check accounts
-    let supplyChainState = await smartContract.simulateCallContract(supplyChainRegistryContractUuid, 0, 'getState')
-    console.log(`Asks\n${JSON.stringify(Object.getOwnPropertyNames(supplyChainState.asks).length, null, 2)}`)
-    console.log(`Bids\n${JSON.stringify(Object.getOwnPropertyNames(supplyChainState.bids).length, null, 2)}`)
-    console.log(`Users\n${JSON.stringify(Object.getOwnPropertyNames(supplyChainState.users).length, null, 2)}`)
 }
 
 main()
@@ -334,7 +363,7 @@ async function waitReturn(smartContract, callId) {
 
 async function waitUntil(condition: () => Promise<boolean>) {
     while (!await condition())
-        await wait(500)
+        await wait(50)
 }
 
 function wait(duration: number) {
