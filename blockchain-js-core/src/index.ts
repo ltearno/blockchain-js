@@ -8,6 +8,7 @@ import * as SmartContract from './smart-contract'
 import * as NodeBrowser from './node-browser'
 import * as NetworkApi from './network-api'
 import * as NetworkClientBrowserImpl from './network-client-browser-impl'
+import * as NetworkApiNodeImpl from './network-api-node-impl'
 import * as NodeApi from './node-api'
 import * as NodeImpl from './node-impl'
 import * as NodeTransfer from './node-transfer'
@@ -26,6 +27,7 @@ export {
     NodeBrowser,
     NetworkApi,
     NetworkClientBrowserImpl,
+    NetworkApiNodeImpl,
     NodeApi,
     NodeImpl,
     NodeTransfer,

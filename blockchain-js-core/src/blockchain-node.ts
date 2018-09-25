@@ -135,3 +135,5 @@ app.post('/lists/:branch/:listName', async (req, res) => {
         res.send(JSON.stringify(error))
     }
 })
+
+// smart contract facility

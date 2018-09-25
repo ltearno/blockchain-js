@@ -141,7 +141,6 @@ export class SmartContract {
             let { blockId, items } = sequenceItemsByBlock[idx]
 
             if (!items || !items.length) {
-                console.log(`empty contract...`)
                 continue
             }
 
@@ -189,6 +188,7 @@ export class SmartContract {
 
                         if (contractState.contractPublicKey && contractState.contractPublicKey != HashTools.extractPackedDataPublicKey(packedDescription)) {
                             console.error(`iteration does use an incorrect public key`)
+                            continue
                         }
 
                         contractState.contractIterations[iterationId] = {
