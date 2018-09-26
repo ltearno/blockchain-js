@@ -24,12 +24,17 @@ const NETWORK_CLIENT_IMPL = new NetworkClientBrowserImpl.NetworkClientBrowserImp
 const STORAGE_BLOCKS = 'blocks'
 const STORAGE_SETTINGS = 'settings'
 
+const IDENTITY_REGISTRY_CONTRACT_ID = "identity-registry-1"
+const SUPPLY_CHAIN_CONTRACT_ID = "supply-chain-v1"
+const RANDOM_GENERATOR_CONTRACT_ID = "random-generator-v1"
+
 function sleep(time: number) {
   return new Promise((resolve, reject) => setTimeout(resolve, time))
 }
 
 declare function require(v: any): any;
 
+// TODO affichger la profondeur des données (pour savoir si elles sont fiables)
 // TODO affichage tous messages
 // TODO clean
 
@@ -45,6 +50,10 @@ export class AppComponent {
 
   // To save
   pseudo = null
+  keys: {
+    privateKey: string;
+    publicKey: string;
+  } = null
   encryptMessages = false
   encryptionKey = this.guid()
   otherEncryptionKeys: string[] = []
@@ -56,7 +65,7 @@ export class AppComponent {
   miningDifficulty = 100
   maxNumberDisplayedMessages = 100
 
-  selectedTab = 1
+  selectedTab = 5
   _selectedBranch = Block.MASTER_BRANCH
 
   private messageSequence: SequenceStorage.SequenceStorage
@@ -71,6 +80,7 @@ export class AppComponent {
   }
 
   fullNode: FullNode.FullNode = null
+  smartContract: SmartContract.SmartContract = null
   logs: string[] = []
   state: {
     [key: string]: {
@@ -262,6 +272,9 @@ export class AppComponent {
     this.state = state
   }
 
+  private callContract: (contractUuid: any, iterationId: any, method: any, account: any, data: any) => Promise<any> = null
+  private supplyChainCall = async (method, account, data) => this.callContract(SUPPLY_CHAIN_CONTRACT_ID, 0, method, account, data)
+
   private initFullNode() {
     this.fullNode = new FullNode.FullNode(NETWORK_CLIENT_IMPL)
 
@@ -287,15 +300,59 @@ export class AppComponent {
     this.messageSequence.initialise()
 
     this.messageSequence.addEventListener('change', (sequenceItemsByBlock) => this.updateStatusFromSequence(sequenceItemsByBlock))
+
+    this.smartContract = new SmartContract.SmartContract(this.fullNode.node, Block.MASTER_BRANCH, 'people', this.fullNode.miner)
+    this.smartContract.initialise()
+
+    this.callContract = async (contractUuid, iterationId, method, account, data) => {
+      data.email = account.email
+      let callId = await this.smartContract.callContract(contractUuid, iterationId, method, account ? HashTools.signAndPackData(data, account.keys.privateKey) : data)
+      return await waitReturn(this.smartContract, callId)
+    }
   }
 
-  setPseudo(pseudo, peerToPeer) {
+  async setPseudo(pseudo: string, enablePeerToPeer: boolean) {
+    if (pseudo == '')
+      return
+
     this.userStarted = true
 
-    this.pseudo = pseudo
-    this.autoP2P = peerToPeer
+    this.pseudo = pseudo.indexOf('@') >= 0 ? pseudo : `${pseudo}@blockchain-js.com`
+    this.autoP2P = enablePeerToPeer
+
+    this.savePreferencesToLocalStorage()
 
     this.maybeOfferP2PChannel()
+  }
+
+  // TODO : first time pseudo is validate AND smart contracts are available
+  async registerIdentity(comment: string) {
+    // TODO store that in sth
+    if (!this.keys)
+      this.keys = await HashTools.generateRsaKeyPair()
+    this.savePreferencesToLocalStorage()
+
+    // TODO use smart contract to register an identity and a profile
+    let account = {
+      keys: this.keys,
+      email: this.pseudo
+    }
+    if (! await this.callContract(IDENTITY_REGISTRY_CONTRACT_ID, 0, 'registerIdentity', account, {
+      comment: comment || ''
+    })) {
+      console.error(`failed to register identity`)
+      return
+    }
+
+    console.log(`identity registered with email ${account.email}`)
+
+    let identity = await this.supplyChainCall('createAccount', account, {})
+    if (!identity) {
+      console.log(`account cannot be created`)
+      return null
+    }
+
+    console.log(`created account : ${account.email}`)
   }
 
   maybeOfferP2PChannel() {
@@ -320,6 +377,98 @@ export class AppComponent {
     this.decypherCache.clear()
 
     this.otherEncryptionKeys.push(newEncryptionKey)
+  }
+
+  toList(obj) {
+    return Object.getOwnPropertyNames(obj).map(p => obj[p])
+  }
+
+  keysOf(obj) {
+    return Object.keys(obj)
+  }
+
+  supplyChainReport = {}
+  supplyChainState = null
+
+  async refreshSupplyChainSummary() {
+    this.supplyChainState = await this.smartContract.simulateCallContract(SUPPLY_CHAIN_CONTRACT_ID, 0, 'getState')
+
+    let nbClosedAsks = 0
+    let nbOpenAsks = 0
+
+    for (let askId in this.supplyChainState.asks) {
+      let ask = this.supplyChainState.asks[askId]
+      if (ask.asks.every(askItem => askItem.bidId != null))
+        nbClosedAsks++
+      else
+        nbOpenAsks++
+    }
+
+    let nbSelectedBids = 0
+    let nbUnselectedBids = 0
+
+    for (let bidId in this.supplyChainState.bids) {
+      let bid = this.supplyChainState.bids[bidId]
+      if (bid.selected)
+        nbSelectedBids++
+      else
+        nbUnselectedBids++
+    }
+
+    this.supplyChainReport = JSON.stringify({
+      users: this.supplyChainState.users,
+      asks: {
+        nb: Object.getOwnPropertyNames(this.supplyChainState.asks).length,
+        nbOpenAsks,
+        nbClosedAsks
+      },
+      bids: {
+        nb: Object.getOwnPropertyNames(this.supplyChainState.bids).length,
+        nbUnselectedBids,
+        nbSelectedBids
+      }
+    }, null, 4)
+  }
+
+  async supplyChainAsk() {
+    let account = {
+      keys: this.keys,
+      email: this.pseudo
+    }
+
+    await this.supplyChainCall('publishAsk', account, {
+      id: await HashTools.hashString(Math.random() + ''),
+      title: `Something`,
+      description: `Something`,
+      asks: [
+        {
+          description: `first`
+        },
+        {
+          description: `second`
+        }
+      ]
+    })
+  }
+
+  async publishBid(askId, askIndex) {
+    let account = {
+      keys: this.keys,
+      email: this.pseudo
+    }
+
+    if (! await this.supplyChainCall('publishBid', account, {
+      id: await HashTools.hashString(Math.random() + ''),
+      askId,
+      askIndex,
+      itemId: 'pneu',
+      title: `...`,
+      price: 1,
+      description: `...`,
+      specification: ``
+    })) {
+      console.error(`cannot publish bid!`)
+    }
   }
 
   removeEncryptionKey(key) {
@@ -429,7 +578,7 @@ export class AppComponent {
   async addPeer(peerHost, peerPort) {
     console.log(`add peer ${peerHost}:${peerPort}`)
 
-    let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`${location.protocol=='https'?'wss':'ws'}://${peerHost}:${peerPort}/events`)
+    let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`${location.protocol == 'https' ? 'wss' : 'ws'}://${peerHost}:${peerPort}/events`)
 
     this.addPeerBySocket(ws, `${peerHost}:${peerPort}`, true, `direct peer ${peerHost}:${peerPort}`)
   }
@@ -498,6 +647,7 @@ export class AppComponent {
   savePreferencesToLocalStorage() {
     let settings = {
       pseudo: this.pseudo,
+      keys: this.keys,
       encryptMessages: this.encryptMessages,
       encryptionKey: this.encryptionKey,
       otherEncryptionKeys: this.otherEncryptionKeys,
@@ -525,6 +675,9 @@ export class AppComponent {
 
       if (settings.pseudo)
         this.proposedPseudo = this.pseudo = settings.pseudo || this.guid()
+
+      if (settings.keys)
+        this.keys = settings.keys
 
       if (settings.encryptMessages)
         this.encryptMessages = settings.encryptMessages || false
@@ -586,4 +739,20 @@ export class AppComponent {
     localStorage.setItem(STORAGE_BLOCKS, JSON.stringify(toSave))
     this.log(`blocks saved`)
   }
+}
+
+async function waitReturn(smartContract, callId) {
+  await waitUntil(() => smartContract.hasReturnValue(callId))
+  return smartContract.getReturnValue(callId)
+}
+
+async function waitUntil(condition: () => Promise<boolean>) {
+  while (!await condition())
+    await wait(50)
+}
+
+function wait(duration: number) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => resolve(), duration)
+  })
 }

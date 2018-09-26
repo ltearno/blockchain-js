@@ -48,7 +48,7 @@ async function run() {
 
         await wait(5000)
 
-        let smartContract = new SmartContract.SmartContract(fullNode.node, Block.MASTER_BRANCH, 'tests', fullNode.miner)
+        let smartContract = new SmartContract.SmartContract(fullNode.node, Block.MASTER_BRANCH, 'people', fullNode.miner)
         smartContract.initialise()
 
         let callContract = async (contractUuid, iterationId, method, account, data) => {

@@ -38,6 +38,9 @@
 
   <div *ngIf='userStarted' class="tabs">
     <ul>
+      <li [class.is-active]='selectedTab==5' (click)='selectTab(5)'>
+        <a>Production</a>
+      </li>
       <li [class.is-active]='selectedTab==1' (click)='selectTab(1)'>
         <a>Messages</a>
       </li>
@@ -289,6 +292,48 @@
       <div class="box">
         <h2 class='subtitle'>Logs</h2>
         <div *ngFor="let log of logs">{{log}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf='userStarted && selectedTab==5'>
+    <div class="container is-fluid">
+      <div class="box">
+        <h2 class='subtitle'>Supply chain</h2>
+        <input #comment class='input' type='text' size="30" placeholder="Any public comment">
+        <button class="button" (click)='registerIdentity(comment.value)'>Register</button>
+      </div>
+      <div class="box">
+        <h2>Supply Chain State</h2>
+        <button class="button" (click)='refreshSupplyChainSummary()'>Refresh</button>
+
+        <div *ngIf='supplyChainState?.users[pseudo]'>
+          <div>Balance: {{supplyChainState.users[pseudo].balance}}</div>
+          <table>
+            <tr *ngFor='let itemId of keysOf(supplyChainState.users[pseudo].items)'>
+              <td>{{itemId}}</td>
+              <td>{{supplyChainState.users[pseudo].items[itemId]}}</td>
+            </tr>
+          </table>
+        </div>
+
+        <button class="button" (click)='supplyChainAsk()'>Ask</button>
+        <pre>{{ supplyChainReport }}</pre>
+        <div *ngIf='supplyChainState'>
+          <div *ngFor='let ask of toList(supplyChainState.asks)'>
+            <div>id: {{ask.id}}</div>
+            <div>asker: {{ask.email}}</div>
+            <div>title: {{ask.title}}</div>
+            <div>description: {{ask.description}}</div>
+            <ul>
+              <li *ngFor='let askItem of ask.asks; let i = index'>
+                <div>description: {{askItem.description}}</div>
+                <div *ngIf='askItem.bidId'>selectedBid: {{askItem.bidId}}</div>
+                <button *ngIf='!askItem.bidId' class="button" (click)='publishBid(ask.id, i)'>Bid</button>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </div>

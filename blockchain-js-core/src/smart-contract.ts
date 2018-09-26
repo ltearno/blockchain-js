@@ -51,7 +51,7 @@ import * as SequenceStorage from './sequence-storage'
  * construct program instances and update their state
  */
 
-interface ContractState {
+export interface ContractState {
     uuid: string,
     name: string
     description: string
@@ -63,7 +63,7 @@ interface ContractState {
     instanceData: any
 }
 
-interface MachineState {
+export interface MachineState {
     contracts: Map<string, ContractState>
 
     // callId to return value
@@ -496,5 +496,9 @@ export class SmartContract {
 
     getReturnValue(callId: string) {
         return this.stateCache && this.stateCache.returnValues.get(callId)
+    }
+
+    getState() {
+        return this.stateCache
     }
 }
