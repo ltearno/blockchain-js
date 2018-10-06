@@ -149,7 +149,7 @@ export class AppComponent {
 
     this.initFullNode()
 
-    this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`wss://${window.location.hostname}:8999/signal`,
+    this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`${location.protocol == 'https' ? 'wss' : 'ws'}://${window.location.hostname}:8999/signal`,
       () => {
         this.maybeOfferP2PChannel()
       },
