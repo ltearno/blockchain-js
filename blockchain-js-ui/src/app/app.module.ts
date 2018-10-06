@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 
 
 import { AppComponent } from './app.component';
-
+import { SupplyChainComponent } from './supply-chain/supply-chain.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    SupplyChainComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,21 @@
+.inventory-item {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    font-size: 2em;
+}
+
+.selected {
+    border: 3px solid black;
+}
+
+.lot-grid {
+}
+
+.lot-grid > div {
+    display: inline-block;
+    margin: .2em;
+    width: 2em;
+    height: 2em;
+    background-color: lightgray;
+}

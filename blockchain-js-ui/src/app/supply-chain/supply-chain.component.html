@@ -1,0 +1,59 @@
+<div class="container">
+    <div *ngFor='let creation of creations' class='columns'>
+        <div class="column" (click)='selectedCreation=creation'>
+            <span style='font-weight: bold;'>{{ creation.name }}</span> -
+            <span *ngIf='creation.creator!=userId'> (par {{ creation.creator }}) - </span>
+            <span>{{ creation.description }}</span>
+            <div>Lots {{ creation.zoneSize.width }} x {{ creation.zoneSize.height }}</div>
+            <div>Taille en lots {{ creation.size.width }} x {{ creation.size.height }}</div>
+        </div>
+        <div class="column">
+            <div *ngIf='creation.creator==userId'>
+                <span *ngIf='creation.nbAvailableOffers>0'>{{ creation.nbAvailableOffers }} offres dispos</span>
+                <br />
+                <button class='button is-primary'>VALIDER</button>
+            </div>
+            <div *ngIf='creation.creator!=userId'>
+                <button class='button is-primary'>CREER</button>
+                <br />
+                <button class='button is-primary'>PROPOSER</button>
+            </div>
+        </div>
+    </div>
+    <div>
+        <h2>Inventaire</h2>
+        <span *ngFor='let item of inventaire' [class.selected]='item.selected'>
+            <div *ngIf='item.id.startsWith("pix-")' class='inventory-item' [style.backgroundColor]='item.id.substr(4)'></div>
+            <div *ngIf='item.id.startsWith("emoji-")' class='inventory-item'>{{ item.id.substr(6) }}</div>
+            <div *ngIf='item.id.startsWith("creation-")' class='inventory-item'>CREATION</div>
+            <b>{{ item.quantity }}</b>
+        </span>
+    </div>
+    <div>
+        <button class='button is-primary'>CREER</button>
+        <button class='button is-primary'>PROPOSER</button>
+    </div>
+</div>
+
+
+
+<div *ngIf='selectedCreation'>
+    <h2>SELECTED CREATION</h2>
+    <h3>Grille des lots</h3>
+    <div class='lot-grid'>
+        <div *ngFor='let lot of selectedCreation.lotGrid'></div>
+    </div>
+    <h3>Items disponibles</h3>
+    <div *ngFor='let item of availableOffers'>
+        {{ item.name }}
+    </div>
+    <button class='button'>Précédent</button>
+</div>
+
+
+<div>
+    <h2>Ecran de création d'un lot</h2>
+    <p>Deux étapes</p>
+    <p>Choix taille lot et taille globale</p>
+    <p>Peinture (zone de dessin + pixels disponibles)</p>
+</div>
