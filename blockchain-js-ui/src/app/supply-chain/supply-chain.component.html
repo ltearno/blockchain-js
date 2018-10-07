@@ -1,24 +1,6 @@
 <div class="container">
-    <div *ngFor='let groupWork of groupWorks' class='columns'>
-        <div class="column" (click)='selectedGroupWork=groupWork'>
-            <span style='font-weight: bold;'>{{ groupWork.name }}</span> -
-            <span *ngIf='groupWork.author!=userId'> (par {{ groupWork.author }}) - </span>
-            <span>{{ groupWork.description }}</span>
-            <div>Lots {{ groupWork.zoneSize.width }} x {{ groupWork.zoneSize.height }}</div>
-            <div>Taille en lots {{ groupWork.size.width }} x {{ groupWork.size.height }}</div>
-        </div>
-        <div class="column">
-            <div *ngIf='groupWork.author==userId'>
-                <span *ngIf='groupWork.nbAvailableOffers>0'>{{ groupWork.nbAvailableOffers }} offres dispos</span>
-                <br />
-                <button class='button is-primary'>VALIDER</button>
-            </div>
-            <div *ngIf='groupWork.author!=userId'>
-                <button class='button is-primary'>CREER</button>
-                <br />
-                <button class='button is-primary'>PROPOSER</button>
-            </div>
-        </div>
+    <div *ngFor='let groupWork of groupWorksToDisplay()'>
+        <group-work-summary [groupWork]='groupWork'></group-work-summary>
     </div>
     <div>
         <h2>Inventaire</h2>
@@ -30,9 +12,47 @@
         </span>
     </div>
     <div>
-        <button class='button is-primary'>CREER</button>
-        <button class='button is-primary'>PROPOSER</button>
+        <button class='button is-primary'>Artwork</button>
+        <button class='button is-primary' (click)='initGroupWorkCreation()'>Group work</button>
     </div>
+</div>
+
+
+
+
+<div *ngIf='creatingGroupWork && !creatingGroupWork.grid' class="container">
+    <h2>GroupWork creation</h2>
+    <div class="field">
+        <label class="label">Title</label>
+        <div class="control">
+            <input class="input" type="text" [(ngModel)]='creatingGroupWork.title'>
+        </div>
+        <p class="help">Title of the GroupWork</p>
+    </div>
+    <div class="field">
+        <label class="label">Description</label>
+        <div class="control">
+            <textarea name="" cols="30" rows="10" [(ngModel)]='creatingGroupWork.description'></textarea>
+        </div>
+        <p class="help">Description of the GroupWork</p>
+    </div>
+    <div class="field">
+        <label class="label">Lot Size</label>
+        <div class="control">
+            Width <input class="input" type="number" [(ngModel)]='creatingGroupWork.zoneSize.width'>
+            Height <input class="input" type="number" [(ngModel)]='creatingGroupWork.zoneSize.height'>
+        </div>
+        <p class="help">Size of the individual sub-zones</p>
+    </div>
+    <div class="field">
+        <label class="label">Size</label>
+        <div class="control">
+            Width <input class="input" type="number" [(ngModel)]='creatingGroupWork.size.width'>
+            Height <input class="input" type="number" [(ngModel)]='creatingGroupWork.size.height'>
+        </div>
+        <p class="help">Size of the zones grid</p>
+    </div>
+    <button class="button is-primary" (click)='continueGroupWorkCreation()'>Share this GroupWork</button>
 </div>
 
 
@@ -45,7 +65,7 @@
         </div>
         <h3>Items disponibles</h3>
         <div *ngFor='let item of availableOffers'>
-            {{ item.name }}
+            {{ item.title }}
         </div>
         <button class='button'>Précédent</button>
     </div>
@@ -59,23 +79,7 @@
     <h2>Ecran de création d'un lot</h2>
     <p>Deux étapes</p>
     <p>Choix taille lot et taille globale</p>
-    <div class="field">
-        <label class="label">Lot Size</label>
-        <div class="control">
-            <input class="input" type="number" value="3">
-            <input class="input" type="number" value="3">
-        </div>
-        <p class="help">Size of the individual sub-zones</p>
-    </div>
-    <div class="field">
-        <label class="label">Size</label>
-        <div class="control">
-            <input class="input" type="number" value="3">
-            <input class="input" type="number" value="2">
-        </div>
-        <p class="help">Size of the zones grid</p>
-    </div>
-    <button class="button is-primary">Create and Draw !</button>
+
 
 
     <p>Peinture (zone de dessin + pixels disponibles)</p>
