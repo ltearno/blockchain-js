@@ -1,5 +1,47 @@
 import { Component, OnInit } from '@angular/core'
 
+/**
+ * Vocabulaire
+ * 
+ * WorkItem : can be
+ * - a GroupWork,
+ * - an ArtWork,
+ * - a Pixel
+ * - accepted or not by the owner
+ * 
+ * GroupWork // travail de groupe =
+ * - identifiant
+ * - titre
+ * - description
+ * - auteur
+ * - taille des lots (en cases)
+ * - taille de la zone de travail (en lots)
+ * 
+ * - grille = Lxl
+ * 
+ * () offres compatibles disponibles
+ */
+
+interface GroupWork {
+    id: string
+    title: string
+    description: string
+    author: string
+    lotSize: { width: number; height: number }
+    size: { width: number; height: number }
+    grid: {
+        workItemId: string // id de l'item
+        ownerId: string // le possesseur, peut etre il ne l'a plus d'ailleurs
+    }[] // by line
+}
+
+function findGroupWorkCompatibleAvailableWorkItems() {
+    // work items not yet accepted and of the same size (and not in the current grid)
+}
+
+function isGroupWorkValidated() {
+    // is the whole grid filled with accepted WorkItems ?
+}
 
 @Component({
     selector: 'supply-chain',
