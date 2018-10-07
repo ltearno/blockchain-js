@@ -70,6 +70,10 @@ export class SupplyChainComponent implements AfterViewInit {
     continueGroupWorkCreation() {
         this.creatingGroupWork.grid = new Array(
             this.creatingGroupWork.size.width * this.creatingGroupWork.size.height)
+
+        this.state.programState.groupWorks[this.creatingGroupWork.id] = this.creatingGroupWork
+        this.creatingGroupWork = null
+        // TODO this.state.programState.accounts[this.userId].inventory[this.creatingGroupWork.id]++
     }
 
     /**
