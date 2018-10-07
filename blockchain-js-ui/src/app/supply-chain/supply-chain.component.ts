@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core'
 
 /**
  * Vocabulaire
@@ -79,12 +79,55 @@ function acceptProposal() {
     // if the groupwork is validated, new work items are given to groupwork participants
 }
 
+const WIDTH = 400
+const HEIGHT = 400
+
+function drawArtWork(artWork: ArtWork, ctx: CanvasRenderingContext2D) {
+    let CW = WIDTH / artWork.size.width
+    let CH = HEIGHT / artWork.size.height
+
+    for (let i = 0; i < artWork.size.width; i++) {
+        for (let j = 0; j < artWork.size.height; j++) {
+            let value = artWork.grid[j * artWork.size.width + i]
+            if (value) {
+                ctx.fillStyle = value
+                ctx.fillRect(i * CW, j * CH, CW, CH)
+
+                //ctx.textAlign = 'center'
+                ctx.textBaseline = 'top'
+                ctx.fillStyle = "black"
+                ctx.font = `${CW}px Verdana`
+                ctx.fillText("😁", i * CW, i * CH)
+            }
+        }
+    }
+}
+
 @Component({
     selector: 'supply-chain',
     templateUrl: './supply-chain.component.html',
     styleUrls: ['./supply-chain.component.css']
 })
-export class SupplyChainComponent {
+export class SupplyChainComponent implements AfterViewInit {
+    @ViewChild("canvas")
+    canvas
+
+    private context: CanvasRenderingContext2D
+
+    ngAfterViewInit() {
+        let canvas = this.canvas.nativeElement
+        this.context = canvas.getContext("2d")
+
+        /*let ctx = this.context
+        ctx.clearRect(0, 0, 400, 400)
+        ctx.fillStyle = "#5599aa"
+        ctx.fillRect(0, 0, 200, 200)
+        ctx.fillStyle = "#f35297"
+        ctx.fillRect(200, 200, 200, 200)*/
+
+        drawArtWork(this.artWorks[0], this.context)
+    }
+
     userId = 'me'
 
     inventaire = [
@@ -105,7 +148,22 @@ export class SupplyChainComponent {
         }
     ]
 
-    creations = [
+    artWorks: ArtWork[] = [
+        {
+            id: 'oiuyhkjh',
+            author: 'me',
+            title: 'My forst artwirk',
+            description: 'Un test',
+            size: { width: 3, height: 3 },
+            grid: [
+                null, 'red', null,
+                'red', 'white', 'red',
+                null, 'red', null
+            ]
+        }
+    ]
+
+    groupWorks = [
         {
             creator: 'me',
             name: 'Ile paradisiaque',

@@ -24,7 +24,9 @@
     display: grid;
     grid-template-columns: repeat(3,1fr);
     grid-template-rows: repeat(3,1fr);
-    gap: 5px;
+    gap: .5em;
+    width: 30vh;
+    height: 30vh;;
 }
 
 .grille > div {

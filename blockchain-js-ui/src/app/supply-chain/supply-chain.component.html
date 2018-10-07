@@ -1,19 +1,19 @@
 <div class="container">
-    <div *ngFor='let creation of creations' class='columns'>
-        <div class="column" (click)='selectedCreation=creation'>
-            <span style='font-weight: bold;'>{{ creation.name }}</span> -
-            <span *ngIf='creation.creator!=userId'> (par {{ creation.creator }}) - </span>
-            <span>{{ creation.description }}</span>
-            <div>Lots {{ creation.zoneSize.width }} x {{ creation.zoneSize.height }}</div>
-            <div>Taille en lots {{ creation.size.width }} x {{ creation.size.height }}</div>
+    <div *ngFor='let groupWork of groupWorks' class='columns'>
+        <div class="column" (click)='selectedGroupWork=groupWork'>
+            <span style='font-weight: bold;'>{{ groupWork.name }}</span> -
+            <span *ngIf='groupWork.creator!=userId'> (par {{ groupWork.creator }}) - </span>
+            <span>{{ groupWork.description }}</span>
+            <div>Lots {{ groupWork.zoneSize.width }} x {{ groupWork.zoneSize.height }}</div>
+            <div>Taille en lots {{ groupWork.size.width }} x {{ groupWork.size.height }}</div>
         </div>
         <div class="column">
-            <div *ngIf='creation.creator==userId'>
-                <span *ngIf='creation.nbAvailableOffers>0'>{{ creation.nbAvailableOffers }} offres dispos</span>
+            <div *ngIf='groupWork.creator==userId'>
+                <span *ngIf='groupWork.nbAvailableOffers>0'>{{ groupWork.nbAvailableOffers }} offres dispos</span>
                 <br />
                 <button class='button is-primary'>VALIDER</button>
             </div>
-            <div *ngIf='creation.creator!=userId'>
+            <div *ngIf='groupWork.creator!=userId'>
                 <button class='button is-primary'>CREER</button>
                 <br />
                 <button class='button is-primary'>PROPOSER</button>
@@ -25,7 +25,7 @@
         <span *ngFor='let item of inventaire' [class.selected]='item.selected'>
             <div *ngIf='item.id.startsWith("pix-")' class='inventory-item' [style.backgroundColor]='item.id.substr(4)'></div>
             <div *ngIf='item.id.startsWith("emoji-")' class='inventory-item'>{{ item.id.substr(6) }}</div>
-            <div *ngIf='item.id.startsWith("creation-")' class='inventory-item'>CREATION</div>
+            <div *ngIf='item.id.startsWith("groupWork-")' class='inventory-item'>groupWork</div>
             <b>{{ item.quantity }}</b>
         </span>
     </div>
@@ -37,11 +37,11 @@
 
 
 
-<div *ngIf='selectedCreation'>
-    <h2>SELECTED CREATION</h2>
+<div *ngIf='selectedGroupWork'>
+    <h2>SELECTED GroupWork</h2>
     <h3>Grille des lots</h3>
     <div class='lot-grid'>
-        <div *ngFor='let lot of selectedCreation.lotGrid'></div>
+        <div *ngFor='let lot of selectedGroupWork.lotGrid'></div>
     </div>
     <h3>Items disponibles</h3>
     <div *ngFor='let item of availableOffers'>
@@ -49,6 +49,8 @@
     </div>
     <button class='button'>Précédent</button>
 </div>
+
+<canvas #canvas width="400" height="400" style="background:lightgray;"></canvas>
 
 <div class="grille">
     <div></div>
@@ -67,5 +69,24 @@
     <h2>Ecran de création d'un lot</h2>
     <p>Deux étapes</p>
     <p>Choix taille lot et taille globale</p>
+    <div class="field">
+        <label class="label">Lot Size</label>
+        <div class="control">
+            <input class="input" type="number" value="3">
+            <input class="input" type="number" value="3">
+        </div>
+        <p class="help">Size of the individual sub-zones</p>
+    </div>
+    <div class="field">
+        <label class="label">Size</label>
+        <div class="control">
+            <input class="input" type="number" value="3">
+            <input class="input" type="number" value="2">
+        </div>
+        <p class="help">Size of the zones grid</p>
+    </div>
+    <button class="button is-primary">Create and Draw !</button>
+
+
     <p>Peinture (zone de dessin + pixels disponibles)</p>
 </div>
