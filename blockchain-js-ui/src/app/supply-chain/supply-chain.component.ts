@@ -53,6 +53,10 @@ export class SupplyChainComponent implements AfterViewInit {
         }
     ]
 
+    /**
+     * GroupWork creation
+     */
+
     creatingGroupWork: Model.GroupWork = null
 
     initGroupWorkCreation() {
@@ -72,12 +76,23 @@ export class SupplyChainComponent implements AfterViewInit {
             this.creatingGroupWork.size.width * this.creatingGroupWork.size.height)
 
         this.state.programState.groupWorks[this.creatingGroupWork.id] = this.creatingGroupWork
-        this.creatingGroupWork = null
         // TODO this.state.programState.accounts[this.userId].inventory[this.creatingGroupWork.id]++
+
+        this.creatingGroupWork = null
     }
 
     /**
-     * 
+     * ArtWork creation
      */
+
+    creatingArtWork: Model.ArtWork = null
+
+    initArtWorkCreation() {
+    }
+
+    continueArtWorkCreation() {
+        this.creatingArtWork = null
+    }
+
     selectedCreation = null
 }  
