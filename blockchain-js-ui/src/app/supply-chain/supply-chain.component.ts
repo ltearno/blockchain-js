@@ -6,7 +6,8 @@ import { Component, OnInit } from '@angular/core'
  * WorkItem : can be
  * - a GroupWork,
  * - an ArtWork,
- * - a Pixel
+ * - a Pixel,
+ * - an Emoji
  * - accepted or not by the owner
  * 
  * GroupWork // travail de groupe =
@@ -22,6 +23,20 @@ import { Component, OnInit } from '@angular/core'
  * () offres compatibles disponibles
  */
 
+interface ProgramState {
+    accounts: { [id: string]: Account }
+    groupWorks: { [id: string]: GroupWork }
+    artWorks: { [id: string]: ArtWork }
+}
+
+interface Account {
+    email: string
+
+    inventory: {
+        [workItemId: string]: number
+    }
+}
+
 interface GroupWork {
     id: string
     title: string
@@ -30,9 +45,11 @@ interface GroupWork {
     lotSize: { width: number; height: number }
     size: { width: number; height: number }
     grid: {
-        workItemId: string // id de l'item
-        ownerId: string // le possesseur, peut etre il ne l'a plus d'ailleurs
+        workItemId: string // id de l'item `groupwork-XXX`, `artwork-XXX`, `pixel-XXX`, `emoji-XXX`
+        ownerId: string // le possesseur
+        accepted: boolean // contrat accepté avec le possesseur, pour celui-ci, l'objet disparait de son inventaire
     }[] // by line
+    validated: boolean
 }
 
 function findGroupWorkCompatibleAvailableWorkItems() {
@@ -41,6 +58,25 @@ function findGroupWorkCompatibleAvailableWorkItems() {
 
 function isGroupWorkValidated() {
     // is the whole grid filled with accepted WorkItems ?
+}
+
+interface ArtWork {
+    id: string
+    title: string
+    description: string
+    author: string
+    size: { width: number; height: number }
+    grid: string[] // by line, each cell's pixel/emoji or null
+}
+
+function findGroupWorkProposals(workItemId: string) {
+    // find the GroupWorks that mention the `workItemId` in their grid
+}
+
+function acceptProposal() {
+    // confirm a workitem inside a groupwork
+    // workitem owner looses it from its inventory
+    // if the groupwork is validated, new work items are given to groupwork participants
 }
 
 @Component({
