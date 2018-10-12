@@ -19,6 +19,9 @@ export class GroupWorkSummaryComponent implements AfterViewInit {
     ) { }
 
     @Input()
+    userId: string
+
+    @Input()
     set groupWork(groupWork) {
         this._groupWork = groupWork
 

@@ -34,6 +34,8 @@ export class SupplyChainComponent implements AfterViewInit {
     }
 
     userId = 'me'
+    selectedCreation = null
+    selectedGroupWork = null
 
     inventaire = [
         {
@@ -93,6 +95,4 @@ export class SupplyChainComponent implements AfterViewInit {
     continueArtWorkCreation() {
         this.creatingArtWork = null
     }
-
-    selectedCreation = null
 }  

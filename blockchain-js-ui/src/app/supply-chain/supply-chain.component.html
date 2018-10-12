@@ -1,6 +1,6 @@
 <div class="container">
     <div *ngFor='let groupWork of groupWorksToDisplay()'>
-        <group-work-summary [groupWork]='groupWork'></group-work-summary>
+        <group-work-summary [userId]='userId' [groupWork]='groupWork'></group-work-summary>
     </div>
     <div>
         <h2>Inventaire</h2>

@@ -16,10 +16,6 @@
       "dom"
     ],
     "baseUrl": ".",
-    "paths": {
-      "crypto": [
-        "node_modules/crypto-browserify"
-      ]
-    }
+    "module": "es2015"
   }
 }
