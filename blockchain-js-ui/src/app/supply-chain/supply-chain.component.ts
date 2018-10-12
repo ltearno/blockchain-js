@@ -21,7 +21,11 @@ export class SupplyChainComponent implements AfterViewInit {
     ) { }
 
     groupWorksToDisplay() {
-        return Object.keys(this.state.programState.groupWorks).map(k => this.state.programState.groupWorks[k])
+        return Object.keys(this.state.programState.groupWorks).sort().map(k => this.state.programState.groupWorks[k])
+    }
+
+    artWorksToDisplay() {
+        return Object.keys(this.state.programState.artWorks).sort().map(k => this.state.programState.artWorks[k])
     }
 
     private context: CanvasRenderingContext2D
@@ -90,9 +94,22 @@ export class SupplyChainComponent implements AfterViewInit {
     creatingArtWork: Model.ArtWork = null
 
     initArtWorkCreation() {
+        this.creatingArtWork = {
+            id: `r_${Math.random()}`,
+            author: this.userId,
+            title: '',
+            description: '',
+            size: { width: 4, height: 4 },
+            grid: null
+        }
     }
 
     continueArtWorkCreation() {
+        this.creatingArtWork.grid = new Array(
+            this.creatingArtWork.size.width * this.creatingArtWork.size.height)
+
+        this.state.programState.artWorks[this.creatingArtWork.id] = this.creatingArtWork
+
         this.creatingArtWork = null
     }
 }  

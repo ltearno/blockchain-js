@@ -1,6 +1,11 @@
 <div class="container">
+    <h2>Group Works</h2>
     <div *ngFor='let groupWork of groupWorksToDisplay()'>
         <group-work-summary [userId]='userId' [groupWork]='groupWork'></group-work-summary>
+    </div>
+    <h2>Art Works</h2>
+    <div *ngFor='let artWork of artWorksToDisplay()'>
+        <art-work-summary [userId]='userId' [artWork]='artWork'></art-work-summary>
     </div>
     <div>
         <h2>Inventaire</h2>
@@ -47,12 +52,39 @@
             Width <input class="input" type="number" [(ngModel)]='creatingGroupWork.size.width'>
             Height <input class="input" type="number" [(ngModel)]='creatingGroupWork.size.height'>
         </div>
-        <p class="help">Size of the zones grid</p>
+        <p class="help">Size of the grid (made of zones)</p>
     </div>
     <button class="button is-primary" (click)='continueGroupWorkCreation()'>Share this GroupWork</button>
 </div>
 
+<div *ngIf='creatingArtWork' class='container'>
+    <h1>ArtWork creation</h1>
+    <div class="field">
+        <label class="label">Title</label>
+        <div class="control">
+            <input class="input" type="text" [(ngModel)]='creatingArtWork.title'>
+        </div>
+        <p class="help">Title of the ArtWork</p>
+    </div>
+    <div class="field">
+        <label class="label">Description</label>
+        <div class="control">
+            <textarea name="" cols="30" rows="10" [(ngModel)]='creatingArtWork.description'></textarea>
+        </div>
+        <p class="help">Description of the ArtWork</p>
+    </div>
+    <div class="field">
+        <label class="label">Size</label>
+        <div class="control">
+            Width <input class="input" type="number" [(ngModel)]='creatingArtWork.size.width'>
+            Height <input class="input" type="number" [(ngModel)]='creatingArtWork.size.height'>
+        </div>
+        <p class="help">Size of the grid</p>
+    </div>
+    <button class="button is-primary" (click)='continueArtWorkCreation()'>Share this ArtWork</button>
+</div>
 
+<!--
 <div class="container">
     <div *ngIf='selectedGroupWork'>
         <h2>SELECTED GroupWork</h2>
@@ -81,3 +113,4 @@
 
     <p>Peinture (zone de dessin + pixels disponibles)</p>
 </div>
+-->
