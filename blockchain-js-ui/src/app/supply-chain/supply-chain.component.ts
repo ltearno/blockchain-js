@@ -107,8 +107,10 @@ export class SupplyChainComponent implements AfterViewInit {
         this.creatingArtWork.grid = new Array(
             this.creatingArtWork.size.width * this.creatingArtWork.size.height)
 
-        this.state.programState.artWorks[this.creatingArtWork.id] = this.creatingArtWork
+    }
 
+    publishArtWorkCreation() {
+        this.state.programState.artWorks[this.creatingArtWork.id] = this.creatingArtWork
         this.creatingArtWork = null
     }
 }  
