@@ -17,7 +17,6 @@ export interface GroupWork {
     title: string
     description: string
     author: string
-    zoneSize: { width: number; height: number }
     size: { width: number; height: number }
     grid: {
         workItemId: string // id de l'item `groupwork-XXX`, `artwork-XXX`, `pixel-XXX`, `emoji-XXX`

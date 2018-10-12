@@ -7,11 +7,10 @@
             <div class="media-content">
                 <p class="title is-4">{{ groupWork.title }}</p>
                 <p class="subtitle is-6">{{ groupWork.author }}</p>
-                <div>Lots {{ groupWork.zoneSize.width }} x {{ groupWork.zoneSize.height }}</div>
-                <div>Taille en lots {{ groupWork.size.width }} x {{ groupWork.size.height }}</div>
+                <div>Grid size {{ groupWork.size.width }} x {{ groupWork.size.height }}</div>
                 <p>{{ groupWork.description }}</p>
                 <div *ngIf='groupWork.author==userId'>
-                    <span *ngIf='groupWork.nbAvailableOffers>0'>{{ groupWork.nbAvailableOffers }} offres dispos</span>
+                    <span *ngIf='groupWork.nbAvailableOffers>0'>{{ groupWork.nbAvailableOffers }} available offers</span>
                     <br />
                     <button class='button is-primary'>Manage</button>
                 </div>

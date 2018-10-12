@@ -72,7 +72,6 @@ export class SupplyChainComponent implements AfterViewInit {
             title: '',
             description: '',
             size: { width: 4, height: 4 },
-            zoneSize: { width: 4, height: 4 },
             grid: null
         }
     }
