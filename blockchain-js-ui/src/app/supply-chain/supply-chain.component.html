@@ -49,38 +49,8 @@
     <button class="button is-primary" (click)='continueGroupWorkCreation()'>Share this GroupWork</button>
 </div>
 
-<div *ngIf='creatingArtWork && !creatingArtWork.grid' class='container'>
-    <h1>ArtWork creation</h1>
-    <div class="field">
-        <label class="label">Title</label>
-        <div class="control">
-            <input class="input" type="text" [(ngModel)]='creatingArtWork.title'>
-        </div>
-        <p class="help">Title of the ArtWork</p>
-    </div>
-    <div class="field">
-        <label class="label">Description</label>
-        <div class="control">
-            <textarea name="" cols="30" rows="10" [(ngModel)]='creatingArtWork.description'></textarea>
-        </div>
-        <p class="help">Description of the ArtWork</p>
-    </div>
-    <div class="field">
-        <label class="label">Size</label>
-        <div class="control">
-            Width <input class="input" type="number" [(ngModel)]='creatingArtWork.size.width'>
-            Height <input class="input" type="number" [(ngModel)]='creatingArtWork.size.height'>
-        </div>
-        <p class="help">Size of the grid</p>
-    </div>
-    <button class="button is-primary" (click)='continueArtWorkCreation()'>Draw this ArtWork</button>
-</div>
-
-<div *ngIf='creatingArtWork && creatingArtWork.grid' class='container'>
-    <h1>ArtWork creation</h1>
-    <!-- canvas to edit pixels grid 
-         inventory has a selected item that is used for drawing -->
-    <button class="button is-primary" (click)='publishArtWorkCreation()'>Publish this ArtWork</button>
+<div *ngIf='creatingArtWork' class='container'>
+    <art-work-edition [artWork]='creatingArtWork' (validate)='validateArtwork()' (cancel)='cancelArtwork()'></art-work-edition>
 </div>
 
 <!--

@@ -12,10 +12,7 @@ const HEIGHT = 400
     styleUrls: ['./supply-chain.component.css'],
     providers: [State]
 })
-export class SupplyChainComponent implements AfterViewInit {
-    @ViewChild("canvas")
-    canvas
-
+export class SupplyChainComponent {
     constructor(
         public state: State
     ) { }
@@ -26,15 +23,6 @@ export class SupplyChainComponent implements AfterViewInit {
 
     artWorksToDisplay() {
         return Object.keys(this.state.programState.artWorks).sort().map(k => this.state.programState.artWorks[k])
-    }
-
-    private context: CanvasRenderingContext2D
-
-    ngAfterViewInit() {
-        let canvas = this.canvas.nativeElement
-        this.context = canvas.getContext("2d")
-
-        Paint.drawWorkItem(this.state.programState, `groupwork-klkjhf`, WIDTH, HEIGHT, this.context)
     }
 
     userId = 'me'
@@ -103,14 +91,12 @@ export class SupplyChainComponent implements AfterViewInit {
         }
     }
 
-    continueArtWorkCreation() {
-        this.creatingArtWork.grid = new Array(
-            this.creatingArtWork.size.width * this.creatingArtWork.size.height)
-
+    validateArtwork() {
+        this.state.programState.artWorks[this.creatingArtWork.id] = this.creatingArtWork
+        this.creatingArtWork = null
     }
 
-    publishArtWorkCreation() {
-        this.state.programState.artWorks[this.creatingArtWork.id] = this.creatingArtWork
+    cancelArtwork() {
         this.creatingArtWork = null
     }
 }  

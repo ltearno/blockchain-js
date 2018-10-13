@@ -15,6 +15,9 @@ export function drawEmoji(text: string, width: number, height: number, ctx: Canv
 }
 
 export function drawArtWork(state: Model.ProgramState, artWork: Model.ArtWork, width: number, height: number, ctx: CanvasRenderingContext2D) {
+    if (!ctx)
+        return
+
     let CW = width / artWork.size.width
     let CH = height / artWork.size.height
 
@@ -69,4 +72,17 @@ export function drawWorkItem(state: Model.ProgramState, id: string, width: numbe
     else if (id.startsWith('groupwork-')) {
         drawGroupWork(state, state.groupWorks[id.substr('groupwork-'.length)], width, height, ctx)
     }
+}
+
+export function drawCell(artWork: Model.ArtWork, i: number, j: number, width: number, height: number, ctx: CanvasRenderingContext2D) {
+    const CW = width / artWork.size.width
+    const CH = height / artWork.size.height
+
+    ctx.fillStyle = 'lightgrey'
+    ctx.fillRect(i * CW, j * CH, CW, CH)
+}
+
+export function clear(width: number, height: number, ctx: CanvasRenderingContext2D) {
+    ctx.fillStyle = 'white'
+    ctx.fillRect(0, 0, width, height)
 }
