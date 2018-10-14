@@ -17,13 +17,13 @@ export class SupplyChainComponent {
         public state: State
     ) { }
 
-    groupWorksToDisplay() {
-        return Object.keys(this.state.programState.groupWorks).sort().map(k => this.state.programState.groupWorks[k])
+    artWorksToDisplay() {
+        return Object.keys(this.state.programState.artWorks).sort().map(k => this.state.programState.artWorks[k])
     }
 
     userId = 'me'
     selectedCreation = null
-    selectedGroupWork = null
+    selectedArtWork = null
 
     inventaire = [
         {
@@ -44,13 +44,13 @@ export class SupplyChainComponent {
     ]
 
     /**
-     * GroupWork creation
+     * ArtWork creation
      */
 
-    creatingGroupWork: Model.GroupWork = null
+    creatingArtWork: Model.ArtWork = null
 
     initArtWorkCreation() {
-        this.creatingGroupWork = {
+        this.creatingArtWork = {
             id: `r${Math.random()}`,
             author: this.userId,
             title: '',
@@ -61,12 +61,12 @@ export class SupplyChainComponent {
     }
 
     validateArtwork() {
-        this.state.programState.groupWorks[this.creatingGroupWork.id] = this.creatingGroupWork
-        // TODO this.state.programState.accounts[this.userId].inventory[this.creatingGroupWork.id]++
-        this.creatingGroupWork = null
+        this.state.programState.artWorks[this.creatingArtWork.id] = this.creatingArtWork
+        // TODO this.state.programState.accounts[this.userId].inventory[this.creatingArtWork.id]++
+        this.creatingArtWork = null
     }
 
     cancelArtwork() {
-        this.creatingGroupWork = null
+        this.creatingArtWork = null
     }
 }  

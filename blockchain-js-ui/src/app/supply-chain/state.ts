@@ -6,7 +6,7 @@ export class State {
     programState: ProgramState = {
         accounts: {},
 
-        groupWorks: {
+        artWorks: {
             'klkjhf': {
                 id: 'klkjhf',
                 author: 'me',
@@ -16,12 +16,12 @@ export class State {
                 grid: [
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
-                    null, null, null, { ownerId: 'lolite', workItemId: 'groupwork-swujb', accepted: false }, null, null, null, null, null, null,
+                    null, null, null, { ownerId: 'lolite', workItemId: 'artwork-swujb', accepted: false }, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
-                    null, { ownerId: 'lolite', workItemId: 'groupwork-swujb', accepted: false }, null, null, null, null, null, null, null, null,
+                    null, { ownerId: 'lolite', workItemId: 'artwork-swujb', accepted: false }, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null
                 ]
@@ -34,11 +34,11 @@ export class State {
                 description: 'Un grand H en noir sur blanc, contribuez par des lots noirs.',
                 size: { width: 5, height: 5 },
                 grid: [
-                    { ownerId: 'lolite', workItemId: 'groupwork-oiuyhkjh', accepted: false }, null, null, null, null,
-                    null, { ownerId: 'lolite', workItemId: 'groupwork-oiuyhkjh', accepted: false }, null, null, null,
-                    null, null, { ownerId: 'lolite', workItemId: 'groupwork-oiuyhkjh', accepted: false }, null, null,
-                    null, null, null, null, { ownerId: 'lolite', workItemId: 'groupwork-oiuyhkjh', accepted: false },
-                    null, null, null, null, { ownerId: 'lolite', workItemId: 'groupwork-oiuyhkjh', accepted: false }
+                    { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }, null, null, null, null,
+                    null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }, null, null, null,
+                    null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }, null, null,
+                    null, null, null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false },
+                    null, null, null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }
                 ]
             },
 

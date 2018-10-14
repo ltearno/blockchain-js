@@ -1,14 +1,14 @@
 <div class="container">
-    <h2>Group Works</h2>
-    <div *ngFor='let groupWork of groupWorksToDisplay()'>
-        <group-work-summary [userId]='userId' [groupWork]='groupWork'></group-work-summary>
+    <h2>Artworks</h2>
+    <div *ngFor='let artWork of artWorksToDisplay()'>
+        <art-work-summary [userId]='userId' [artWork]='artWork'></art-work-summary>
     </div>
     <div>
         <h2>Inventory</h2>
         <span *ngFor='let item of inventaire' [class.selected]='item.selected'>
             <div *ngIf='item.id.startsWith("pix-")' class='inventory-item' [style.backgroundColor]='item.id.substr(4)'></div>
             <div *ngIf='item.id.startsWith("emoji-")' class='inventory-item'>{{ item.id.substr(6) }}</div>
-            <div *ngIf='item.id.startsWith("groupWork-")' class='inventory-item'>groupWork</div>
+            <div *ngIf='item.id.startsWith("artWork-")' class='inventory-item'>artWork</div>
             <b>{{ item.quantity }}</b>
         </span>
     </div>
@@ -17,37 +17,6 @@
     </div>
 </div>
 
-<div *ngIf='creatingGroupWork' class='container'>
-    <art-work-edition [artWork]='creatingGroupWork' (validate)='validateArtwork()' (cancel)='cancelArtwork()'></art-work-edition>
+<div *ngIf='creatingArtWork' class='container'>
+    <art-work-edition [artWork]='creatingArtWork' (validate)='validateArtwork()' (cancel)='cancelArtwork()'></art-work-edition>
 </div>
-
-<!--
-<div class="container">
-    <div *ngIf='selectedGroupWork'>
-        <h2>SELECTED GroupWork</h2>
-        <h3>Grille des lots</h3>
-        <div class='lot-grid'>
-            <div *ngFor='let lot of selectedGroupWork.lotGrid'></div>
-        </div>
-        <h3>Items disponibles</h3>
-        <div *ngFor='let item of availableOffers'>
-            {{ item.title }}
-        </div>
-        <button class='button'>Précédent</button>
-    </div>
-</div>
-
-<div class="container">
-    <canvas #canvas width="400" height="400" style="background:lightgray;width: 40vh;height: 40vh;"></canvas>
-</div>
-
-<div>
-    <h2>Ecran de création d'un lot</h2>
-    <p>Deux étapes</p>
-    <p>Choix taille lot et taille globale</p>
-
-
-
-    <p>Peinture (zone de dessin + pixels disponibles)</p>
-</div>
--->

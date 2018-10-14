@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, Input, Output, EventEmitter, group } from '@angular/core'
+import { Component, OnInit, ViewChild, AfterViewInit, Input, Output, EventEmitter } from '@angular/core'
 import * as Model from './model'
 import * as Paint from './paint'
 import { State } from './state'
@@ -43,7 +43,7 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     }
 
     private context: CanvasRenderingContext2D
-    private _artWork: Model.GroupWork = null
+    private _artWork: Model.ArtWork = null
 
     constructor(
         public state: State
@@ -75,6 +75,6 @@ export class ArtWorkEditionComponent implements AfterViewInit {
         Paint.clear(400, 400, this.context)
         if (this.mouseOver)
             Paint.drawCell(this._artWork, this.mouseOver.x, this.mouseOver.y, 400, 400, this.context)
-        Paint.drawGroupWork(this.state.programState, this._artWork, 400, 400, this.context)
+        Paint.drawArtWork(this.state.programState, this._artWork, 400, 400, this.context)
     }
 }

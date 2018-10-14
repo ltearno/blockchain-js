@@ -1,0 +1,20 @@
+<div class="card">
+    <div class="card-content">
+        <div class="media" (click)='select.emit(artWork)'>
+            <div class="media-left">
+                <canvas #canvas width="400" height="400" style="border:1px solid black; width:15em; height: 15em;"></canvas>
+            </div>
+            <div class="media-content">
+                <p class="title is-4">{{ artWork.title }}</p>
+                <p class="subtitle is-6">{{ artWork.author }}</p>
+                <div>Grid size {{ artWork.size.width }} x {{ artWork.size.height }}</div>
+                <p>{{ artWork.description }}</p>
+                <div *ngIf='artWork.author==userId'>
+                    <span *ngIf='artWork.nbAvailableOffers>0'>{{ artWork.nbAvailableOffers }} available offers</span>
+                    <br />
+                    <button class='button is-primary'>Manage</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
