@@ -1,7 +1,6 @@
 export interface ProgramState {
     accounts: { [id: string]: Account }
     groupWorks: { [id: string]: GroupWork }
-    artWorks: { [id: string]: ArtWork }
 }
 
 export interface Account {
@@ -20,7 +19,7 @@ export interface GroupWork {
     size: { width: number; height: number }
     grid: {
         workItemId: string // id de l'item `groupwork-XXX`, `artwork-XXX`, `pixel-XXX`, `emoji-XXX`
-        ownerId: string // le possesseur
+        ownerId: string // le possesseur initial
         accepted: boolean // contrat accepté avec le possesseur, pour celui-ci, l'objet disparait de son inventaire
     }[] // by line
 }
@@ -31,15 +30,6 @@ export function findGroupWorkCompatibleAvailableWorkItems() {
 
 export function isGroupWorkValidated() {
     // is the whole grid filled with accepted WorkItems ?
-}
-
-export interface ArtWork {
-    id: string
-    title: string
-    description: string
-    author: string
-    size: { width: number; height: number }
-    grid: string[] // by line, each cell's pixel/emoji or null
 }
 
 export function findGroupWorkProposals(workItemId: string) {

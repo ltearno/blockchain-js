@@ -21,10 +21,6 @@ export class SupplyChainComponent {
         return Object.keys(this.state.programState.groupWorks).sort().map(k => this.state.programState.groupWorks[k])
     }
 
-    artWorksToDisplay() {
-        return Object.keys(this.state.programState.artWorks).sort().map(k => this.state.programState.artWorks[k])
-    }
-
     userId = 'me'
     selectedCreation = null
     selectedGroupWork = null
@@ -53,7 +49,7 @@ export class SupplyChainComponent {
 
     creatingGroupWork: Model.GroupWork = null
 
-    initGroupWorkCreation() {
+    initArtWorkCreation() {
         this.creatingGroupWork = {
             id: `r${Math.random()}`,
             author: this.userId,
@@ -64,39 +60,13 @@ export class SupplyChainComponent {
         }
     }
 
-    continueGroupWorkCreation() {
-        this.creatingGroupWork.grid = new Array(
-            this.creatingGroupWork.size.width * this.creatingGroupWork.size.height)
-
+    validateArtwork() {
         this.state.programState.groupWorks[this.creatingGroupWork.id] = this.creatingGroupWork
         // TODO this.state.programState.accounts[this.userId].inventory[this.creatingGroupWork.id]++
-
         this.creatingGroupWork = null
     }
 
-    /**
-     * ArtWork creation
-     */
-
-    creatingArtWork: Model.ArtWork = null
-
-    initArtWorkCreation() {
-        this.creatingArtWork = {
-            id: `r_${Math.random()}`,
-            author: this.userId,
-            title: '',
-            description: '',
-            size: { width: 4, height: 4 },
-            grid: null
-        }
-    }
-
-    validateArtwork() {
-        this.state.programState.artWorks[this.creatingArtWork.id] = this.creatingArtWork
-        this.creatingArtWork = null
-    }
-
     cancelArtwork() {
-        this.creatingArtWork = null
+        this.creatingGroupWork = null
     }
 }  

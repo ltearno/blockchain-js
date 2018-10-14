@@ -6,21 +6,6 @@ export class State {
     programState: ProgramState = {
         accounts: {},
 
-        artWorks: {
-            'oiuyhkjh': {
-                id: 'oiuyhkjh',
-                author: 'me',
-                title: 'My forst artwirk',
-                description: 'Un test',
-                size: { width: 3, height: 3 },
-                grid: [
-                    null, 'pixel-red', 'emoji-😁',
-                    'pixel-red', 'pixel-white', 'pixel-red',
-                    'emoji-😁', 'pixel-red', 'emoji-😂'
-                ]
-            }
-        },
-
         groupWorks: {
             'klkjhf': {
                 id: 'klkjhf',
@@ -49,11 +34,24 @@ export class State {
                 description: 'Un grand H en noir sur blanc, contribuez par des lots noirs.',
                 size: { width: 5, height: 5 },
                 grid: [
-                    { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }, null, null, null, null,
-                    null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }, null, null, null,
-                    null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }, null, null,
-                    null, null, null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false },
-                    null, null, null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }
+                    { ownerId: 'lolite', workItemId: 'groupwork-oiuyhkjh', accepted: false }, null, null, null, null,
+                    null, { ownerId: 'lolite', workItemId: 'groupwork-oiuyhkjh', accepted: false }, null, null, null,
+                    null, null, { ownerId: 'lolite', workItemId: 'groupwork-oiuyhkjh', accepted: false }, null, null,
+                    null, null, null, null, { ownerId: 'lolite', workItemId: 'groupwork-oiuyhkjh', accepted: false },
+                    null, null, null, null, { ownerId: 'lolite', workItemId: 'groupwork-oiuyhkjh', accepted: false }
+                ]
+            },
+
+            'oiuyhkjh': {
+                id: 'oiuyhkjh',
+                author: 'me',
+                title: 'My forst artwirk',
+                description: 'Un test',
+                size: { width: 3, height: 3 },
+                grid: [
+                    null, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' }, { ownerId: 'lolite', accepted: false, workItemId: 'emoji-😁' },
+                    { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' }, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-white' }, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' },
+                    { ownerId: 'lolite', accepted: false, workItemId: 'emoji-😁' }, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' }, { ownerId: 'lolite', accepted: false, workItemId: 'emoji-😂' }
                 ]
             }
         }

@@ -24,8 +24,8 @@ export class ArtWorkEditionComponent implements AfterViewInit {
 
         if (!this._artWork.grid) {
             this._artWork.grid = new Array(this._artWork.size.width * this._artWork.size.height)
-            this._artWork.grid[2 * 2] = "pixel-black"
-            this._artWork.grid[3 * 2] = "emoji-😁"
+            this._artWork.grid[2 * 2] = { ownerId: null, accepted: false, workItemId: "pixel-black" }
+            this._artWork.grid[3 * 2] = { ownerId: null, accepted: false, workItemId: "emoji-😁" }
         }
 
 
@@ -43,7 +43,7 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     }
 
     private context: CanvasRenderingContext2D
-    private _artWork: Model.ArtWork = null
+    private _artWork: Model.GroupWork = null
 
     constructor(
         public state: State
@@ -69,14 +69,12 @@ export class ArtWorkEditionComponent implements AfterViewInit {
         }
 
         this.paint()
-
-        console.log(`move`, this.mouseOver)
     }
 
     private paint() {
         Paint.clear(400, 400, this.context)
         if (this.mouseOver)
             Paint.drawCell(this._artWork, this.mouseOver.x, this.mouseOver.y, 400, 400, this.context)
-        Paint.drawArtWork(this.state.programState, this._artWork, 400, 400, this.context)
+        Paint.drawGroupWork(this.state.programState, this._artWork, 400, 400, this.context)
     }
 }

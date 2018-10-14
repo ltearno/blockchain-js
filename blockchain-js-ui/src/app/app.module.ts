@@ -5,15 +5,13 @@ import { AppComponent } from './app.component'
 import { SupplyChainComponent } from './supply-chain/supply-chain.component'
 import { GroupWorkSummaryComponent } from './supply-chain/group-work-summary.component'
 import { State } from './supply-chain/state'
-import { ArtWorkSummaryComponent } from './supply-chain/art-work-summary.component';
-import { ArtWorkEditionComponent } from './supply-chain/art-work-edition.component';
+import { ArtWorkEditionComponent } from './supply-chain/art-work-edition.component'
 
 @NgModule({
   declarations: [
     AppComponent,
     SupplyChainComponent,
     GroupWorkSummaryComponent,
-    ArtWorkSummaryComponent,
     ArtWorkEditionComponent
   ],
   imports: [

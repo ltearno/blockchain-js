@@ -38,11 +38,12 @@ export class GroupWorkSummaryComponent implements AfterViewInit {
     ngAfterViewInit() {
         let canvas = this.canvas.nativeElement
         this.context = canvas.getContext("2d")
-        
+
         this.paint()
     }
 
     private paint() {
+        //Paint.clear(400, 400, this.context)
         this._groupWork && this.context && Paint.drawGroupWork(this.state.programState, this._groupWork, 400, 400, this.context)
     }
 }
