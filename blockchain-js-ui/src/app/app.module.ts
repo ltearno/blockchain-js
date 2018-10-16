@@ -6,13 +6,15 @@ import { SupplyChainComponent } from './supply-chain/supply-chain.component'
 import { ArtWorkSummaryComponent } from './supply-chain/art-work-summary.component'
 import { State } from './supply-chain/state'
 import { ArtWorkEditionComponent } from './supply-chain/art-work-edition.component'
+import { ArtWorkIconComponent } from './supply-chain/art-work-icon.component'
 
 @NgModule({
   declarations: [
     AppComponent,
     SupplyChainComponent,
     ArtWorkSummaryComponent,
-    ArtWorkEditionComponent
+    ArtWorkEditionComponent,
+    ArtWorkIconComponent
   ],
   imports: [
     BrowserModule,

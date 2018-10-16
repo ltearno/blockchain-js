@@ -21,27 +21,14 @@ export class SupplyChainComponent {
         return Object.keys(this.state.programState.artWorks).sort().map(k => this.state.programState.artWorks[k])
     }
 
-    userId = 'me'
     selectedCreation = null
     selectedArtWork = null
+    selectedInInventory = null
 
-    inventaire = [
-        {
-            id: 'pix-red',
-            quantity: 2,
-            selected: false // should be processed from the data structure
-        },
-        {
-            id: 'pix-green',
-            quantity: 1,
-            selected: false
-        },
-        {
-            id: 'emoji-😁',
-            quantity: 3,
-            selected: true
-        }
-    ]
+    get inventory() {
+        let inv = this.state.programState.accounts[this.state.userId].inventory
+        return Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId] }))
+    }
 
     /**
      * ArtWork creation
@@ -52,7 +39,7 @@ export class SupplyChainComponent {
     initArtWorkCreation() {
         this.creatingArtWork = {
             id: `r${Math.random()}`,
-            author: this.userId,
+            author: this.state.userId,
             title: '',
             description: '',
             size: { width: 4, height: 4 },

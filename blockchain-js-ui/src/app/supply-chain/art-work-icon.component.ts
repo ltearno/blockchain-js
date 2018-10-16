@@ -4,33 +4,37 @@ import * as Paint from './paint'
 import { State } from './state'
 
 @Component({
-    selector: 'art-work-summary',
-    templateUrl: './art-work-summary.component.html'
+    selector: 'art-work-icon',
+    templateUrl: './art-work-icon.component.html'
 })
-export class ArtWorkSummaryComponent implements AfterViewInit {
+export class ArtWorkIconComponent implements AfterViewInit {
     @ViewChild("canvas")
     canvas
 
     private context: CanvasRenderingContext2D
-    private _artWork: Model.ArtWork = null
+    private _artWorkId: string = null
 
     constructor(
         public state: State
     ) { }
 
     @Input()
-    set artWork(artWork) {
-        this._artWork = artWork
+    set artWorkId(artWorkId) {
+        this._artWorkId = artWorkId
 
         this.paint()
     }
 
-    get artWork() {
-        return this._artWork
+    get artWorkId() {
+        return this._artWorkId
     }
 
     @Output()
-    select = new EventEmitter<Model.ArtWork>()
+    selected = new EventEmitter<null>()
+
+    select() {
+        this.selected.emit()
+    }
 
     ngAfterViewInit() {
         let canvas = this.canvas.nativeElement
@@ -40,7 +44,6 @@ export class ArtWorkSummaryComponent implements AfterViewInit {
     }
 
     private paint() {
-        //Paint.clear(400, 400, this.context)
-        this._artWork && this.context && Paint.drawArtWork(this.state.programState, this._artWork, 400, 400, this.context)
+        this._artWorkId && this.context && Paint.drawWorkItem(this.state.programState, this._artWorkId, 400, 400, this.context)
     }
 }

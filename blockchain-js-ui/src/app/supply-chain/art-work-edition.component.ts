@@ -18,6 +18,13 @@ export class ArtWorkEditionComponent implements AfterViewInit {
         y: number
     } = null
 
+    selectedInInventory = null
+
+    get inventory() {
+        let inv = this.state.programState.accounts[this.state.userId].inventory
+        return Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId] }))
+    }
+
     @Input()
     set artWork(artWork) {
         this._artWork = artWork
@@ -67,6 +74,12 @@ export class ArtWorkEditionComponent implements AfterViewInit {
             x: Math.floor(x * this._artWork.size.width),
             y: Math.floor(y * this._artWork.size.height)
         }
+
+        this.paint()
+    }
+
+    mouseOut() {
+        this.mouseOver = null
 
         this.paint()
     }

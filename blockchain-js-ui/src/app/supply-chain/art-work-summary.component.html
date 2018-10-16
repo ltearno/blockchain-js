@@ -9,7 +9,7 @@
                 <p class="subtitle is-6">{{ artWork.author }}</p>
                 <div>Grid size {{ artWork.size.width }} x {{ artWork.size.height }}</div>
                 <p>{{ artWork.description }}</p>
-                <div *ngIf='artWork.author==userId'>
+                <div *ngIf='artWork.author==state.userId'>
                     <span *ngIf='artWork.nbAvailableOffers>0'>{{ artWork.nbAvailableOffers }} available offers</span>
                     <br />
                     <button class='button is-primary'>Manage</button>

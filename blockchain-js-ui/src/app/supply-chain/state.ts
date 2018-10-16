@@ -3,8 +3,21 @@ import { Injectable } from '@angular/core';
 
 @Injectable()
 export class State {
+    userId: string = "ltearno@gmail.com"
+
     programState: ProgramState = {
-        accounts: {},
+        accounts: {
+            "ltearno@gmail.com": {
+                email: "ltearno@gmail.com",
+                inventory: {
+                    'pixel-red': 20,
+                    'pixel-green': 3,
+                    'emoji-😁': 5,
+                    'oiuyhkjh': 1,
+                    'klkjhf': 2
+                }
+            }
+        },
 
         artWorks: {
             'klkjhf': {
@@ -21,7 +34,7 @@ export class State {
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
-                    null, { ownerId: 'lolite', workItemId: 'artwork-swujb', accepted: false }, null, null, null, null, null, null, null, null,
+                    null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null
                 ]
@@ -49,7 +62,7 @@ export class State {
                 description: 'Un test',
                 size: { width: 3, height: 3 },
                 grid: [
-                    null, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' }, { ownerId: 'lolite', accepted: false, workItemId: 'emoji-😁' },
+                    { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' }, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' }, { ownerId: 'lolite', accepted: false, workItemId: 'emoji-😁' },
                     { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' }, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-white' }, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' },
                     { ownerId: 'lolite', accepted: false, workItemId: 'emoji-😁' }, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' }, { ownerId: 'lolite', accepted: false, workItemId: 'emoji-😂' }
                 ]
