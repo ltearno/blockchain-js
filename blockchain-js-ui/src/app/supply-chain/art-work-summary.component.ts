@@ -32,6 +32,9 @@ export class ArtWorkSummaryComponent implements AfterViewInit {
     @Output()
     select = new EventEmitter<Model.ArtWork>()
 
+    @Output()
+    edit = new EventEmitter<Model.ArtWork>()
+
     ngAfterViewInit() {
         let canvas = this.canvas.nativeElement
         this.context = canvas.getContext("2d")

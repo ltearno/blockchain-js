@@ -22,7 +22,8 @@
     <p class="help">Size of the grid</p>
 </div>
 
-<canvas #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()' (click)='mouseClick($event)' width="400" height="400" style="border:1px solid black; width:15em; height: 15em;"></canvas>
+<canvas #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()' (click)='mouseClick($event)' width="400" height="400"
+    style="border:1px solid black; width:15em; height: 15em;"></canvas>
 
 <h2>Inventory</h2>
 <span *ngFor='let item of inventory' [class.selected]='item.id == selectedInInventory'>
@@ -36,5 +37,7 @@
     <b>{{ item.count }}</b>
 </span>
 
-<button class="button is-primary" (click)='validate.emit()'>Publish ArtWork</button>
-<button class="button" (click)='cancel.emit()'>Cancel</button>
+<div>
+    <button class="button is-primary" (click)='validate.emit()'>Publish ArtWork</button>
+    <button class="button" (click)='cancel.emit()'>Cancel</button>
+</div>

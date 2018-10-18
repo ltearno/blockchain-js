@@ -112,10 +112,29 @@ export class ArtWorkEditionComponent implements AfterViewInit {
             return
 
         let coords = this.pointToCoordinates(event.clientX, event.clientY)
+        let coordIndex = coords.x + this._artWork.size.width * coords.y
 
-        this._artWork.grid[coords.x + this._artWork.size.width * coords.y] = {
-            ownerId: this.state.userId,
-            workItemId: itemId
+        if (this._artWork.grid[coordIndex]) {
+
+        }
+        else {
+            if (this.selectedInInventory) {
+                if (this.state.programState.accounts[this.state.userId].inventory[this.selectedInInventory] > 0) {
+                    this._artWork.grid[coordIndex] = {
+                        ownerId: this.state.userId,
+                        workItemId: itemId,
+                        accepted: true
+                    }
+                    this.state.programState.accounts[this.state.userId].inventory[this.selectedInInventory]--
+                }
+            }
+            else if (this.selectedInOthersInventory) {
+                this._artWork.grid[coordIndex] = {
+                    ownerId: this.state.userId,
+                    workItemId: itemId,
+                    accepted: false
+                }
+            }
         }
 
         this.paint()

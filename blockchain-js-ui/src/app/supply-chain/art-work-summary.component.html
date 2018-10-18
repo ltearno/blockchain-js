@@ -12,7 +12,7 @@
                 <div *ngIf='artWork.author==state.userId'>
                     <span *ngIf='artWork.nbAvailableOffers>0'>{{ artWork.nbAvailableOffers }} available offers</span>
                     <br />
-                    <button class='button is-primary'>Manage</button>
+                    <button class='button is-primary' (click)='edit.emit(artWork)'>Edit</button>
                 </div>
             </div>
         </div>

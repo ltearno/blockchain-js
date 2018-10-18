@@ -48,6 +48,10 @@ export class SupplyChainComponent {
         }
     }
 
+    editArtWork(artwork) {
+        this.editingArtwork = artwork
+    }
+
     validateArtwork() {
         this.state.programState.artWorks[this.editingArtwork.id] = this.editingArtwork
         // TODO this.state.programState.accounts[this.userId].inventory[this.editingArtwork.id]++
