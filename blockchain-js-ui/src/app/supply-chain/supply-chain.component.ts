@@ -34,10 +34,10 @@ export class SupplyChainComponent {
      * ArtWork creation
      */
 
-    creatingArtWork: Model.ArtWork = null
+    editingArtwork: Model.ArtWork = null
 
     initArtWorkCreation() {
-        this.creatingArtWork = {
+        this.editingArtwork = {
             id: `r${Math.random()}`,
             author: this.state.userId,
             title: '',
@@ -49,12 +49,12 @@ export class SupplyChainComponent {
     }
 
     validateArtwork() {
-        this.state.programState.artWorks[this.creatingArtWork.id] = this.creatingArtWork
-        // TODO this.state.programState.accounts[this.userId].inventory[this.creatingArtWork.id]++
-        this.creatingArtWork = null
+        this.state.programState.artWorks[this.editingArtwork.id] = this.editingArtwork
+        // TODO this.state.programState.accounts[this.userId].inventory[this.editingArtwork.id]++
+        this.editingArtwork = null
     }
 
     cancelArtwork() {
-        this.creatingArtWork = null
+        this.editingArtwork = null
     }
 }  

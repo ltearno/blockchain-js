@@ -1,4 +1,4 @@
-<div *ngIf='!creatingArtWork' class="container">
+<div *ngIf='!editingArtwork' class="container">
     <h2>Artworks</h2>
     <div *ngFor='let artWork of artWorksToDisplay()'>
         <art-work-summary [artWork]='artWork'></art-work-summary>
@@ -15,6 +15,6 @@
     </div>
 </div>
 
-<div *ngIf='creatingArtWork' class='container'>
-    <art-work-edition [artWork]='creatingArtWork' (validate)='validateArtwork()' (cancel)='cancelArtwork()'></art-work-edition>
+<div *ngIf='editingArtwork' class='container'>
+    <art-work-edition [artWork]='editingArtwork' (validate)='validateArtwork()' (cancel)='cancelArtwork()'></art-work-edition>
 </div>
