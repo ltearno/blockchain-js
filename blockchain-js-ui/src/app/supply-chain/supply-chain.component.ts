@@ -42,6 +42,7 @@ export class SupplyChainComponent {
             author: this.state.userId,
             title: '',
             description: '',
+            validated: false,
             size: { width: 4, height: 4 },
             grid: null
         }

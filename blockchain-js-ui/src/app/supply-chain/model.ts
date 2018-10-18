@@ -16,11 +16,12 @@ export interface ArtWork {
     title: string
     description: string
     author: string
+    validated: boolean // if the ArtWork is finished (all cells with workitems must be accepted)
     size: { width: number; height: number }
     grid: {
         workItemId: string // id de l'item `artwork-XXX`, `pixel-XXX`, `emoji-XXX`
         ownerId: string // le possesseur initial
-        accepted: boolean // contrat accepté avec le possesseur, pour celui-ci, l'objet disparait de son inventaire
+        accepted?: boolean // contrat accepté avec le possesseur (si différent de l'auteur), pour celui-ci, l'objet disparait de son inventaire
     }[] // by line
 }
 

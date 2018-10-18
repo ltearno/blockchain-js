@@ -5,7 +5,12 @@ import { State } from './state'
 
 @Component({
     selector: 'art-work-edition',
-    templateUrl: './art-work-edition.component.html'
+    templateUrl: './art-work-edition.component.html',
+    styles: [`
+    .selected {
+        border: 1px solid black;
+    }
+    `]
 })
 export class ArtWorkEditionComponent implements AfterViewInit {
     @ViewChild("canvas")
@@ -19,10 +24,25 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     } = null
 
     selectedInInventory = null
+    selectedInOthersInventory = null
 
     get inventory() {
         let inv = this.state.programState.accounts[this.state.userId].inventory
         return Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId] }))
+    }
+
+    get othersInventory() {
+        let res = {}
+        Object.keys(this.state.programState.accounts).filter(userId => userId != this.state.userId).forEach(userId => {
+            let inv = this.state.programState.accounts[this.state.userId].inventory
+            Object.keys(inv).forEach(itemId => {
+                if (!res[itemId])
+                    res[itemId] = 0
+                res[itemId] += inv[itemId]
+            })
+        })
+
+        return Object.keys(res).map(itemId => ({ id: itemId, count: res[itemId] }))
     }
 
     @Input()
@@ -65,15 +85,17 @@ export class ArtWorkEditionComponent implements AfterViewInit {
         this.paint()
     }
 
-    mouseMove(event: MouseEvent) {
+    private pointToCoordinates(x: number, y: number) {
         let rect = this.canvasElement.getBoundingClientRect()
-        let x = (event.clientX - rect.left) / (rect.right - rect.left)
-        let y = (event.clientY - rect.top) / (rect.bottom - rect.top)
 
-        this.mouseOver = {
-            x: Math.floor(x * this._artWork.size.width),
-            y: Math.floor(y * this._artWork.size.height)
+        return {
+            x: Math.floor(((x - rect.left) / (rect.right - rect.left)) * this._artWork.size.width),
+            y: Math.floor(((y - rect.top) / (rect.bottom - rect.top)) * this._artWork.size.height)
         }
+    }
+
+    mouseMove(event: MouseEvent) {
+        this.mouseOver = this.pointToCoordinates(event.clientX, event.clientY)
 
         this.paint()
     }
@@ -82,6 +104,31 @@ export class ArtWorkEditionComponent implements AfterViewInit {
         this.mouseOver = null
 
         this.paint()
+    }
+
+    mouseClick(event: MouseEvent) {
+        let itemId = this.selectedInInventory || this.selectedInOthersInventory
+        if (!itemId)
+            return
+
+        let coords = this.pointToCoordinates(event.clientX, event.clientY)
+
+        this._artWork.grid[coords.x + this._artWork.size.width * coords.y] = {
+            ownerId: this.state.userId,
+            workItemId: itemId
+        }
+
+        this.paint()
+    }
+
+    selectInventory(itemId) {
+        this.selectedInOthersInventory = null
+        this.selectedInInventory = itemId
+    }
+
+    selectOthersInventory(itemId) {
+        this.selectedInInventory = null
+        this.selectedInOthersInventory = itemId
     }
 
     private paint() {

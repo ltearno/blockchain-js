@@ -22,11 +22,17 @@
     <p class="help">Size of the grid</p>
 </div>
 
-<canvas #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()' width="400" height="400" style="border:1px solid black; width:15em; height: 15em;"></canvas>
+<canvas #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()' (click)='mouseClick($event)' width="400" height="400" style="border:1px solid black; width:15em; height: 15em;"></canvas>
 
 <h2>Inventory</h2>
 <span *ngFor='let item of inventory' [class.selected]='item.id == selectedInInventory'>
-    <art-work-icon [artWorkId]='item.id'></art-work-icon>
+    <art-work-icon [artWorkId]='item.id' (selected)='selectInventory(item.id)'></art-work-icon>
+    <b>{{ item.count }}</b>
+</span>
+
+<h2>Others Inventory</h2>
+<span *ngFor='let item of othersInventory' [class.selected]='item.id == selectedInOthersInventory'>
+    <art-work-icon [artWorkId]='item.id' (selected)='selectOthersInventory(item.id)'></art-work-icon>
     <b>{{ item.count }}</b>
 </span>
 
