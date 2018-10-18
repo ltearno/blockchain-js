@@ -51,8 +51,8 @@ export class ArtWorkEditionComponent implements AfterViewInit {
 
         if (!this._artWork.grid) {
             this._artWork.grid = new Array(this._artWork.size.width * this._artWork.size.height)
-            this._artWork.grid[2 * 2] = { ownerId: null, accepted: false, workItemId: "pixel-black" }
-            this._artWork.grid[3 * 2] = { ownerId: null, accepted: false, workItemId: "emoji-😁" }
+            this._artWork.grid[2 * 2] = { ownerId: null, workItemId: "pixel-black" }
+            this._artWork.grid[3 * 2] = { ownerId: null, workItemId: "emoji-😁" }
         }
 
 
@@ -107,32 +107,40 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     }
 
     mouseClick(event: MouseEvent) {
-        let itemId = this.selectedInInventory || this.selectedInOthersInventory
-        if (!itemId)
-            return
-
         let coords = this.pointToCoordinates(event.clientX, event.clientY)
         let coordIndex = coords.x + this._artWork.size.width * coords.y
 
         if (this._artWork.grid[coordIndex]) {
+            let ownerId = this._artWork.grid[coordIndex].ownerId
+            let itemId = this._artWork.grid[coordIndex].workItemId
 
+            this._artWork.grid[coordIndex] = null
+
+            if (ownerId) {
+                if (!this.state.programState.accounts[ownerId].inventory[itemId])
+                    this.state.programState.accounts[ownerId].inventory[itemId] = 0
+                this.state.programState.accounts[ownerId].inventory[itemId]++
+            }
         }
         else {
+            let itemId = this.selectedInInventory || this.selectedInOthersInventory
+            if (!itemId)
+                return
+
             if (this.selectedInInventory) {
                 if (this.state.programState.accounts[this.state.userId].inventory[this.selectedInInventory] > 0) {
                     this._artWork.grid[coordIndex] = {
                         ownerId: this.state.userId,
-                        workItemId: itemId,
-                        accepted: true
+                        workItemId: itemId
                     }
+
                     this.state.programState.accounts[this.state.userId].inventory[this.selectedInInventory]--
                 }
             }
             else if (this.selectedInOthersInventory) {
                 this._artWork.grid[coordIndex] = {
-                    ownerId: this.state.userId,
-                    workItemId: itemId,
-                    accepted: false
+                    ownerId: null,
+                    workItemId: itemId
                 }
             }
         }

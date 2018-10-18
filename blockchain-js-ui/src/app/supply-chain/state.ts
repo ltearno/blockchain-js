@@ -35,6 +35,15 @@ export class State {
                     'emoji-🎷': 5,
                     'artwork-swujb': 3
                 }
+            },
+
+            "lolite": {
+                email: "lolite",
+                inventory: {
+                    'pixel-purple': 3,
+                    'emoji-🎷': 5,
+                    'artwork-swujb': 3
+                }
             }
         },
 
@@ -49,12 +58,12 @@ export class State {
                 grid: [
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
-                    null, null, null, { ownerId: 'lolite', workItemId: 'artwork-swujb', accepted: false }, null, null, null, null, null, null,
+                    null, null, null, { ownerId: 'lolite', workItemId: 'artwork-swujb' }, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
-                    null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }, null, null, null, null, null, null, null, null,
+                    null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' }, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null
                 ]
@@ -68,11 +77,11 @@ export class State {
                 validated: false,
                 size: { width: 5, height: 5 },
                 grid: [
-                    { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }, null, null, null, null,
-                    null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }, null, null, null,
-                    null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }, null, null,
-                    null, null, null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false },
-                    null, null, null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh', accepted: false }
+                    { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' }, null, null, null, null,
+                    null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' }, null, null, null,
+                    null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' }, null, null,
+                    null, null, null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' },
+                    null, null, null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' }
                 ]
             },
 
@@ -84,9 +93,9 @@ export class State {
                 validated: false,
                 size: { width: 3, height: 3 },
                 grid: [
-                    { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' }, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' }, { ownerId: 'lolite', accepted: false, workItemId: 'emoji-😁' },
-                    { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' }, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-white' }, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' },
-                    { ownerId: 'lolite', accepted: false, workItemId: 'emoji-😁' }, { ownerId: 'lolite', accepted: false, workItemId: 'pixel-red' }, { ownerId: 'lolite', accepted: false, workItemId: 'emoji-😂' }
+                    { ownerId: 'lolite', workItemId: 'pixel-red' }, { ownerId: 'lolite', workItemId: 'pixel-red' }, { ownerId: 'lolite', workItemId: 'emoji-😁' },
+                    { ownerId: 'lolite', workItemId: 'pixel-red' }, { ownerId: 'lolite', workItemId: 'pixel-white' }, { ownerId: 'lolite', workItemId: 'pixel-red' },
+                    { ownerId: 'lolite', workItemId: 'emoji-😁' }, { ownerId: 'lolite', workItemId: 'pixel-red' }, { ownerId: 'lolite', workItemId: 'emoji-😂' }
                 ]
             }
         }
