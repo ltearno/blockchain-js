@@ -72,7 +72,7 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     set artWork(artWork) {
         this._artWork = artWork
 
-        Model.updateArtWorkGrid(this._artWork)
+        this.state.suppyChain.updateArtWorkGrid(this._artWork)
 
         this.paint()
     }
@@ -115,20 +115,20 @@ export class ArtWorkEditionComponent implements AfterViewInit {
         }
     }
 
-    updateArtWorkTitle(title) {
-        Model.updateArtWorkTitle(this.state.programState, this._artWork.id, title)
+    async updateArtWorkTitle(title) {
+        await this.state.suppyChain.updateArtWorkTitle(this._artWork.id, title)
     }
 
-    updateArtWorkDescription(description) {
-        Model.updateArtWorkDescription(this.state.programState, this._artWork.id, description)
+    async updateArtWorkDescription(description) {
+        await this.state.suppyChain.updateArtWorkDescription(this._artWork.id, description)
     }
 
-    changeArtWorkSize(width, height) {
-        Model.updateArtWorkSize(this.state.programState, this._artWork.id, width, height)
+    async changeArtWorkSize(width, height) {
+        await this.state.suppyChain.updateArtWorkSize(this._artWork.id, width, height)
 
         // when model is not yet registered (creation phase), update the local structure
         if (!this.state.programState.artWorks[this._artWork.id])
-            Model.updateArtWorkGrid(this._artWork)
+            await this.state.suppyChain.updateArtWorkGrid(this._artWork)
 
         this.paint()
     }
@@ -145,12 +145,12 @@ export class ArtWorkEditionComponent implements AfterViewInit {
         this.paint()
     }
 
-    mouseClick(event: MouseEvent) {
+    async mouseClick(event: MouseEvent) {
         let coords = this.pointToCoordinates(event.clientX, event.clientY)
         let coordIndex = coords.x + this._artWork.size.width * coords.y
 
         if (this._artWork.grid[coordIndex]) {
-            Model.removeCellFromArtWork(this.state.programState, this._artWork.id, coords.x, coords.y)
+            await this.state.suppyChain.removeCellFromArtWork(this._artWork.id, coords.x, coords.y)
         }
         else {
             let itemId = this.selectedInInventory || this.selectedInOthersInventory
@@ -158,10 +158,10 @@ export class ArtWorkEditionComponent implements AfterViewInit {
                 return
 
             if (this.selectedInInventory) {
-                Model.addItemInArtWorkFromInventory(this.state.programState, this._artWork.id, this.selectedInInventory, coords.x, coords.y)
+                await this.state.suppyChain.addItemInArtWorkFromInventory(this._artWork.id, this.selectedInInventory, coords.x, coords.y)
             }
             else if (this.selectedInOthersInventory) {
-                Model.askItemForArtWork(this.state.programState, this._artWork.id, this.selectedInOthersInventory, coords.x, coords.y)
+                await this.state.suppyChain.askItemForArtWork(this._artWork.id, this.selectedInOthersInventory, coords.x, coords.y)
             }
         }
 
@@ -178,8 +178,8 @@ export class ArtWorkEditionComponent implements AfterViewInit {
         this.selectedInOthersInventory = itemId
     }
 
-    canValidate() {
-        return Model.canValidateArtWork(this._artWork)
+    async canValidate() {
+        return await this.state.suppyChain.canValidateArtWork(this._artWork)
     }
 
     private paint() {

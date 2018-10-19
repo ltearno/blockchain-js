@@ -19,6 +19,7 @@ import {
 import * as PeerToPeer from 'rencontres'
 import * as CryptoJS from 'crypto-js'
 import { WebSocketConnector } from 'blockchain-js-core/dist/websocket-connector';
+import { State } from './supply-chain/state';
 
 const NETWORK_CLIENT_IMPL = new NetworkClientBrowserImpl.NetworkClientBrowserImpl()
 const STORAGE_BLOCKS = 'blocks'
@@ -31,8 +32,6 @@ const RANDOM_GENERATOR_CONTRACT_ID = "random-generator-v1"
 function sleep(time: number) {
   return new Promise((resolve, reject) => setTimeout(resolve, time))
 }
-
-declare function require(v: any): any;
 
 // TODO affichger la profondeur des données (pour savoir si elles sont fiables)
 // TODO affichage tous messages
@@ -132,7 +131,7 @@ export class AppComponent {
     return count
   }
 
-  constructor() {
+  constructor(private applicationState: State) {
     this.onUnloadListener = event => {
       if (this.autoSave) {
         this.saveBlocks()
@@ -151,7 +150,7 @@ export class AppComponent {
     this.initFullNode()
 
     setTimeout(() => {
-      this.registerIdentity(this.userComment || 'no comment')
+      this.registerIdentity(this.userComment)
     }, 5000)
 
     this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`${location.protocol == 'https' ? 'wss' : 'ws'}://${window.location.hostname}:8999/signal`,
@@ -309,6 +308,8 @@ export class AppComponent {
     this.smartContract = new SmartContract.SmartContract(this.fullNode.node, Block.MASTER_BRANCH, 'people', this.fullNode.miner)
     this.smartContract.initialise()
 
+    this.applicationState.suppyChain.setSmartContract(this.smartContract)
+
     this.callContract = async (contractUuid, iterationId, method, account, data) => {
       data.email = account.email
       if (this.smartContract.hasContract(contractUuid)) {
@@ -338,8 +339,17 @@ export class AppComponent {
   // TODO : first time pseudo is validate AND smart contracts are available
   async registerIdentity(comment: string) {
     let result = await this.registerIdentityImpl(comment)
-    if (!result)
+    if (!result) {
       setTimeout(() => this.registerIdentity(comment), 5000)
+    }
+    else {
+      setTimeout(() => this.registerAccount(), 5000)
+    }
+  }
+
+  async registerAccount() {
+    console.log(`try registering account on supply chain`)
+    await this.applicationState.suppyChain.createAccount()
   }
 
   async registerIdentityImpl(comment: string): Promise<boolean> {

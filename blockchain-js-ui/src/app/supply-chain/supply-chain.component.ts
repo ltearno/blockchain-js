@@ -82,14 +82,14 @@ export class SupplyChainComponent {
         this.editingArtwork = artwork
     }
 
-    saveArtwork() {
+    async saveArtwork() {
         let editingArtwork = this.editingArtwork
         this.editingArtwork = null
 
         if (this.state.programState.artWorks[editingArtwork.id] == editingArtwork)
             return
 
-        Model.registerArtWork(this.state.programState, editingArtwork)
+        await this.state.suppyChain.registerArtWork(editingArtwork)
     }
 
     cancelArtwork() {
@@ -97,7 +97,7 @@ export class SupplyChainComponent {
     }
 
     validateArtWork(artWork: Model.ArtWork) {
-        Model.validateArtWork(this.state.programState, artWork.id)
+        this.state.suppyChain.validateArtWork(artWork.id)
 
         this.editingArtwork = null
     }
@@ -107,6 +107,6 @@ export class SupplyChainComponent {
      */
 
     acceptGivingItem(itemId: string, artWorkId: string) {
-        Model.acceptGivingItem(this.state.programState, this.state.userId, itemId, artWorkId)
+        this.state.suppyChain.acceptGivingItem(this.state.userId, itemId, artWorkId)
     }
 }
