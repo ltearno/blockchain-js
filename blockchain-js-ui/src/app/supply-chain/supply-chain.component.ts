@@ -3,9 +3,6 @@ import * as Model from './model'
 import * as Paint from './paint'
 import { State } from './state';
 
-const WIDTH = 400
-const HEIGHT = 400
-
 @Component({
     selector: 'supply-chain',
     templateUrl: './supply-chain.component.html',
@@ -92,13 +89,7 @@ export class SupplyChainComponent {
         if (this.state.programState.artWorks[editingArtwork.id] == editingArtwork)
             return
 
-        // register the artwork
-
-        this.state.programState.artWorks[editingArtwork.id] = editingArtwork
-
-        if (!this.state.programState.accounts[this.state.userId].inventory['artwork-' + editingArtwork.id])
-            this.state.programState.accounts[this.state.userId].inventory['artwork-' + editingArtwork.id] = 0
-        this.state.programState.accounts[this.state.userId].inventory['artwork-' + editingArtwork.id]++
+        Model.registerArtWork(this.state.programState, editingArtwork)
     }
 
     cancelArtwork() {
@@ -106,70 +97,9 @@ export class SupplyChainComponent {
     }
 
     validateArtWork(artWork: Model.ArtWork) {
-        if (!this.canValidate(artWork))
-            return
-
-        artWork.validated = true
-
-        // redistribute goods
-        this.state.programState.redistributableItems.push('artwork-' + artWork.id)
-        // compte les participations par personne
-        let participations = {}
-        this.addParticipations(artWork, participations)
-        // redistribuer entre tous les pixels/emojis + artworks validés enregistrés
+        Model.validateArtWork(this.state.programState, artWork.id)
 
         this.editingArtwork = null
-    }
-
-    // every cell is either innoccupied or ownerId has been set
-    private canValidate(artWork: Model.ArtWork) {
-        return artWork.grid && artWork.grid.every(cell => !cell || cell.ownerId != null)
-    }
-
-    private addParticipations(artWork: Model.ArtWork, participations: { [userId: string]: number }) {
-        if (!artWork.validated)
-            return
-
-        if (!participations[artWork.author])
-            participations[artWork.author] = 0
-        participations[artWork.author]++
-
-        artWork.grid.forEach(cell => {
-            if (!cell)
-                return
-
-            if (cell.workItemId.startsWith('pixel-') || cell.workItemId.startsWith('emoji-')) {
-                if (!participations[cell.ownerId])
-                    participations[cell.ownerId] = 0
-                participations[cell.ownerId]++
-            }
-            else if (cell.workItemId.startsWith('artwork-')) {
-                this.addParticipations(this.state.programState.artWorks[cell.workItemId.substr('artwork-'.length)], participations)
-            }
-            else {
-                console.error(`unkown item id`)
-            }
-        })
-
-        console.log(`Participations`, participations)
-
-        for (let userId in participations) {
-            let count = participations[userId]
-            while (count--) {
-                let winnedItemId = this.pickRedistributableItem()
-                let inventory = this.state.programState.accounts[userId].inventory
-                if (!inventory[winnedItemId])
-                    inventory[winnedItemId] = 1
-                else
-                    inventory[winnedItemId]++
-
-                console.log(`user ${userId} won ${winnedItemId}`)
-            }
-        }
-    }
-
-    private pickRedistributableItem() {
-        return this.state.programState.redistributableItems[Math.ceil(this.state.programState.redistributableItems.length * Math.random())]
     }
 
     /**
@@ -177,17 +107,6 @@ export class SupplyChainComponent {
      */
 
     acceptGivingItem(itemId: string, artWorkId: string) {
-        if (this.state.programState.accounts[this.state.userId].inventory[itemId] <= 0)
-            return
-        const artWork = this.state.programState.artWorks[artWorkId]
-        if (!artWork || artWork.validated)
-            return
-
-        let fittingCell = artWork.grid.find(cell => cell && cell.workItemId == itemId && !cell.ownerId)
-        if (!fittingCell)
-            return
-
-        fittingCell.ownerId = this.state.userId
-        this.state.programState.accounts[this.state.userId].inventory[itemId]--
+        Model.acceptGivingItem(this.state.programState, this.state.userId, itemId, artWorkId)
     }
 }

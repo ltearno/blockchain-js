@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, AfterViewInit, Input, Output, EventEmitte
 import * as Model from './model'
 import * as Paint from './paint'
 import { State } from './state'
+import { text } from '@angular/core/src/render3/instructions';
 
 @Component({
     selector: 'art-work-summary',
@@ -52,7 +53,7 @@ export class ArtWorkSummaryComponent implements AfterViewInit {
     }
 
     sendMessage(artWorkId: string, textInput: HTMLInputElement) {
-        this.state.programState.artWorks[artWorkId].messages.push({ author: this.state.userId, text: textInput.value })
+        Model.sendMessageOnArtWork(this.state.programState, this.state.userId, artWorkId, textInput.value)
         textInput.value = ''
     }
 }

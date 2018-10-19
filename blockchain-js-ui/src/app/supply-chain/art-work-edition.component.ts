@@ -72,23 +72,9 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     set artWork(artWork) {
         this._artWork = artWork
 
-        this.updateArtWorkGrid()
+        Model.updateArtWorkGrid(this._artWork)
 
         this.paint()
-    }
-
-    private updateArtWorkGrid() {
-        let normalLength = this._artWork.size.width * this._artWork.size.height
-
-        if (!this._artWork.grid) {
-            this._artWork.grid = new Array(normalLength)
-        }
-        else if (this._artWork.grid.length < normalLength) {
-            this._artWork.grid = this._artWork.grid.concat(new Array(normalLength - this._artWork.grid.length).fill(null))
-        }
-        else if (this._artWork.grid.length > normalLength) {
-            this._artWork.grid.slice(0)
-        }
     }
 
     @Output()
@@ -130,10 +116,7 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     }
 
     changeArtWorkSize(width, height) {
-        this._artWork.size.width = width
-        this._artWork.size.height = height
-
-        this.updateArtWorkGrid()
+        Model.updateArtWorkSize(this.state.programState, this._artWork.id, width, height)
 
         this.paint()
     }
@@ -155,18 +138,7 @@ export class ArtWorkEditionComponent implements AfterViewInit {
         let coordIndex = coords.x + this._artWork.size.width * coords.y
 
         if (this._artWork.grid[coordIndex]) {
-            let ownerId = this._artWork.grid[coordIndex].ownerId
-            let itemId = this._artWork.grid[coordIndex].workItemId
-
-            this._artWork.grid[coordIndex] = null
-
-            if (ownerId) {
-                if (ownerId == this.state.userId) { // cannot reverse an agreement !
-                    if (!this.state.programState.accounts[ownerId].inventory[itemId])
-                        this.state.programState.accounts[ownerId].inventory[itemId] = 0
-                    this.state.programState.accounts[ownerId].inventory[itemId]++
-                }
-            }
+            Model.removeCellFromArtWork(this.state.programState, this._artWork.id, coords.x, coords.y)
         }
         else {
             let itemId = this.selectedInInventory || this.selectedInOthersInventory
@@ -174,20 +146,10 @@ export class ArtWorkEditionComponent implements AfterViewInit {
                 return
 
             if (this.selectedInInventory) {
-                if (this.state.programState.accounts[this.state.userId].inventory[this.selectedInInventory] > 0) {
-                    this._artWork.grid[coordIndex] = {
-                        ownerId: this.state.userId,
-                        workItemId: itemId
-                    }
-
-                    this.state.programState.accounts[this.state.userId].inventory[this.selectedInInventory]--
-                }
+                Model.addItemInArtWorkFromInventory(this.state.programState, this._artWork.id, this.selectedInInventory, coords.x, coords.y)
             }
             else if (this.selectedInOthersInventory) {
-                this._artWork.grid[coordIndex] = {
-                    ownerId: null,
-                    workItemId: itemId
-                }
+                Model.askItemForArtWork(this.state.programState, this._artWork.id, this.selectedInOthersInventory, coords.x, coords.y)
             }
         }
 
@@ -205,7 +167,7 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     }
 
     canValidate() {
-        return this._artWork.grid && this._artWork.grid.every(cell => !cell || cell.ownerId != null)
+        return Model.canValidateArtWork(this._artWork)
     }
 
     private paint() {
