@@ -50,6 +50,7 @@ export class AppComponent {
 
   // To save
   pseudo = null
+  userComment: string = null
   keys: {
     privateKey: string;
     publicKey: string;
@@ -148,6 +149,10 @@ export class AppComponent {
     this.loadPreferencesFromLocalStorage()
 
     this.initFullNode()
+
+    setTimeout(() => {
+      this.registerIdentity('default identity comment (UI doesnot provide this yet TODO)')
+    }, 5000)
 
     this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`${location.protocol == 'https' ? 'wss' : 'ws'}://${window.location.hostname}:8999/signal`,
       () => {
@@ -306,18 +311,23 @@ export class AppComponent {
 
     this.callContract = async (contractUuid, iterationId, method, account, data) => {
       data.email = account.email
-      let callId = await this.smartContract.callContract(contractUuid, iterationId, method, account ? HashTools.signAndPackData(data, account.keys.privateKey) : data)
-      return await waitReturn(this.smartContract, callId)
+      if (this.smartContract.hasContract(contractUuid)) {
+        let callId = await this.smartContract.callContract(contractUuid, iterationId, method, account ? HashTools.signAndPackData(data, account.keys.privateKey) : data)
+        return await waitReturn(this.smartContract, callId)
+      }
+
+      return false
     }
   }
 
-  async setPseudo(pseudo: string, enablePeerToPeer: boolean) {
+  async setPseudo(pseudo: string, comment: string, enablePeerToPeer: boolean) {
     if (pseudo == '')
       return
 
     this.userStarted = true
 
     this.pseudo = pseudo.indexOf('@') >= 0 ? pseudo : `${pseudo}@blockchain-js.com`
+    this.userComment = comment
     this.autoP2P = enablePeerToPeer
 
     this.savePreferencesToLocalStorage()
@@ -327,10 +337,33 @@ export class AppComponent {
 
   // TODO : first time pseudo is validate AND smart contracts are available
   async registerIdentity(comment: string) {
+    let result = await this.registerIdentityImpl(comment)
+    if (!result)
+      setTimeout(() => this.registerIdentity(comment), 5000)
+  }
+
+  async registerIdentityImpl(comment: string): Promise<boolean> {
+    console.log(`try registering identity`)
+
     // TODO store that in sth
-    if (!this.keys)
+    if (!this.keys) {
       this.keys = await HashTools.generateRsaKeyPair()
-    this.savePreferencesToLocalStorage()
+      this.savePreferencesToLocalStorage()
+    }
+
+    if (!this.smartContract.hasContract(IDENTITY_REGISTRY_CONTRACT_ID)) {
+      return false
+    }
+
+    let identityContractState = this.smartContract.getContractState(IDENTITY_REGISTRY_CONTRACT_ID)
+    if (!identityContractState) {
+      console.log(`no identity contract state`)
+      return false
+    }
+    if (identityContractState.identities[this.pseudo]) {
+      console.log(`already registered identity ${this.pseudo}`)
+      return true
+    }
 
     // TODO use smart contract to register an identity and a profile
     let account = {
@@ -341,7 +374,7 @@ export class AppComponent {
       comment: comment || ''
     })) {
       console.error(`failed to register identity`)
-      return
+      return false
     }
 
     console.log(`identity registered with email ${account.email}`)
@@ -349,10 +382,12 @@ export class AppComponent {
     let identity = await this.supplyChainCall('createAccount', account, {})
     if (!identity) {
       console.log(`account cannot be created`)
-      return null
+      return false
     }
 
     console.log(`created account : ${account.email}`)
+
+    return true
   }
 
   maybeOfferP2PChannel() {
@@ -647,6 +682,7 @@ export class AppComponent {
   savePreferencesToLocalStorage() {
     let settings = {
       pseudo: this.pseudo,
+      userComment: this.userComment,
       keys: this.keys,
       encryptMessages: this.encryptMessages,
       encryptionKey: this.encryptionKey,
@@ -675,6 +711,9 @@ export class AppComponent {
 
       if (settings.pseudo)
         this.proposedPseudo = this.pseudo = settings.pseudo || this.guid()
+
+      if (settings.userComment)
+        this.userComment = settings.userComment
 
       if (settings.keys)
         this.keys = settings.keys
