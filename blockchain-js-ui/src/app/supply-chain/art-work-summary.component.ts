@@ -50,4 +50,9 @@ export class ArtWorkSummaryComponent implements AfterViewInit {
         Paint.clear(400, 400, this.context)
         this._artWork && this.context && Paint.drawArtWork(this.state.programState, this._artWork, 400, 400, this.context)
     }
+
+    sendMessage(artWorkId: string, textInput: HTMLInputElement) {
+        this.state.programState.artWorks[artWorkId].messages.push({ author: this.state.userId, text: textInput.value })
+        textInput.value = ''
+    }
 }

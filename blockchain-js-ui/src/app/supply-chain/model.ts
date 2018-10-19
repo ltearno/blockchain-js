@@ -11,6 +11,11 @@ export interface Account {
     }
 }
 
+export interface ChatMessage {
+    author: string
+    text: string
+}
+
 export interface ArtWork {
     id: string
     title: string
@@ -22,6 +27,7 @@ export interface ArtWork {
         workItemId: string // id de l'item `artwork-XXX`, `pixel-XXX`, `emoji-XXX`
         ownerId?: string // le possesseur initial
     }[] // by line
+    messages: ChatMessage[]
 }
 
 export function findArtWorkCompatibleAvailableWorkItems() {

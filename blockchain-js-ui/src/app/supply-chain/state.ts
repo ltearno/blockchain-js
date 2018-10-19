@@ -54,6 +54,7 @@ export class State {
                 title: 'Ile paradisiaque',
                 description: 'On souhaite créer une ile où il fait bon vivre. Proposez des zones interressantes et variées !',
                 validated: false,
+                messages: [],
                 size: { width: 10, height: 10 },
                 grid: [
                     null, { ownerId: null, workItemId: 'pixel-green' }, null, null, { ownerId: null, workItemId: 'emoji-😁' }, null, null, null, null, null,
@@ -75,6 +76,7 @@ export class State {
                 title: 'Hopitâl',
                 description: 'Un grand H en noir sur blanc, contribuez par des lots noirs.',
                 validated: false,
+                messages: [],
                 size: { width: 5, height: 5 },
                 grid: [
                     { ownerId: null, workItemId: 'artwork-oiuyhkjh' }, null, null, null, null,
@@ -91,6 +93,7 @@ export class State {
                 title: 'My forst artwirk',
                 description: 'Un test',
                 validated: true,
+                messages: [],
                 size: { width: 3, height: 3 },
                 grid: [
                     { ownerId: 'lolite', workItemId: 'pixel-red' }, { ownerId: 'lolite', workItemId: 'pixel-red' }, { ownerId: 'lolite', workItemId: 'emoji-😁' },
