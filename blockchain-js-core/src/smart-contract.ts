@@ -498,6 +498,14 @@ export class SmartContract {
         return this.stateCache && this.stateCache.returnValues.get(callId)
     }
 
+    hasContract(contractUuid: string) {
+        return this.stateCache && this.stateCache.contracts && this.stateCache.contracts.has(contractUuid)
+    }
+
+    getContractState(contractUuid: string) {
+        return this.stateCache && this.stateCache.contracts && this.stateCache.contracts.get(contractUuid).instanceData
+    }
+
     getState() {
         return this.stateCache
     }
