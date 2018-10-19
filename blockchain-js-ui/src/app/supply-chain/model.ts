@@ -1,6 +1,7 @@
 export interface ProgramState {
     accounts: { [id: string]: Account }
     artWorks: { [id: string]: ArtWork }
+    redistributableItems: string[]
 }
 
 export interface Account {

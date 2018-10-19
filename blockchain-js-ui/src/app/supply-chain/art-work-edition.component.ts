@@ -92,6 +92,9 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     }
 
     @Output()
+    save = new EventEmitter<void>()
+
+    @Output()
     validate = new EventEmitter<void>()
 
     @Output()
@@ -158,9 +161,11 @@ export class ArtWorkEditionComponent implements AfterViewInit {
             this._artWork.grid[coordIndex] = null
 
             if (ownerId) {
-                if (!this.state.programState.accounts[ownerId].inventory[itemId])
-                    this.state.programState.accounts[ownerId].inventory[itemId] = 0
-                this.state.programState.accounts[ownerId].inventory[itemId]++
+                if (ownerId == this.state.userId) { // cannot reverse an agreement !
+                    if (!this.state.programState.accounts[ownerId].inventory[itemId])
+                        this.state.programState.accounts[ownerId].inventory[itemId] = 0
+                    this.state.programState.accounts[ownerId].inventory[itemId]++
+                }
             }
         }
         else {
@@ -197,6 +202,10 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     selectOthersInventory(itemId) {
         this.selectedInInventory = null
         this.selectedInOthersInventory = itemId
+    }
+
+    canValidate() {
+        return this._artWork.grid && this._artWork.grid.every(cell => !cell || cell.ownerId != null)
     }
 
     private paint() {

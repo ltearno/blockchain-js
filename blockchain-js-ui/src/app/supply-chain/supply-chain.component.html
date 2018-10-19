@@ -18,5 +18,6 @@
 </div>
 
 <div *ngIf='editingArtwork' class='container'>
-    <art-work-edition [artWork]='editingArtwork' (validate)='validateArtwork()' (cancel)='cancelArtwork()'></art-work-edition>
+    <art-work-edition [artWork]='editingArtwork' (save)='saveArtwork()' (validate)='validateArtWork(editingArtwork)'
+        (cancel)='cancelArtwork()'></art-work-edition>
 </div>

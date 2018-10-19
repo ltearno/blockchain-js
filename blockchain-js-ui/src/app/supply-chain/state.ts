@@ -6,6 +6,17 @@ export class State {
     userId: string = "ltearno@gmail.com"
 
     programState: ProgramState = {
+        redistributableItems: [
+            "pixel-red",
+            "pixel-green",
+            "pixel-blue",
+            "pixel-purple",
+            "emoji-😁",
+            "emoji-💛",
+            "emoji-🎷",
+            "artwork-oiuyhkjh"
+        ],
+
         accounts: {
             "ltearno@gmail.com": {
                 email: "ltearno@gmail.com",
@@ -84,6 +95,23 @@ export class State {
                     null, null, { ownerId: null, workItemId: 'artwork-oiuyhkjh' }, null, null,
                     null, null, null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' },
                     null, null, null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' }
+                ]
+            },
+
+            'iauydg': {
+                id: 'iauydg',
+                author: 'ltearno@gmail.com',
+                title: 'Super Man',
+                description: 'Superman version pixels',
+                validated: false,
+                messages: [],
+                size: { width: 5, height: 5 },
+                grid: [
+                    { ownerId: null, workItemId: 'pixel-red' }, null, null, null, null,
+                    null, { ownerId: null, workItemId: 'pixel-red' }, null, null, null,
+                    null, null, { ownerId: null, workItemId: 'pixel-red' }, null, null,
+                    null, null, null, null, { ownerId: null, workItemId: 'pixel-red' },
+                    null, null, null, null, { ownerId: null, workItemId: 'pixel-red' }
                 ]
             },
 
