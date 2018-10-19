@@ -151,7 +151,7 @@ export class AppComponent {
     this.initFullNode()
 
     setTimeout(() => {
-      this.registerIdentity('default identity comment (UI doesnot provide this yet TODO)')
+      this.registerIdentity(this.userComment || 'no comment')
     }, 5000)
 
     this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`${location.protocol == 'https' ? 'wss' : 'ws'}://${window.location.hostname}:8999/signal`,
