@@ -32,6 +32,7 @@ export class ArtWorkSummaryComponent implements AfterViewInit {
 
     updatePainting() {
         this.paint()
+        return ""
     }
 
     @Output()

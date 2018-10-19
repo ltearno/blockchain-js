@@ -2,14 +2,15 @@
 <div class="field">
     <label class="label">Title</label>
     <div class="control">
-        <input class="input" type="text" [(ngModel)]='artWork.title'>
+        <input #title class="input" type="text" (input)='updateArtWorkTitle(title.value)' [value]='artWork.title'>
     </div>
     <p class="help">Title of the ArtWork</p>
 </div>
 <div class="field">
     <label class="label">Description</label>
     <div class="control">
-        <textarea name="" cols="30" rows="10" [(ngModel)]='artWork.description'></textarea>
+        <textarea #description name="" cols="30" rows="10" (input)='updateArtWorkDescription(description.value)'
+            [value]='artWork.description'></textarea>
     </div>
     <p class="help">Description of the ArtWork</p>
 </div>

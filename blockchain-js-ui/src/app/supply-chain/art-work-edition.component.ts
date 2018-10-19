@@ -115,8 +115,20 @@ export class ArtWorkEditionComponent implements AfterViewInit {
         }
     }
 
+    updateArtWorkTitle(title) {
+        Model.updateArtWorkTitle(this.state.programState, this._artWork.id, title)
+    }
+
+    updateArtWorkDescription(description) {
+        Model.updateArtWorkDescription(this.state.programState, this._artWork.id, description)
+    }
+
     changeArtWorkSize(width, height) {
         Model.updateArtWorkSize(this.state.programState, this._artWork.id, width, height)
+
+        // when model is not yet registered (creation phase), update the local structure
+        if (!this.state.programState.artWorks[this._artWork.id])
+            Model.updateArtWorkGrid(this._artWork)
 
         this.paint()
     }

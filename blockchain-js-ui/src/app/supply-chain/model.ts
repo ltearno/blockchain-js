@@ -178,6 +178,22 @@ export function sendMessageOnArtWork(state: ProgramState, userId: string, artWor
     state.artWorks[artWorkId].messages.push({ author: userId, text })
 }
 
+export function updateArtWorkTitle(state: ProgramState, artWorkId: string, title: string) {
+    const artWork = state.artWorks[artWorkId]
+    if (!artWork)
+        return
+
+    artWork.title = title
+}
+
+export function updateArtWorkDescription(state: ProgramState, artWorkId: string, description: string) {
+    const artWork = state.artWorks[artWorkId]
+    if (!artWork)
+        return
+
+    artWork.description = description
+}
+
 export function updateArtWorkSize(state: ProgramState, artWorkId: string, width: number, height: number) {
     const artWork = state.artWorks[artWorkId]
     if (!artWork)
