@@ -17,7 +17,6 @@ export function drawEmoji(text: string, width: number, height: number, ctx: Canv
 export function drawArtWork(state: Model.ProgramState, artWork: Model.ArtWork, width: number, height: number, ctx: CanvasRenderingContext2D) {
     const CW = width / artWork.size.width
     const CH = height / artWork.size.height
-    const PADDING = 0//.5
 
     for (let i = 0; i < artWork.size.width; i++) {
         for (let j = 0; j < artWork.size.height; j++) {
@@ -25,8 +24,18 @@ export function drawArtWork(state: Model.ProgramState, artWork: Model.ArtWork, w
 
             if (value) {
                 ctx.save()
-                ctx.translate(i * CW + PADDING, j * CH + PADDING)
-                drawWorkItem(state, value.workItemId, CW - 2 * PADDING, CH - 2 * PADDING, ctx)
+                ctx.translate(i * CW, j * CH)
+                drawWorkItem(state, value.workItemId, CW, CH, ctx)
+                if (!value.ownerId) {
+                    ctx.beginPath()
+                    ctx.strokeStyle = 'rgba(0,0,0,.4)'
+                    ctx.lineWidth = CW / 5
+                    ctx.moveTo(0, 0)
+                    ctx.lineTo(CW - 1, CH - 1)
+                    ctx.moveTo(CW - 1, 0)
+                    ctx.lineTo(0, CH - 1)
+                    ctx.stroke()
+                }
                 ctx.restore()
             }
         }
@@ -48,9 +57,10 @@ export function drawWorkItem(state: Model.ProgramState, id: string, width: numbe
 export function drawCell(artWork: Model.ArtWork, i: number, j: number, width: number, height: number, ctx: CanvasRenderingContext2D) {
     const CW = width / artWork.size.width
     const CH = height / artWork.size.height
+    const MARGIN = CW / 20
 
-    ctx.fillStyle = 'lightgrey'
-    ctx.fillRect(i * CW, j * CH, CW, CH)
+    ctx.fillStyle = 'rgba(0,0,0,.2)'
+    ctx.fillRect(i * CW - MARGIN, j * CH - MARGIN, CW + 2 * MARGIN, CH + 2 * MARGIN)
 }
 
 export function clear(width: number, height: number, ctx: CanvasRenderingContext2D) {

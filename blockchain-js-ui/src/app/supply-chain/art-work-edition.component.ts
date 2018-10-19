@@ -204,8 +204,8 @@ export class ArtWorkEditionComponent implements AfterViewInit {
             return
 
         Paint.clear(400, 400, this.context)
+        Paint.drawArtWork(this.state.programState, this._artWork, 400, 400, this.context)
         if (this.mouseOver)
             Paint.drawCell(this._artWork, this.mouseOver.x, this.mouseOver.y, 400, 400, this.context)
-        Paint.drawArtWork(this.state.programState, this._artWork, 400, 400, this.context)
     }
 }

@@ -46,7 +46,10 @@ export class SupplyChainComponent {
                 .forEach(cell => {
                     if (!claims[cell.workItemId])
                         claims[cell.workItemId] = []
-                    claims[cell.workItemId].push(artWork.author)
+
+                    let claimsForWorkItem = claims[cell.workItemId] as { userId: string; artWorkId: string }[]
+                    if (!claimsForWorkItem.some(claim => claim.userId == artWork.author && claim.artWorkId == artWork.id))
+                        claimsForWorkItem.push({ userId: artWork.author, artWorkId: artWork.id })
                 })
         }
 
@@ -76,19 +79,39 @@ export class SupplyChainComponent {
     }
 
     validateArtwork() {
-        if (this.state.programState.artWorks[this.editingArtwork.id] == this.editingArtwork)
+        let editingArtwork = this.editingArtwork
+        this.editingArtwork = null
+
+        if (this.state.programState.artWorks[editingArtwork.id] == editingArtwork)
             return
 
-        this.state.programState.artWorks[this.editingArtwork.id] = this.editingArtwork
+        this.state.programState.artWorks[editingArtwork.id] = editingArtwork
 
-        if (!this.state.programState.accounts[this.state.userId].inventory['artwork-' + this.editingArtwork.id])
-            this.state.programState.accounts[this.state.userId].inventory['artwork-' + this.editingArtwork.id] = 0
-        this.state.programState.accounts[this.state.userId].inventory['artwork-' + this.editingArtwork.id]++
-
-        this.editingArtwork = null
+        if (!this.state.programState.accounts[this.state.userId].inventory['artwork-' + editingArtwork.id])
+            this.state.programState.accounts[this.state.userId].inventory['artwork-' + editingArtwork.id] = 0
+        this.state.programState.accounts[this.state.userId].inventory['artwork-' + editingArtwork.id]++
     }
 
     cancelArtwork() {
         this.editingArtwork = null
+    }
+
+    /*
+    Other
+    */
+
+    acceptGivingItem(itemId: string, artWorkId: string) {
+        if (this.state.programState.accounts[this.state.userId].inventory[itemId] <= 0)
+            return
+        const artWork = this.state.programState.artWorks[artWorkId]
+        if (!artWork || artWork.validated)
+            return
+
+        let fittingCell = artWork.grid.find(cell => cell && cell.workItemId == itemId && !cell.ownerId)
+        if (!fittingCell)
+            return
+
+        fittingCell.ownerId = this.state.userId
+        this.state.programState.accounts[this.state.userId].inventory[itemId]--
     }
 }  
