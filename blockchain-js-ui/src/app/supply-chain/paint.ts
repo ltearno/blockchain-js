@@ -15,6 +15,9 @@ export function drawEmoji(text: string, width: number, height: number, ctx: Canv
 }
 
 export function drawArtWork(state: Model.ProgramState, artWork: Model.ArtWork, width: number, height: number, ctx: CanvasRenderingContext2D) {
+    if (!artWork || !artWork.grid)
+        return
+
     const CW = width / artWork.size.width
     const CH = height / artWork.size.height
 

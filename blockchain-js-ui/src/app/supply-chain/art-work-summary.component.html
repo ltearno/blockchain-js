@@ -13,7 +13,7 @@
                 <p class="subtitle is-6">{{ artWork.author }}</p>
                 <div>Grid size {{ artWork.size.width }} x {{ artWork.size.height }}</div>
                 <p>{{ artWork.description }}</p>
-                <div *ngIf='artWork.author==state.userId'>
+                <div *ngIf='artWork.author==state.user.pseudo'>
                     <button *ngIf='!artWork.validated' class='button is-primary' (click)='edit.emit(artWork)'>Edit</button>
                 </div>
                 <div *ngIf='artWork.messages'>

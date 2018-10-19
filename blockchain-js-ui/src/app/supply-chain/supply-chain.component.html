@@ -1,23 +1,28 @@
-<div *ngIf='!editingArtwork' class="container">
-    <h2>Artworks</h2>
-    <art-work-summary *ngFor='let artWork of artWorksToDisplay()' [artWork]='artWork' (edit)='editArtWork($event)'></art-work-summary>
+<div *ngIf='!state.hasSupplyChainAccount'>Supply Chain account creation, please wait...</div>
+<div *ngIf='state.hasSupplyChainAccount'>
+    <div *ngIf='!editingArtwork' class="container">
+        <h2>Artworks</h2>
+        <art-work-summary *ngFor='let artWork of artWorksToDisplay()' [artWork]='artWork' (edit)='editArtWork($event)'></art-work-summary>
 
-    <h2>Inventory</h2>
-    <div *ngFor='let item of inventory' [class.selected]='item.id == selectedInInventory'>
-        <art-work-icon [artWorkId]='item.id'></art-work-icon>
-        <b>{{ item.count }}</b>
-        <div *ngFor='let claim of item.claimsBy'>
-            asked by <b>{{ claim.userId }}</b> to build <b>{{ state.programState.artWorks[claim.artWorkId].title }}</b>
-            <button class='button is-primary' (click)='acceptGivingItem(item.id, claim.artWorkId)'>accept</button>
+        <h2>Inventory</h2>
+        <div *ngFor='let item of inventory' [class.selected]='item.id == selectedInInventory'>
+            <art-work-icon [artWorkId]='item.id'></art-work-icon>
+            <b>{{ item.count }}</b>
+            <div *ngFor='let claim of item.claimsBy'>
+                asked by <b>{{ claim.userId }}</b> to build <b>{{ state.programState.artWorks[claim.artWorkId].title }}</b>
+                <button class='button is-primary' (click)='acceptGivingItem(item.id, claim.artWorkId)'>accept</button>
+            </div>
+        </div>
+
+        <div>
+            <button class='button is-primary' (click)='initArtWorkCreation()'>Create a new Artwork</button>
         </div>
     </div>
 
-    <div>
-        <button class='button is-primary' (click)='initArtWorkCreation()'>Create a new Artwork</button>
+    <div *ngIf='editingArtwork' class='container'>
+        <art-work-edition [artWork]='editingArtwork' (save)='saveArtwork()' (validate)='validateArtWork(editingArtwork)'
+            (cancel)='cancelArtwork()'></art-work-edition>
     </div>
-</div>
 
-<div *ngIf='editingArtwork' class='container'>
-    <art-work-edition [artWork]='editingArtwork' (save)='saveArtwork()' (validate)='validateArtWork(editingArtwork)'
-        (cancel)='cancelArtwork()'></art-work-edition>
+    {{ state.programState | json }}
 </div>

@@ -26,7 +26,7 @@ import {
 async function run() {
     const NETWORK_CLIENT_API = new NetworkApiNodeImpl.NetworkApiNodeImpl()
 
-    let fullNode = new FullNode.FullNode(NETWORK_CLIENT_API)
+    let fullNode = new FullNode.FullNode()
 
     let peer = {
         address: 'localhost',

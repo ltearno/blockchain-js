@@ -24,8 +24,12 @@ export class SupplyChainAdapter {
         return result || EMPTY_STATE
     }
 
-    async createAccount() {
-        return await this.callContract('createAccount', {})
+    async createAccount(account) {
+        return await this.callContract('createAccount', {}, account)
+    }
+
+    async hasAccount(email) {
+        return await this.simulateContract('hasAccount', { email })
     }
 
     async registerArtWork(artWork: Model.ArtWork) {
@@ -37,7 +41,7 @@ export class SupplyChainAdapter {
     }
 
     async canValidateArtWork(artWork: Model.ArtWork) {
-        return await this.callContract('canValidateArtWork', { artWork })
+        return false// await this.simulateContract('canValidateArtWork', { artWork })
     }
 
     async acceptGivingItem(userId: string, itemId: string, artWorkId: string) {
@@ -71,16 +75,22 @@ export class SupplyChainAdapter {
         return await this.callContract('updateArtWorkSize', { artWorkId, width, height })
     }
 
-    async updateArtWorkGrid(artWork: Model.ArtWork) {
-        return await this.callContract('updateArtWorkGrid', { artWork })
-    }
-
     private async callContract(method, data, account = null) {
         if (account)
             data.email = account.email
         if (this.smartContract.hasContract(SUPPLY_CHAIN_CONTRACT_ID)) {
             let callId = await this.smartContract.callContract(SUPPLY_CHAIN_CONTRACT_ID, 0, method, account ? HashTools.signAndPackData(data, account.keys.privateKey) : data)
             return await waitReturn(this.smartContract, callId)
+        }
+
+        return false
+    }
+
+    private async simulateContract(method, data, account = null) {
+        if (account)
+            data.email = account.email
+        if (this.smartContract.hasContract(SUPPLY_CHAIN_CONTRACT_ID)) {
+            return await this.smartContract.simulateCallContract(SUPPLY_CHAIN_CONTRACT_ID, 0, method, account ? HashTools.signAndPackData(data, account.keys.privateKey) : data)
         }
 
         return false

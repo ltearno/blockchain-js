@@ -49,29 +49,44 @@
         })
     }
 
-    const pickRedistributableItem = () => {
-        return this.data.redistributableItems[Math.ceil(this.data.redistributableItems.length * Math.random())]
+    const pickRedistributableItem = (data) => {
+        return data.redistributableItems[Math.ceil(data.redistributableItems.length * Math.random())]
+    }
+
+    const updateArtWorkGrid = (artWork) => {
+        let normalLength = artWork.size.width * artWork.size.height
+
+        if (!artWork.grid) {
+            artWork.grid = []
+            for (let i = 0; i < normalLength; i++)
+                artWork.grid = artWork.grid.concat([null])
+        }
+        else if (artWork.grid.length < normalLength) {
+            while (artWork.grid.length < normalLength)
+                artWork.grid = artWork.grid.concat([null])
+        }
+        else if (artWork.grid.length > normalLength) {
+            artWork.grid.slice(0, normalLength)
+        }
     }
 
     return {
         /**
          */
         init: function () {
-            this.data = {
-                redistributableItems: [
-                    "pixel-red",
-                    "pixel-green",
-                    "pixel-blue",
-                    "pixel-purple",
-                    "emoji-😁",
-                    "emoji-💛",
-                    "emoji-🎷"
-                ],
+            this.data.redistributableItems = [
+                "pixel-red",
+                "pixel-green",
+                "pixel-blue",
+                "pixel-purple",
+                "emoji-😁",
+                "emoji-💛",
+                "emoji-🎷"
+            ]
 
-                accounts: {},
+            this.data.accounts = {}
 
-                artWorks: {}
-            }
+            this.data.artWorks = {}
         },
 
         /** 
@@ -180,7 +195,7 @@
             for (let userId in participations) {
                 let count = participations[userId]
                 while (count--) {
-                    let winnedItemId = pickRedistributableItem()
+                    let winnedItemId = pickRedistributableItem(this.data)
                     let inventory = this.data.accounts[userId].inventory
                     if (!inventory[winnedItemId])
                         inventory[winnedItemId] = 1
@@ -277,7 +292,7 @@
 
 
         askItemForArtWork: function (args) {
-            if (!lib.checkArgs(['artWorkId', 'itemId', 'x', 'y']))
+            if (!lib.checkArgs(args, ['artWorkId', 'itemId', 'x', 'y']))
                 return false
 
             let artWorkId = args['artWorkId']
@@ -300,7 +315,7 @@
         },
 
         sendMessageOnArtWork: function (args) {
-            if (!lib.checkArgs(['userId', 'artWorkId', 'text']))
+            if (!lib.checkArgs(args, ['userId', 'artWorkId', 'text']))
                 return false
 
             let userId = args['userId']
@@ -315,7 +330,7 @@
 
 
         updateArtWorkTitle: function (args) {
-            if (!lib.checkArgs(['artWorkId', 'title']))
+            if (!lib.checkArgs(args, ['artWorkId', 'title']))
                 return false
 
             let artWorkId = args['artWorkId']
@@ -333,7 +348,7 @@
 
 
         updateArtWorkDescription: function (args) {
-            if (!lib.checkArgs(['artWorkId', 'description']))
+            if (!lib.checkArgs(args, ['artWorkId', 'description']))
                 return false
 
             let artWorkId = args['artWorkId']
@@ -351,7 +366,7 @@
 
 
         updateArtWorkSize: function (args) {
-            if (!lib.checkArgs(['artWorkId', 'width', 'height']))
+            if (!lib.checkArgs(args, ['artWorkId', 'width', 'height']))
                 return false
 
             let artWorkId = args['artWorkId']
@@ -365,28 +380,7 @@
             artWork.size.width = width
             artWork.size.height = height
 
-            this.updateArtWorkGrid(artWork)
-
-            return true
-        },
-
-        updateArtWorkGrid(args) {
-            if (!lib.checkArgs(['artWork']))
-                return false
-
-            let artWork = args['artWork']
-
-            let normalLength = artWork.size.width * artWork.size.height
-
-            if (!artWork.grid) {
-                artWork.grid = new Array(normalLength)
-            }
-            else if (artWork.grid.length < normalLength) {
-                artWork.grid = artWork.grid.concat(new Array(normalLength - artWork.grid.length).fill(null))
-            }
-            else if (artWork.grid.length > normalLength) {
-                artWork.grid.slice(0)
-            }
+            updateArtWorkGrid(artWork)
 
             return true
         }

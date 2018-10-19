@@ -1,20 +1,9 @@
-import { Component, OnInit } from '@angular/core'
+import { Component } from '@angular/core'
 import {
   Block,
   FullNode,
-  ListOnChain,
-  HashTools,
-  KeyValueStorage,
-  SequenceStorage,
-  SmartContract,
-  NodeBrowser,
   NetworkApi,
   NetworkClientBrowserImpl,
-  NodeApi,
-  NodeImpl,
-  NodeTransfer,
-  NodeNetworkClient,
-  WebsocketConnector
 } from 'blockchain-js-core'
 import * as PeerToPeer from 'rencontres'
 import * as CryptoJS from 'crypto-js'
@@ -22,38 +11,24 @@ import { WebSocketConnector } from 'blockchain-js-core/dist/websocket-connector'
 import { State } from './supply-chain/state';
 
 const NETWORK_CLIENT_IMPL = new NetworkClientBrowserImpl.NetworkClientBrowserImpl()
+
 const STORAGE_BLOCKS = 'blocks'
 const STORAGE_SETTINGS = 'settings'
-
-const IDENTITY_REGISTRY_CONTRACT_ID = "identity-registry-1"
-const SUPPLY_CHAIN_CONTRACT_ID = "supply-chain-v1"
-const RANDOM_GENERATOR_CONTRACT_ID = "random-generator-v1"
 
 function sleep(time: number) {
   return new Promise((resolve, reject) => setTimeout(resolve, time))
 }
 
-// TODO affichger la profondeur des données (pour savoir si elles sont fiables)
-// TODO affichage tous messages
-// TODO clean
-
 @Component({
   selector: 'body',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
+  providers: [State]
 })
 export class AppComponent {
   proposedPseudo = this.guid()
 
-  userStarted = false
-
   // To save
-  pseudo = null
-  userComment: string = null
-  keys: {
-    privateKey: string;
-    publicKey: string;
-  } = null
   encryptMessages = false
   encryptionKey = this.guid()
   otherEncryptionKeys: string[] = []
@@ -66,29 +41,6 @@ export class AppComponent {
   maxNumberDisplayedMessages = 100
 
   selectedTab = 5
-  _selectedBranch = Block.MASTER_BRANCH
-
-  private messageSequence: SequenceStorage.SequenceStorage
-
-  get selectedBranch() {
-    return this._selectedBranch
-  }
-
-  set selectedBranch(branch: string) {
-    this.selectedBranch = branch
-    this.messageSequence.setBranch(branch)
-  }
-
-  fullNode: FullNode.FullNode = null
-  smartContract: SmartContract.SmartContract = null
-  logs: string[] = []
-  state: {
-    [key: string]: {
-      branch: string
-      head: string
-      blocks: any[]
-    }
-  } = { "master": { branch: Block.MASTER_BRANCH, head: null, blocks: [] } }
 
   p2pBroker: PeerToPeer.PeerToPeerBrokering
 
@@ -109,13 +61,9 @@ export class AppComponent {
     this.selectedTab = i
   }
 
-  get branches() {
-    return Object.getOwnPropertyNames(this.state)
-  }
-
   get incomingPeersCount() {
     let count = 0
-    this.fullNode.peerInfos.forEach(peer => {
+    this.state.fullNode.peerInfos.forEach(peer => {
       if (this.peersSockets.has(peer) && !this.peersSockets.get(peer).isSelfInitiated)
         count++
     })
@@ -124,15 +72,15 @@ export class AppComponent {
 
   get outgoingPeersCount() {
     let count = 0
-    this.fullNode.peerInfos.forEach(peer => {
+    this.state.fullNode.peerInfos.forEach(peer => {
       if (this.peersSockets.has(peer) && this.peersSockets.get(peer).isSelfInitiated)
         count++
     })
     return count
   }
 
-  constructor(private applicationState: State) {
-    this.onUnloadListener = event => {
+  constructor(private state: State) {
+    this.onUnloadListener = _ => {
       if (this.autoSave) {
         this.saveBlocks()
 
@@ -145,14 +93,13 @@ export class AppComponent {
 
     window.addEventListener('beforeunload', this.onUnloadListener)
 
+    this.state.init(() => this.savePreferencesToLocalStorage())
     this.loadPreferencesFromLocalStorage()
+    this.tryLoadBlocksFromLocalStorage()
+    this.initP2pBroker()
+  }
 
-    this.initFullNode()
-
-    setTimeout(() => {
-      this.registerIdentity(this.userComment)
-    }, 5000)
-
+  private initP2pBroker() {
     this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`${location.protocol == 'https' ? 'wss' : 'ws'}://${window.location.hostname}:8999/signal`,
       () => {
         this.maybeOfferP2PChannel()
@@ -176,7 +123,7 @@ export class AppComponent {
 
         this.log(`accepted offer ${offerId.substr(0, 7)}:${offerMessage}`)
 
-        return { accepted: true, message: this.pseudo }
+        return { accepted: true, message: this.state.user.pseudo }
       },
 
       (description, channel) => {
@@ -186,7 +133,7 @@ export class AppComponent {
 
         channel.on('close', () => this.knownAcceptedMessages.delete(counterPartyMessage))
 
-        this.addPeerBySocket(channel, counterPartyMessage, description.isSelfInitiated, `p2p with ${counterPartyMessage} on channel ${description.offerId.substr(0, 5)} ${description.isSelfInitiated ? '[OUT]' : '[IN]'} (as '${this.pseudo}')`)
+        this.addPeerBySocket(channel, counterPartyMessage, description.isSelfInitiated, `p2p with ${counterPartyMessage} on channel ${description.offerId.substr(0, 5)} ${description.isSelfInitiated ? '[OUT]' : '[IN]'} (as '${this.state.user.pseudo}')`)
 
         setTimeout(() => this.maybeOfferP2PChannel(), 500)
       }
@@ -198,137 +145,14 @@ export class AppComponent {
       if (this.autoP2P && this.p2pBroker.ready)
         this.maybeOfferP2PChannel()
     }, 10000)
-
-    if (this.autoStart && this.pseudo) {
-      this.userStarted = true
-    }
-  }
-
-  private nextLoad: { branch, blockId } = { branch: null, blockId: null }
-  private lastLoaded = { branch: null, blockId: null }
-
-  private triggerLoad(branch: string, blockId: string) {
-    this.nextLoad = { branch, blockId }
-  }
-
-  private messages = []
-  private lastMessagesBlockId = ''
-
-  private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
-    let startIdx
-    for (startIdx = sequenceItemsByBlock.length - 1; startIdx >= 0; startIdx--) {
-      if (sequenceItemsByBlock[startIdx].blockId == this.lastMessagesBlockId) {
-        startIdx++ // because we start AFTER the last cached block
-        break
-      }
-    }
-    if (startIdx < 0)
-      startIdx = 0
-
-    for (let idx = startIdx; idx < sequenceItemsByBlock.length; idx++) {
-      let { blockId, items } = sequenceItemsByBlock[idx]
-      this.messages = this.messages.concat(items)
-    }
-
-    this.lastMessagesBlockId = sequenceItemsByBlock[sequenceItemsByBlock.length - 1].blockId
-  }
-
-  private async loadState(branch: string, blockId: string) {
-    if (this.state && this.state[branch] && this.state[branch].head == blockId)
-      return
-
-    // only update current state
-    // stop when we encounter the current branch head
-    // if not found, replace the head
-
-    let state = {}
-
-    let toFetch = blockId
-
-    let branchState = {
-      branch: branch,
-      head: toFetch,
-      blocks: []
-    }
-
-    let count = 0
-
-    let toFetchs = [toFetch]
-    while (toFetchs.length) {
-      let fetching = toFetchs.shift()
-
-      let blockMetadatas = await this.fullNode.node.blockChainBlockMetadata(fetching, 1)
-      let blockMetadata = blockMetadatas && blockMetadatas[0]
-      let blockDatas = await this.fullNode.node.blockChainBlockData(fetching, 1)
-      let blockData = blockDatas && blockDatas[0]
-
-      branchState.blocks.push({ blockMetadata, blockData })
-
-      blockData && blockData.previousBlockIds && blockData.previousBlockIds.forEach(b => !toFetchs.some(bid => bid == b) && toFetchs.push(b))
-
-      count++
-      if (count > this.maxNumberDisplayedMessages)
-        break
-    }
-
-    state[branch] = branchState
-
-    this.state = state
-  }
-
-  private callContract: (contractUuid: any, iterationId: any, method: any, account: any, data: any) => Promise<any> = null
-  private supplyChainCall = async (method, account, data) => this.callContract(SUPPLY_CHAIN_CONTRACT_ID, 0, method, account, data)
-
-  private initFullNode() {
-    this.fullNode = new FullNode.FullNode(NETWORK_CLIENT_IMPL)
-
-    setInterval(() => {
-      if (this.lastLoaded.blockId != this.nextLoad.blockId || this.lastLoaded.branch != this.nextLoad.branch) {
-        this.lastLoaded = { branch: this.nextLoad.branch, blockId: this.nextLoad.blockId }
-        this.loadState(this.lastLoaded.branch, this.lastLoaded.blockId)
-      }
-    }, 500)
-
-    this.tryLoadBlocksFromLocalStorage()
-
-    this.fullNode.node.addEventListener('head', async (event) => {
-      this.log(`new head on branch '${event.branch}': ${event.headBlockId.substr(0, 7)}`)
-      this.triggerLoad(event.branch, event.headBlockId)
-    })
-
-    this.messageSequence = new SequenceStorage.SequenceStorage(
-      this.fullNode.node,
-      this.selectedBranch,
-      `demo-chat-v1`,
-      this.fullNode.miner)
-    this.messageSequence.initialise()
-
-    this.messageSequence.addEventListener('change', (sequenceItemsByBlock) => this.updateStatusFromSequence(sequenceItemsByBlock))
-
-    this.smartContract = new SmartContract.SmartContract(this.fullNode.node, Block.MASTER_BRANCH, 'people', this.fullNode.miner)
-    this.smartContract.initialise()
-
-    this.applicationState.suppyChain.setSmartContract(this.smartContract)
-
-    this.callContract = async (contractUuid, iterationId, method, account, data) => {
-      data.email = account.email
-      if (this.smartContract.hasContract(contractUuid)) {
-        let callId = await this.smartContract.callContract(contractUuid, iterationId, method, account ? HashTools.signAndPackData(data, account.keys.privateKey) : data)
-        return await waitReturn(this.smartContract, callId)
-      }
-
-      return false
-    }
   }
 
   async setPseudo(pseudo: string, comment: string, enablePeerToPeer: boolean) {
     if (pseudo == '')
       return
 
-    this.userStarted = true
+    this.state.setPseudo(pseudo, comment)
 
-    this.pseudo = pseudo.indexOf('@') >= 0 ? pseudo : `${pseudo}@blockchain-js.com`
-    this.userComment = comment
     this.autoP2P = enablePeerToPeer
 
     this.savePreferencesToLocalStorage()
@@ -336,69 +160,7 @@ export class AppComponent {
     this.maybeOfferP2PChannel()
   }
 
-  // TODO : first time pseudo is validate AND smart contracts are available
-  async registerIdentity(comment: string) {
-    let result = await this.registerIdentityImpl(comment)
-    if (!result) {
-      setTimeout(() => this.registerIdentity(comment), 5000)
-    }
-    else {
-      setTimeout(() => this.registerAccount(), 5000)
-    }
-  }
 
-  async registerAccount() {
-    console.log(`try registering account on supply chain`)
-    await this.applicationState.suppyChain.createAccount()
-  }
-
-  async registerIdentityImpl(comment: string): Promise<boolean> {
-    console.log(`try registering identity`)
-
-    // TODO store that in sth
-    if (!this.keys) {
-      this.keys = await HashTools.generateRsaKeyPair()
-      this.savePreferencesToLocalStorage()
-    }
-
-    if (!this.smartContract.hasContract(IDENTITY_REGISTRY_CONTRACT_ID)) {
-      return false
-    }
-
-    let identityContractState = this.smartContract.getContractState(IDENTITY_REGISTRY_CONTRACT_ID)
-    if (!identityContractState) {
-      console.log(`no identity contract state`)
-      return false
-    }
-    if (identityContractState.identities[this.pseudo]) {
-      console.log(`already registered identity ${this.pseudo}`)
-      return true
-    }
-
-    // TODO use smart contract to register an identity and a profile
-    let account = {
-      keys: this.keys,
-      email: this.pseudo
-    }
-    if (! await this.callContract(IDENTITY_REGISTRY_CONTRACT_ID, 0, 'registerIdentity', account, {
-      comment: comment || ''
-    })) {
-      console.error(`failed to register identity`)
-      return false
-    }
-
-    console.log(`identity registered with email ${account.email}`)
-
-    let identity = await this.supplyChainCall('createAccount', account, {})
-    if (!identity) {
-      console.log(`account cannot be created`)
-      return false
-    }
-
-    console.log(`created account : ${account.email}`)
-
-    return true
-  }
 
   maybeOfferP2PChannel() {
     if (this.autoP2P && this.p2pBroker.ready && this.outgoingPeersCount < this.desiredNbOutgoingPeers) {
@@ -412,7 +174,7 @@ export class AppComponent {
   }
 
   offerP2PChannel() {
-    let offerId = this.p2pBroker.offerChannel(this.pseudo)
+    this.p2pBroker.offerChannel(this.state.user.pseudo)
   }
 
   addEncryptionKey(newEncryptionKey: string) {
@@ -430,90 +192,6 @@ export class AppComponent {
 
   keysOf(obj) {
     return Object.keys(obj)
-  }
-
-  supplyChainReport = {}
-  supplyChainState = null
-
-  async refreshSupplyChainSummary() {
-    this.supplyChainState = await this.smartContract.simulateCallContract(SUPPLY_CHAIN_CONTRACT_ID, 0, 'getState')
-
-    let nbClosedAsks = 0
-    let nbOpenAsks = 0
-
-    for (let askId in this.supplyChainState.asks) {
-      let ask = this.supplyChainState.asks[askId]
-      if (ask.asks.every(askItem => askItem.bidId != null))
-        nbClosedAsks++
-      else
-        nbOpenAsks++
-    }
-
-    let nbSelectedBids = 0
-    let nbUnselectedBids = 0
-
-    for (let bidId in this.supplyChainState.bids) {
-      let bid = this.supplyChainState.bids[bidId]
-      if (bid.selected)
-        nbSelectedBids++
-      else
-        nbUnselectedBids++
-    }
-
-    this.supplyChainReport = JSON.stringify({
-      users: this.supplyChainState.users,
-      asks: {
-        nb: Object.getOwnPropertyNames(this.supplyChainState.asks).length,
-        nbOpenAsks,
-        nbClosedAsks
-      },
-      bids: {
-        nb: Object.getOwnPropertyNames(this.supplyChainState.bids).length,
-        nbUnselectedBids,
-        nbSelectedBids
-      }
-    }, null, 4)
-  }
-
-  async supplyChainAsk() {
-    let account = {
-      keys: this.keys,
-      email: this.pseudo
-    }
-
-    await this.supplyChainCall('publishAsk', account, {
-      id: await HashTools.hashString(Math.random() + ''),
-      title: `Something`,
-      description: `Something`,
-      asks: [
-        {
-          description: `first`
-        },
-        {
-          description: `second`
-        }
-      ]
-    })
-  }
-
-  async publishBid(askId, askIndex) {
-    let account = {
-      keys: this.keys,
-      email: this.pseudo
-    }
-
-    if (! await this.supplyChainCall('publishBid', account, {
-      id: await HashTools.hashString(Math.random() + ''),
-      askId,
-      askIndex,
-      itemId: 'pneu',
-      title: `...`,
-      price: 1,
-      description: `...`,
-      specification: ``
-    })) {
-      console.error(`cannot publish bid!`)
-    }
   }
 
   removeEncryptionKey(key) {
@@ -558,7 +236,7 @@ export class AppComponent {
     try {
       let dataItem = {
         id: this.guid(),
-        author: this.pseudo,
+        author: this.state.user.pseudo,
         message,
         encrypted: false
       }
@@ -571,14 +249,7 @@ export class AppComponent {
         dataItem.encrypted = true
       }
 
-      this.log(`start mining...`)
-
-      this.messageSequence.addItems([dataItem])
-
-      /** TODO : refactor this : mining difficulty adjustment and selecte dbranch
-      this.fullNode.miner.addData(this.selectedBranch, dataItem)
-      let mineResult = await this.fullNode.miner.mineData(this.miningDifficulty, 30)
-      this.log(`finished mining: ${JSON.stringify(mineResult)}`)*/
+      this.state.messageSequence.addItems([dataItem])
     }
     catch (error) {
       this.log(`error mining: ${JSON.stringify(error)}`)
@@ -589,9 +260,7 @@ export class AppComponent {
   }
 
   log(message) {
-    this.logs.unshift(message)
-    if (this.logs.length > 20)
-      this.logs.pop()
+    this.state.log(message)
   }
 
   toggleAutoP2P() {
@@ -635,9 +304,9 @@ export class AppComponent {
     ws.on('open', () => {
       console.log(`peer connected`)
 
-      connector = new WebSocketConnector(this.fullNode.node, ws)
+      connector = new WebSocketConnector(this.state.fullNode.node, ws)
 
-      peerInfo = this.fullNode.addPeer(connector, description)
+      peerInfo = this.state.fullNode.addPeer(connector, description)
       this.peersSockets.set(peerInfo, { ws, counterpartyId, isSelfInitiated })
     })
 
@@ -649,7 +318,7 @@ export class AppComponent {
     ws.on('close', () => {
       connector && connector.terminate()
       connector = null
-      this.fullNode.removePeer(peerInfo.id)
+      this.state.fullNode.removePeer(peerInfo.id)
       this.peersSockets.delete(peerInfo)
 
       console.log('peer disconnected')
@@ -657,7 +326,7 @@ export class AppComponent {
   }
 
   disconnectPeer(peerInfo: FullNode.PeerInfo) {
-    this.fullNode.removePeer(peerInfo.id)
+    this.state.fullNode.removePeer(peerInfo.id)
     let ws = this.peersSockets.get(peerInfo)
     ws && ws.ws.close()
     this.peersSockets.delete(peerInfo)
@@ -691,9 +360,9 @@ export class AppComponent {
 
   savePreferencesToLocalStorage() {
     let settings = {
-      pseudo: this.pseudo,
-      userComment: this.userComment,
-      keys: this.keys,
+      pseudo: this.state.user && this.state.user.pseudo,
+      userComment: this.state.user && this.state.user.comment,
+      keys: this.state.user && this.state.user.keys,
       encryptMessages: this.encryptMessages,
       encryptionKey: this.encryptionKey,
       otherEncryptionKeys: this.otherEncryptionKeys,
@@ -720,13 +389,7 @@ export class AppComponent {
         return
 
       if (settings.pseudo)
-        this.proposedPseudo = this.pseudo = settings.pseudo || this.guid()
-
-      if (settings.userComment)
-        this.userComment = settings.userComment
-
-      if (settings.keys)
-        this.keys = settings.keys
+        this.proposedPseudo = settings.pseudo || this.guid()
 
       if (settings.encryptMessages)
         this.encryptMessages = settings.encryptMessages || false
@@ -751,9 +414,17 @@ export class AppComponent {
       this.autoStart = !!settings.autoStart
 
       this.log(`preferences loaded`)
+
+      if (this.autoStart) {
+        if (settings.pseudo)
+          this.state.setPseudo(settings.pseudo, settings.userComment)
+      }
+
+      if (settings.keys && this.state.user)
+        this.state.user.keys = settings.keys
     }
     catch (e) {
-      this.log(`error loading preferences`)
+      this.log(`error loading preferences ${e}`)
     }
   }
 
@@ -766,7 +437,7 @@ export class AppComponent {
           this.log(`loading blocks from local storage`)
           let i = 0
           for (let { blockId, block } of storageBlocks) {
-            this.fullNode.node.registerBlock(blockId, block)
+            this.state.fullNode.node.registerBlock(blockId, block)
             i++
             if (i % 2 == 0)
               await sleep(20)
@@ -783,25 +454,9 @@ export class AppComponent {
   saveBlocks() {
     // TODO only save blocks that are in branches...
     let toSave = []
-    let blocks: Map<string, Block.Block> = this.fullNode.node.blocks()
+    let blocks: Map<string, Block.Block> = this.state.fullNode.node.blocks()
     blocks.forEach((block, blockId) => toSave.push({ blockId, block }))
     localStorage.setItem(STORAGE_BLOCKS, JSON.stringify(toSave))
     this.log(`blocks saved`)
   }
-}
-
-async function waitReturn(smartContract, callId) {
-  await waitUntil(() => smartContract.hasReturnValue(callId))
-  return smartContract.getReturnValue(callId)
-}
-
-async function waitUntil(condition: () => Promise<boolean>) {
-  while (!await condition())
-    await wait(50)
-}
-
-function wait(duration: number) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => resolve(), duration)
-  })
 }

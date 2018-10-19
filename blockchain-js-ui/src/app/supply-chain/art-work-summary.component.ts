@@ -54,7 +54,7 @@ export class ArtWorkSummaryComponent implements AfterViewInit {
     }
 
     sendMessage(artWorkId: string, textInput: HTMLInputElement) {
-        this.state.suppyChain.sendMessageOnArtWork(this.state.userId, artWorkId, textInput.value)
+        this.state.suppyChain.sendMessageOnArtWork(this.state.user.pseudo, artWorkId, textInput.value)
         textInput.value = ''
     }
 }

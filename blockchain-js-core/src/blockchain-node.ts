@@ -10,7 +10,7 @@ import * as fs from 'fs'
 
 const NETWORK_CLIENT_API = new NetworkApiNodeImpl.NetworkApiNodeImpl()
 
-let fullNode = new FullNode.FullNode(NETWORK_CLIENT_API)
+let fullNode = new FullNode.FullNode()
 
 // input parameters
 let port = (process.argv.length >= 3 && parseInt(process.argv[2])) || 9091

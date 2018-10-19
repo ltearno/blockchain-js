@@ -2,13 +2,11 @@ import * as Block from './block'
 import * as FullNode from './full-node'
 import * as NetworkClientBrowserImpl from './network-client-browser-impl'
 
-const NETWORK_CLIENT_API = new NetworkClientBrowserImpl.NetworkClientBrowserImpl()
-
 console.log(`WELCOME TO BLOCKCHAIN-JS ON THE BROWSER !`)
 
 async function run() {
     console.log(`initializing full node`)
-    let fullNode = new FullNode.FullNode(NETWORK_CLIENT_API)
+    let fullNode = new FullNode.FullNode()
 
     fullNode.node.addEventListener('head', async (info) => console.log(`event : node has new head : ${info.branch} as ${info.headBlockId}`))
 

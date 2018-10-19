@@ -33,7 +33,7 @@ export class FullNode {
 
     private nextPeerId = 1
 
-    constructor(private networkClientApi: NetworkApi.NetworkApi) {
+    constructor() {
         // node creation
         this.node = new NodeImpl.NodeImpl()
 

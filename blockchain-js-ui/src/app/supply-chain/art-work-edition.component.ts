@@ -27,7 +27,7 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     selectedInOthersInventory = null
 
     get inventory() {
-        let inv = this.state.programState.accounts[this.state.userId].inventory
+        let inv = this.state.programState.accounts[this.state.user.pseudo].inventory
 
         let claims = this.claimsByOthers()
 
@@ -36,7 +36,7 @@ export class ArtWorkEditionComponent implements AfterViewInit {
 
     get othersInventory() {
         let res = {}
-        Object.keys(this.state.programState.accounts).filter(userId => userId != this.state.userId).forEach(userId => {
+        Object.keys(this.state.programState.accounts).filter(userId => userId != this.state.user.pseudo).forEach(userId => {
             let inv = this.state.programState.accounts[userId].inventory
             Object.keys(inv).forEach(itemId => {
                 if (!res[itemId])
@@ -57,7 +57,7 @@ export class ArtWorkEditionComponent implements AfterViewInit {
             if (artWork.validated || !artWork.grid)
                 continue
 
-            artWork.grid.filter(cell => cell && !cell.ownerId && this.state.programState.accounts[this.state.userId].inventory[cell.workItemId] > 0)
+            artWork.grid.filter(cell => cell && !cell.ownerId && this.state.programState.accounts[this.state.user.pseudo].inventory[cell.workItemId] > 0)
                 .forEach(cell => {
                     if (!claims[cell.workItemId])
                         claims[cell.workItemId] = []
@@ -71,8 +71,6 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     @Input()
     set artWork(artWork) {
         this._artWork = artWork
-
-        this.state.suppyChain.updateArtWorkGrid(this._artWork)
 
         this.paint()
     }
@@ -125,10 +123,6 @@ export class ArtWorkEditionComponent implements AfterViewInit {
 
     async changeArtWorkSize(width, height) {
         await this.state.suppyChain.updateArtWorkSize(this._artWork.id, width, height)
-
-        // when model is not yet registered (creation phase), update the local structure
-        if (!this.state.programState.artWorks[this._artWork.id])
-            await this.state.suppyChain.updateArtWorkGrid(this._artWork)
 
         this.paint()
     }

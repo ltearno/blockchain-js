@@ -5,16 +5,16 @@
         <h1 class='title'>Blockchain JS</h1>
       </div>
       <div class='level-item' style='width:2em;'></div>
-      <div class='level-item' *ngIf='userStarted'>
+      <div class='level-item' *ngIf='state.userStarted()'>
         <span class='is-italic'>pseudo: </span>
-        <h2 class='subtitle'> {{pseudo}}</h2>
+        <h2 class='subtitle'> {{state?.user?.pseudo}}</h2>
       </div>
     </div>
   </div>
 </nav>
 
 <section id='blockchain-main' class='section'>
-  <div *ngIf='!userStarted' class="container">
+  <div *ngIf='!state.userStarted()' class="container">
     <h1 class='subtitle'>You are not yet connected to the blockchain.</h1>
     <p>First,
       <b>choose a pseudo</b> to connect to the blockchain network.</p>
@@ -43,7 +43,7 @@
     </div>
   </div>
 
-  <div *ngIf='userStarted' class="tabs">
+  <div *ngIf='state.userStarted()' class="tabs">
     <ul>
       <li [class.is-active]='selectedTab==5' (click)='selectTab(5)'>
         <a>Production</a>
@@ -63,8 +63,8 @@
     </ul>
   </div>
 
-  <div *ngIf='userStarted && selectedTab==1'>
-    <div *ngIf='!autoP2P && !(fullNode.peerInfos?.length)' class="container is-fluid">
+  <div *ngIf='state.userStarted() && selectedTab==1'>
+    <div *ngIf='!autoP2P && !(state.fullNode.peerInfos?.length)' class="container is-fluid">
       <button class='button is-success' (click)='toggleAutoP2P()'>Enable peer to peer connectivity</button>
       <br />
       <br />
@@ -78,10 +78,7 @@
         <div class="control has-icons-left">
           <span class="select">
             <select [(ngModel)]='miningDifficulty'>
-              <!--<option value=1>1</option>
-              <option value=5>5</option>
-              <option value=10>10</option>
-              <option value=20>20</option>-->
+              <option value=1>1</option>
               <option value=50>50</option>
               <option value=100>100</option>
               <option value=1000>1000</option>
@@ -105,8 +102,8 @@
       </div>
     </div>
 
-    <div *ngIf='messages' class="container is-fluid">
-      <div *ngFor="let item of messages">
+    <div *ngIf='state.messages' class="container is-fluid">
+      <div *ngFor="let item of state.messages">
         <div *ngIf='(!item.id) || (!item.message) || (!item.author)'>{{item | json}}</div>
         <div *ngIf='item.id && item.message && item.author'>
           <span *ngIf='item?.encrypted' class="icon">
@@ -120,7 +117,7 @@
     </div>
   </div>
 
-  <div *ngIf='userStarted && selectedTab==2'>
+  <div *ngIf='state.userStarted() && selectedTab==2'>
     <div class="container is-fluid">
       <div *ngIf='p2pBroker.ready' class='box'>
         <h2 class="subtitle">Peer to peer connectivity</h2>
@@ -158,11 +155,11 @@
       <br />
     </div>
 
-    <div class="container is-fluid" *ngIf="fullNode.peerInfos.length">
+    <div class="container is-fluid" *ngIf="state.fullNode.peerInfos.length">
       <div class="box">
         <h2 class='subtitle'>Connected peers</h2>
         <ul>
-          <li *ngFor='let peerInfo of fullNode.peerInfos'>
+          <li *ngFor='let peerInfo of state.fullNode.peerInfos'>
             <span>{{peerInfo.description}}</span>
             <button class='button has-icon-left' (click)='disconnectPeer(peerInfo)'>
               <span class="icon">
@@ -196,7 +193,7 @@
     </div>
   </div>
 
-  <div *ngIf='userStarted && selectedTab==3'>
+  <div *ngIf='state.userStarted() && selectedTab==3'>
     <div class="container is-fluid">
       <div class="box">
         <h2 class='subtitle'>Privacy</h2>
@@ -230,20 +227,20 @@
         <div class="field">
           <label class="label">Current branch</label>
           <div class="select">
-            <select [(ngModel)]='selectedBranch'>
+            <select [(ngModel)]='state.selectedBranch'>
               <option *ngFor='let branch of branches' value='{{branch}}'>{{branch}}</option>
             </select>
           </div>
         </div>
-        <div *ngIf='state[selectedBranch]'>
-          <div *ngIf='state[selectedBranch].blocks.length'>
-            head block id: {{state[selectedBranch].blocks[0].blockMetadata.blockId}}
-            <br /> valid: {{state[selectedBranch].blocks[0].blockMetadata.isValid}}
-            <br /> branch: {{state[selectedBranch].blocks[0].blockData?.branch}}
-            <br /> previous blocks: {{state[selectedBranch].blocks[0].blockData?.previousBlockIds | json}}
-            <br /> confidence: {{state[selectedBranch].blocks[0].blockMetadata.confidence}}
-            <br /> blockCount: {{state[selectedBranch].blocks[0].blockMetadata.blockCount}}
-            <br /> validityProof: {{state[selectedBranch].blocks[0].blockData?.validityProof | json}}
+        <div *ngIf='state.state[state.selectedBranch]'>
+          <div *ngIf='state.state[state.selectedBranch].blocks.length'>
+            head block id: {{state.state[state.selectedBranch].blocks[0].blockMetadata.blockId}}
+            <br /> valid: {{state.state[state.selectedBranch].blocks[0].blockMetadata.isValid}}
+            <br /> branch: {{state.state[state.selectedBranch].blocks[0].blockData?.branch}}
+            <br /> previous blocks: {{state.state[state.selectedBranch].blocks[0].blockData?.previousBlockIds | json}}
+            <br /> confidence: {{state.state[state.selectedBranch].blocks[0].blockMetadata.confidence}}
+            <br /> blockCount: {{state.state[state.selectedBranch].blocks[0].blockMetadata.blockCount}}
+            <br /> validityProof: {{state.state[state.selectedBranch].blocks[0].blockData?.validityProof | json}}
           </div>
         </div>
       </div>
@@ -294,61 +291,19 @@
     </div>
   </div>
 
-  <div *ngIf='userStarted && selectedTab==4'>
+  <div *ngIf='state.userStarted() && selectedTab==4'>
     <div class="container is-fluid">
       <div class="box">
         <h2 class='subtitle'>Logs</h2>
-        <div *ngFor="let log of logs">{{log}}</div>
+        <div *ngFor="let log of state.logs">{{log}}</div>
       </div>
     </div>
   </div>
 
-  <div *ngIf='userStarted && selectedTab==5'>
+  <div *ngIf='state.userStarted() && selectedTab==5'>
     <div class="container is-fluid">
       <supply-chain></supply-chain>
     </div>
-
-    <!--
-    <div class="container is-fluid">
-      <div class="box">
-        <h2 class='subtitle'>Supply chain</h2>
-        <input #comment class='input' type='text' size="30" placeholder="Any public comment">
-        <button class="button" (click)='registerIdentity(comment.value)'>Register</button>
-      </div>
-      <div class="box">
-        <h2>Supply Chain State</h2>
-        <button class="button" (click)='refreshSupplyChainSummary()'>Refresh</button>
-
-        <div *ngIf='supplyChainState?.users[pseudo]'>
-          <div>Balance: {{supplyChainState.users[pseudo].balance}}</div>
-          <table>
-            <tr *ngFor='let itemId of keysOf(supplyChainState.users[pseudo].items)'>
-              <td>{{itemId}}</td>
-              <td>{{supplyChainState.users[pseudo].items[itemId]}}</td>
-            </tr>
-          </table>
-        </div>
-
-        <button class="button" (click)='supplyChainAsk()'>Ask</button>
-        <pre>{{ supplyChainReport }}</pre>
-        <div *ngIf='supplyChainState'>
-          <div *ngFor='let ask of toList(supplyChainState.asks)'>
-            <div>id: {{ask.id}}</div>
-            <div>asker: {{ask.email}}</div>
-            <div>title: {{ask.title}}</div>
-            <div>description: {{ask.description}}</div>
-            <ul>
-              <li *ngFor='let askItem of ask.asks; let i = index'>
-                <div>description: {{askItem.description}}</div>
-                <div *ngIf='askItem.bidId'>selectedBid: {{askItem.bidId}}</div>
-                <button *ngIf='!askItem.bidId' class="button" (click)='publishBid(ask.id, i)'>Bid</button>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  -->
   </div>
 </section>
 
@@ -360,11 +315,11 @@
         <a href='https://github.com/ltearno'>Arnaud Tournier</a> at
         <a href="https://stack-labs.com">Stack Labs</a>
       </p>
-      <p *ngIf='userStarted'>
-        <span>{{fullNode.peerInfos.length}} peers connected</span>
+      <p *ngIf='state.userStarted()'>
+        <span>{{state.fullNode.peerInfos.length}} peers connected</span>
         <span *ngIf='!p2pBroker.ready' style='color:red;'> - peer to peer connectivity is not ready</span>
-        <span *ngIf='fullNode.transfer.isLoading' style='color:green;'> - loading</span>
-        <span> - {{fullNode.node.blockCount}} blocks</span>
+        <span *ngIf='state.fullNode.transfer.isLoading' style='color:green;'> - loading</span>
+        <span> - {{state.fullNode.node.blockCount}} blocks</span>
         <span *ngIf='autoMining' style='color:green;'> - auto-mining enabled</span>
       </p>
     </div>

@@ -98,7 +98,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         let fixedId = await Block.idOfBlock(block)
         if (fixedId != blockId) {
-            console.warn(`registering a fixed block ${blockId} ${fixedId}`)
+            console.warn(`registering a fixed block ${blockId} ${fixedId}\n${JSON.stringify(block, null, 4)}`)
             blockId = fixedId
         }
 

@@ -1,13 +1,11 @@
-import { Component, OnInit, ViewChild, AfterViewInit, Inject } from '@angular/core'
+import { Component } from '@angular/core'
 import * as Model from './model'
-import * as Paint from './paint'
-import { State } from './state';
+import { State } from './state'
 
 @Component({
     selector: 'supply-chain',
     templateUrl: './supply-chain.component.html',
-    styleUrls: ['./supply-chain.component.css'],
-    providers: [State]
+    styleUrls: ['./supply-chain.component.css']
 })
 export class SupplyChainComponent {
     constructor(
@@ -25,7 +23,7 @@ export class SupplyChainComponent {
     private tempInventory = null
 
     get inventory() {
-        let inv = this.state.programState.accounts[this.state.userId].inventory
+        let inv = this.state.programState.accounts[this.state.user.pseudo].inventory
         let claims = this.claimsByOthers()
         let tempInventory = Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(item => item.count > 0)
 
@@ -45,7 +43,7 @@ export class SupplyChainComponent {
             if (artWork.validated || !artWork.grid)
                 continue
 
-            artWork.grid.filter(cell => cell && !cell.ownerId && this.state.programState.accounts[this.state.userId].inventory[cell.workItemId] > 0)
+            artWork.grid.filter(cell => cell && !cell.ownerId && this.state.programState.accounts[this.state.user.pseudo].inventory[cell.workItemId] > 0)
                 .forEach(cell => {
                     if (!claims[cell.workItemId])
                         claims[cell.workItemId] = []
@@ -63,28 +61,39 @@ export class SupplyChainComponent {
      * ArtWork creation
      */
 
-    editingArtwork: Model.ArtWork = null
+    editingArtworkId: string = null
 
-    initArtWorkCreation() {
-        this.editingArtwork = {
-            id: `r${Math.random()}`,
-            author: this.state.userId,
+    get editingArtwork(): Model.ArtWork {
+        if (!this.editingArtworkId)
+            return null
+
+        return this.state.programState.artWorks[this.editingArtworkId]
+    }
+
+    async initArtWorkCreation() {
+        let id = `r${Math.random()}`
+
+        await this.state.suppyChain.registerArtWork({
+            id: id,
+            author: this.state.user.pseudo,
             title: 'New ArtWork',
             description: 'Very new and empty',
             validated: false,
             size: { width: 4, height: 4 },
-            grid: null,
+            grid: new Array(4 * 4).fill(null),
             messages: []
-        }
+        })
+
+        this.editingArtworkId = id
     }
 
-    editArtWork(artwork) {
-        this.editingArtwork = artwork
+    editArtWork(artwork: Model.ArtWork) {
+        this.editingArtworkId = artwork.id
     }
 
     async saveArtwork() {
         let editingArtwork = this.editingArtwork
-        this.editingArtwork = null
+        this.editingArtworkId = null
 
         if (this.state.programState.artWorks[editingArtwork.id] == editingArtwork)
             return
@@ -93,13 +102,13 @@ export class SupplyChainComponent {
     }
 
     cancelArtwork() {
-        this.editingArtwork = null
+        this.editingArtworkId = null
     }
 
     validateArtWork(artWork: Model.ArtWork) {
         this.state.suppyChain.validateArtWork(artWork.id)
 
-        this.editingArtwork = null
+        this.editingArtworkId = null
     }
 
     /**
@@ -107,6 +116,6 @@ export class SupplyChainComponent {
      */
 
     acceptGivingItem(itemId: string, artWorkId: string) {
-        this.state.suppyChain.acceptGivingItem(this.state.userId, itemId, artWorkId)
+        this.state.suppyChain.acceptGivingItem(this.state.user.pseudo, itemId, artWorkId)
     }
 }

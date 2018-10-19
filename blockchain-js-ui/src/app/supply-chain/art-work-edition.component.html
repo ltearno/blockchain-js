@@ -42,7 +42,8 @@
 
 <div>
     <button class="button" (click)='cancel.emit()'>Cancel</button><br />
-    <button [disabled]='!canValidate()' class="button is-primary" (click)='validate.emit()'>Validate</button><br />
-    <span *ngIf='!canValidate()'>You cannot validate because not all items have been accepted !</span><br />
+    <!--<button [disabled]='!canValidate()' class="button is-primary" (click)='validate.emit()'>Validate</button><br />
+    <span *ngIf='!canValidate()'>You cannot validate because not all items have been accepted !</span><br />-->
+    <button class="button is-primary" (click)='validate.emit()'>Validate</button><br />
     <button class="button is-primary" (click)='save.emit()'>Save</button>
 </div>
