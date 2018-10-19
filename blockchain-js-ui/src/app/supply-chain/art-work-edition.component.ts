@@ -28,13 +28,16 @@ export class ArtWorkEditionComponent implements AfterViewInit {
 
     get inventory() {
         let inv = this.state.programState.accounts[this.state.userId].inventory
-        return Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId] }))
+
+        let claims = this.claimsByOthers()
+
+        return Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] }))
     }
 
     get othersInventory() {
         let res = {}
         Object.keys(this.state.programState.accounts).filter(userId => userId != this.state.userId).forEach(userId => {
-            let inv = this.state.programState.accounts[this.state.userId].inventory
+            let inv = this.state.programState.accounts[userId].inventory
             Object.keys(inv).forEach(itemId => {
                 if (!res[itemId])
                     res[itemId] = 0
@@ -43,6 +46,26 @@ export class ArtWorkEditionComponent implements AfterViewInit {
         })
 
         return Object.keys(res).map(itemId => ({ id: itemId, count: res[itemId] }))
+    }
+
+    // les choses que je possède que les autres veulent
+    private claimsByOthers() {
+        let claims = {}
+
+        for (let artWorkId in this.state.programState.artWorks) {
+            let artWork = this.state.programState.artWorks[artWorkId]
+            if (artWork.validated || !artWork.grid)
+                continue
+
+            artWork.grid.filter(cell => cell && !cell.ownerId && this.state.programState.accounts[this.state.userId].inventory[cell.workItemId] > 0)
+                .forEach(cell => {
+                    if (!claims[cell.workItemId])
+                        claims[cell.workItemId] = []
+                    claims[cell.workItemId].push(artWork.author)
+                })
+        }
+
+        return claims
     }
 
     @Input()

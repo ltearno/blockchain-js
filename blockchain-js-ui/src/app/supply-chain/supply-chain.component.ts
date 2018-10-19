@@ -27,7 +27,30 @@ export class SupplyChainComponent {
 
     get inventory() {
         let inv = this.state.programState.accounts[this.state.userId].inventory
-        return Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId] }))
+
+        let claims = this.claimsByOthers()
+
+        return Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] }))
+    }
+
+    // les choses que je possède que les autres veulent
+    private claimsByOthers() {
+        let claims = {}
+
+        for (let artWorkId in this.state.programState.artWorks) {
+            let artWork = this.state.programState.artWorks[artWorkId]
+            if (artWork.validated || !artWork.grid)
+                continue
+
+            artWork.grid.filter(cell => cell && !cell.ownerId && this.state.programState.accounts[this.state.userId].inventory[cell.workItemId] > 0)
+                .forEach(cell => {
+                    if (!claims[cell.workItemId])
+                        claims[cell.workItemId] = []
+                    claims[cell.workItemId].push(artWork.author)
+                })
+        }
+
+        return claims
     }
 
     /**

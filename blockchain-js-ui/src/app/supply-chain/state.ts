@@ -56,11 +56,11 @@ export class State {
                 validated: false,
                 size: { width: 10, height: 10 },
                 grid: [
-                    null, null, null, null, null, null, null, null, null, null,
+                    null, { ownerId: null, workItemId: 'pixel-green' }, null, null, { ownerId: null, workItemId: 'emoji-😁' }, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, { ownerId: 'lolite', workItemId: 'artwork-swujb' }, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
-                    null, null, null, null, null, null, null, null, null, null,
+                    null, null, null, { ownerId: null, workItemId: 'emoji-💛' }, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null, null, null,
                     null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' }, null, null, null, null, null, null, null, null,
@@ -77,9 +77,9 @@ export class State {
                 validated: false,
                 size: { width: 5, height: 5 },
                 grid: [
-                    { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' }, null, null, null, null,
+                    { ownerId: null, workItemId: 'artwork-oiuyhkjh' }, null, null, null, null,
                     null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' }, null, null, null,
-                    null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' }, null, null,
+                    null, null, { ownerId: null, workItemId: 'artwork-oiuyhkjh' }, null, null,
                     null, null, null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' },
                     null, null, null, null, { ownerId: 'lolite', workItemId: 'artwork-oiuyhkjh' }
                 ]
@@ -90,7 +90,7 @@ export class State {
                 author: 'me',
                 title: 'My forst artwirk',
                 description: 'Un test',
-                validated: false,
+                validated: true,
                 size: { width: 3, height: 3 },
                 grid: [
                     { ownerId: 'lolite', workItemId: 'pixel-red' }, { ownerId: 'lolite', workItemId: 'pixel-red' }, { ownerId: 'lolite', workItemId: 'emoji-😁' },

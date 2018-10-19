@@ -20,7 +20,7 @@ export interface ArtWork {
     size: { width: number; height: number }
     grid: {
         workItemId: string // id de l'item `artwork-XXX`, `pixel-XXX`, `emoji-XXX`
-        ownerId: string // le possesseur initial
+        ownerId?: string // le possesseur initial
     }[] // by line
 }
 
