@@ -25,12 +25,18 @@ export class SupplyChainComponent {
     selectedArtWork = null
     selectedInInventory = null
 
+    private tempInventory = null
+
     get inventory() {
         let inv = this.state.programState.accounts[this.state.userId].inventory
-
         let claims = this.claimsByOthers()
+        let tempInventory = Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] }))
 
-        return Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] }))
+        if (!this.tempInventory || JSON.stringify(tempInventory) != JSON.stringify(this.tempInventory)) {
+            this.tempInventory = tempInventory
+        }
+
+        return this.tempInventory
     }
 
     // les choses que je possède que les autres veulent

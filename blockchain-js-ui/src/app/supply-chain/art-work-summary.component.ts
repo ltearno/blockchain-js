@@ -29,6 +29,10 @@ export class ArtWorkSummaryComponent implements AfterViewInit {
         return this._artWork
     }
 
+    updatePainting() {
+        this.paint()
+    }
+
     @Output()
     select = new EventEmitter<Model.ArtWork>()
 
@@ -43,7 +47,7 @@ export class ArtWorkSummaryComponent implements AfterViewInit {
     }
 
     private paint() {
-        //Paint.clear(400, 400, this.context)
+        Paint.clear(400, 400, this.context)
         this._artWork && this.context && Paint.drawArtWork(this.state.programState, this._artWork, 400, 400, this.context)
     }
 }
