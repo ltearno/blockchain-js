@@ -27,7 +27,7 @@ export class SupplyChainComponent {
     get inventory() {
         let inv = this.state.programState.accounts[this.state.userId].inventory
         let claims = this.claimsByOthers()
-        let tempInventory = Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] }))
+        let tempInventory = Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(item => item.count > 0)
 
         if (!this.tempInventory || JSON.stringify(tempInventory) != JSON.stringify(this.tempInventory)) {
             this.tempInventory = tempInventory
