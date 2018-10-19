@@ -16,39 +16,62 @@
  * mais on peut vendre un ensemble (itemId devient celui du ask validé)
  */
 ((() => {
-    const ITEM_BASE = [
-        'roue',
-        'pédale',
-        'guidon',
-        'chaîne',
-        'cadre',
-        'freinage',
-        'klaxon',
-        'selle',
-        'pneu',
-        'éclairage'
-    ]
+    const NB_ITEMS_PACKET_AT_ACCOUNT_CREATION = 20
+    const PACKET_QUANTITY = 1
 
-    const BALANCE_AT_ACCOUNT_CREATION = 10
+    const canValidateArtWork = (artWork) => {
+        return artWork.grid && artWork.grid.every(cell => !cell || cell.ownerId != null)
+    }
 
-    const PACKET_QUANTITY = 10
+    const addParticipations = (artWork, participations) => {
+        if (!artWork.validated)
+            return
 
-    const NB_ITEMS_PACKET_AT_ACCOUNT_CREATION = 3
+        if (!participations[artWork.author])
+            participations[artWork.author] = 0
+        participations[artWork.author]++
 
-    let changeItemCount = (account, itemId, change) => {
-        if (!(itemId in account.items))
-            account.items[itemId] = change
-        else
-            account.items[itemId] += change
+        artWork.grid.forEach(cell => {
+            if (!cell)
+                return
+
+            if (cell.workItemId.startsWith('pixel-') || cell.workItemId.startsWith('emoji-')) {
+                if (!participations[cell.ownerId])
+                    participations[cell.ownerId] = 0
+                participations[cell.ownerId]++
+            }
+            else if (cell.workItemId.startsWith('artwork-')) {
+                addParticipations(this.data.artWorks[cell.workItemId.substr('artwork-'.length)], participations)
+            }
+            else {
+                console.error(`unkown item id`)
+            }
+        })
+    }
+
+    const pickRedistributableItem = () => {
+        return this.data.redistributableItems[Math.ceil(this.data.redistributableItems.length * Math.random())]
     }
 
     return {
         /**
          */
         init: function () {
-            this.data.users = {}
-            this.data.asks = {}
-            this.data.bids = {}
+            this.data = {
+                redistributableItems: [
+                    "pixel-red",
+                    "pixel-green",
+                    "pixel-blue",
+                    "pixel-purple",
+                    "emoji-😁",
+                    "emoji-💛",
+                    "emoji-🎷"
+                ],
+
+                accounts: {},
+
+                artWorks: {}
+            }
         },
 
         /** 
@@ -65,7 +88,7 @@
 
             let email = signInData.email
 
-            if (this.data.users[email]) {
+            if (this.data.accounts[email]) {
                 console.log(`already exists account for ${email}`)
                 return null
             }
@@ -78,182 +101,292 @@
 
             let items = {}
 
-            // for debug, we know accounts will have this item
-            //items[ITEM_BASE[0]] = PACKET_QUANTITY
-
             for (let i = 0; i < NB_ITEMS_PACKET_AT_ACCOUNT_CREATION; i++) {
-                let item = ITEM_BASE[random(ITEM_BASE.length)]
+                let item = this.data.redistributableItems[random(this.data.redistributableItems.length)]
                 if (item in items)
                     items[item] += PACKET_QUANTITY
                 else
                     items[item] = PACKET_QUANTITY
             }
 
-            this.data.users[email] = {
-                items,
-                balance: BALANCE_AT_ACCOUNT_CREATION
+            this.data.accounts[email] = {
+                email,
+                inventory: items
             }
 
-            console.log(`account registered!`, this.data.users[email])
+            console.log(`account registered!`, this.data.accounts[email])
 
-            return this.data.users[email]
+            return this.data.accounts[email]
         },
 
         hasAccount: function (args) {
             if (!lib.checkStringArgs(args, ['email']))
                 return false
 
-            return args.email in this.data.users
+            return args.email in this.data.accounts
         },
 
-        getState: function () {
-            return this.data
-        },
 
-        /**
-         * Ask :
-         * 
-         * - initiated : public, but not yet closed. offers are made against this Bids
-         * - closed : all asks are fullfilled => coins and items are updated
-         * 
-         * @param data { email, id, title, description, asks : { description: string, acceptedBidId: string }[] }, signed by the ask's creator's email's public key on identity smart contract
-         */
-        publishAsk: function (args) {
-            let ask = callContract('identity-registry-1', 0, 'signIn', args)
-            if (!ask) {
-                console.log(`signIn failed`)
-                return null
+
+
+        registerArtWork: function (args) {
+            if (!lib.checkArgs(args, ['artWork'])) {
+                console.log(`missing artWork argument`)
+                return false
             }
 
-            if (!lib.checkStringArgs(ask, ['email', 'id', 'title', 'description']))
-                return null
-            if (!lib.checkArgs(ask, ['asks']))
-                return null
+            let artWork = args['artWork']
 
-            if (ask.id in this.data.asks) {
-                console.error(`ask already existing`)
-                return null
+            if (this.data.artWorks[artWork.id]) {
+                console.log(`artwork ${artWork.id} already exists`)
+                return false
             }
 
-            this.data.asks[ask.id] = ask
+            // TODO sanity check
 
-            console.log(`'ask' ${ask.id} just added !`)
+            this.data.artWorks[artWork.id] = artWork
+
+            if (!this.data.accounts[artWork.author].inventory['artwork-' + artWork.id])
+                this.data.accounts[artWork.author].inventory['artwork-' + artWork.id] = 0
+            this.data.accounts[artWork.author].inventory['artwork-' + artWork.id]++
 
             return true
         },
 
-        /**
-         * Offer :
-         * 
-         * - not selected : (the offer is selected by the first Bids in the chain to select it)
-         * - selected : the offer has been selected by the ask made for it
-         */
-        publishBid: function (args) {
-            let bid = callContract('identity-registry-1', 0, 'signIn', args)
-            if (!bid) {
-                console.log(`signIn failed`)
-                return null
+
+        validateArtWork: function (args) {
+            if (!lib.checkArgs(args, ['artWorkId'])) {
+                console.log(`missing artWorkId argument`)
+                return false
             }
 
-            if (!lib.checkStringArgs(bid, ['email', 'id', 'askId', 'itemId', 'description', 'specification']))
-                return null
-            if (!lib.checkArgs(bid, ['askIndex', 'price']))
-                return null
+            let artWorkId = args['artWorkId']
 
-            if (!(bid.email in this.data.users)) {
-                console.log(`user has no account to publish bid !`)
-                return
+            let artWork = this.data.artWorks[artWorkId]
+            if (!artWork)
+                return false
+
+            if (!canValidateArtWork(artWork))
+                return false
+
+            artWork.validated = true
+
+            // redistribute goods
+            this.data.redistributableItems.push('artwork-' + artWork.id)
+            // compte les participations par personne
+            let participations = {}
+            addParticipations(artWork, participations)
+
+            for (let userId in participations) {
+                let count = participations[userId]
+                while (count--) {
+                    let winnedItemId = pickRedistributableItem()
+                    let inventory = this.data.accounts[userId].inventory
+                    if (!inventory[winnedItemId])
+                        inventory[winnedItemId] = 1
+                    else
+                        inventory[winnedItemId]++
+                }
             }
+        },
 
-            if (bid.id in this.data.bids) {
-                console.log(`bid ${bid.id} already exists`)
-                return null
-            }
 
-            if (!this.data.users[bid.email].items[bid.itemId]) {
-                console.log(`insufficient items to bid ${bid.itemId} !`)
-                return null
-            }
 
-            this.data.bids[bid.id] = bid
+        acceptGivingItem: function (args) {
+            if (!lib.checkArgs(args, ['userId', 'itemId', 'artWorkId']))
+                return false
 
-            console.log(`'bid' ${bid.id} just added !`)
+            let userId = args['userId']
+            let itemId = args['itemId']
+            let artWorkId = args['artWorkId']
+
+            if (this.data.accounts[userId].inventory[itemId] <= 0)
+                return false
+
+            const artWork = this.data.artWorks[artWorkId]
+            if (!artWork || artWork.validated)
+                return false
+
+            let fittingCell = artWork.grid.find(cell => cell && cell.workItemId == itemId && !cell.ownerId)
+            if (!fittingCell)
+                return false
+
+            fittingCell.ownerId = userId
+            this.data.accounts[userId].inventory[itemId]--
 
             return true
         },
 
-        // comment bid... (for discussions...)
-        // change bid price
-        // update ask...
 
-        selectBid: function (args) {
-            let selection = callContract('identity-registry-1', 0, 'signIn', args)
-            if (!selection) {
-                console.log(`signIn failed`)
-                return null
+        removeCellFromArtWork: function (args) {
+            if (!lib.checkArgs(args, ['artWorkId', 'x', 'y']))
+                return false
+
+            let artWorkId = args['artWorkId']
+            let x = args['x']
+            let y = args['y']
+
+            const artWork = this.data.artWorks[artWorkId]
+            if (!artWork)
+                return false
+
+            let coordIndex = x + artWork.size.width * y
+
+            let ownerId = artWork.grid[coordIndex].ownerId
+            let itemId = artWork.grid[coordIndex].workItemId
+
+            artWork.grid[coordIndex] = null
+
+            if (ownerId) {
+                if (ownerId == artWork.author) { // cannot reverse an agreement !
+                    if (!this.data.accounts[ownerId].inventory[itemId])
+                        this.data.accounts[ownerId].inventory[itemId] = 0
+                    this.data.accounts[ownerId].inventory[itemId]++
+                }
             }
 
-            if (!lib.checkStringArgs(selection, ['email', 'bidId']))
-                return null
+            return true
+        },
 
-            let bid = this.data.bids[selection.bidId]
-            if (!bid) {
-                console.log(`unknown bid ${selection.bidId}`)
-                return null
+
+        addItemInArtWorkFromInventory: function (args) {
+            if (!lib.checkArgs(args, ['artWorkId', 'itemId', 'x', 'y']))
+                return false
+
+            let artWorkId = args['artWorkId']
+            let itemId = args['itemId']
+            let x = args['x']
+            let y = args['y']
+
+            const artWork = this.data.artWorks[artWorkId]
+            if (!artWork)
+                return false
+
+            if (this.data.accounts[artWork.author].inventory[itemId] > 0) {
+                let coordIndex = x + artWork.size.width * y
+                artWork.grid[coordIndex] = {
+                    ownerId: artWork.author,
+                    workItemId: itemId
+                }
+
+                this.data.accounts[artWork.author].inventory[itemId]--
             }
 
-            let ask = this.data.asks[bid.askId]
-            if (!ask) {
-                console.log(`unknown ask ${bid.askId} for bid ${bid.id}`)
-                return null
+            return true
+        },
+
+
+        askItemForArtWork: function (args) {
+            if (!lib.checkArgs(['artWorkId', 'itemId', 'x', 'y']))
+                return false
+
+            let artWorkId = args['artWorkId']
+            let itemId = args['itemId']
+            let x = args['x']
+            let y = args['y']
+
+            const artWork = this.data.artWorks[artWorkId]
+            if (!artWork)
+                return false
+
+            let coordIndex = x + artWork.size.width * y
+
+            artWork.grid[coordIndex] = {
+                ownerId: null,
+                workItemId: itemId
             }
 
-            if (selection.email !== ask.email) {
-                console.log(`wrong user for selecting bid ${bid.askId} for bid ${bid.id}`)
-                return null
+            return true
+        },
+
+        sendMessageOnArtWork: function (args) {
+            if (!lib.checkArgs(['userId', 'artWorkId', 'text']))
+                return false
+
+            let userId = args['userId']
+            let artWorkId = args['artWorkId']
+            let text = args['text']
+
+            this.data.artWorks[artWorkId].messages.push({ author: userId, text })
+
+            return true
+        },
+
+
+
+        updateArtWorkTitle: function (args) {
+            if (!lib.checkArgs(['artWorkId', 'title']))
+                return false
+
+            let artWorkId = args['artWorkId']
+            let title = args['title']
+
+            const artWork = this.data.artWorks[artWorkId]
+            if (!artWork)
+                return false
+
+            artWork.title = title
+
+            return true
+        },
+
+
+
+        updateArtWorkDescription: function (args) {
+            if (!lib.checkArgs(['artWorkId', 'description']))
+                return false
+
+            let artWorkId = args['artWorkId']
+            let description = args['description']
+
+            const artWork = this.data.artWorks[artWorkId]
+            if (!artWork)
+                return false
+
+            artWork.description = description
+
+            return true
+        },
+
+
+
+        updateArtWorkSize: function (args) {
+            if (!lib.checkArgs(['artWorkId', 'width', 'height']))
+                return false
+
+            let artWorkId = args['artWorkId']
+            let width = args['width']
+            let height = args['height']
+
+            const artWork = this.data.artWorks[artWorkId]
+            if (!artWork)
+                return false
+
+            artWork.size.width = width
+            artWork.size.height = height
+
+            this.updateArtWorkGrid(artWork)
+
+            return true
+        },
+
+        updateArtWorkGrid(args) {
+            if (!lib.checkArgs(['artWork']))
+                return false
+
+            let artWork = args['artWork']
+
+            let normalLength = artWork.size.width * artWork.size.height
+
+            if (!artWork.grid) {
+                artWork.grid = new Array(normalLength)
             }
-
-            if (bid.askIndex < 0 || bid.askIndex >= ask.asks.length) {
-                console.log(`askIndex out of range in bid ${bid.askIndex}`)
-                return null
+            else if (artWork.grid.length < normalLength) {
+                artWork.grid = artWork.grid.concat(new Array(normalLength - artWork.grid.length).fill(null))
             }
-
-            let askItem = ask.asks[bid.askIndex]
-
-            if (askItem.bidId) {
-                console.log(`askItem already selected bid ${askItem.bidId}`)
-                return null
+            else if (artWork.grid.length > normalLength) {
+                artWork.grid.slice(0)
             }
-
-            // transfer money
-            let buyer = this.data.users[ask.email]
-            let seller = this.data.users[bid.email]
-
-            if (buyer.balance < bid.price) {
-                console.log(`buyer does not have enough money ${buyer.balance} ${bid.price} !`)
-                return null
-            }
-
-            if (!(bid.itemId in seller.items) || seller.items[bid.itemId] <= 0) {
-                console.log(`seller does not have the item ${bid.itemId}`)
-                return null
-            }
-
-            askItem.bidId = bid.id
-            bid.selected = true
-
-            buyer.balance -= bid.price
-            seller.balance += bid.price
-
-            changeItemCount(seller, bid.itemId, -1)
-
-            // when all asks have been fulfilled, buyer gets rewarded with a new item
-            if (ask.asks.every(askItem => askItem.bidId != null)) {
-                changeItemCount(buyer, ask.id, 1)
-                console.log(`congratulations to user who just got his new item ${bid.id} !`)
-            }
-
-            console.error(`bid successfully selected !!!`)
 
             return true
         }
