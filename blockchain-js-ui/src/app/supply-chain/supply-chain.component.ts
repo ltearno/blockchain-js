@@ -63,8 +63,8 @@ export class SupplyChainComponent {
         this.editingArtwork = {
             id: `r${Math.random()}`,
             author: this.state.userId,
-            title: '',
-            description: '',
+            title: 'New ArtWork',
+            description: 'Very new and empty',
             validated: false,
             size: { width: 4, height: 4 },
             grid: null
@@ -76,8 +76,15 @@ export class SupplyChainComponent {
     }
 
     validateArtwork() {
+        if (this.state.programState.artWorks[this.editingArtwork.id] == this.editingArtwork)
+            return
+
         this.state.programState.artWorks[this.editingArtwork.id] = this.editingArtwork
-        // TODO this.state.programState.accounts[this.userId].inventory[this.editingArtwork.id]++
+
+        if (!this.state.programState.accounts[this.state.userId].inventory['artwork-' + this.editingArtwork.id])
+            this.state.programState.accounts[this.state.userId].inventory['artwork-' + this.editingArtwork.id] = 0
+        this.state.programState.accounts[this.state.userId].inventory['artwork-' + this.editingArtwork.id]++
+
         this.editingArtwork = null
     }
 

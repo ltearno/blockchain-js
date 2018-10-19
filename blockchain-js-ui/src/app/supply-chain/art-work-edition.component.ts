@@ -72,14 +72,23 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     set artWork(artWork) {
         this._artWork = artWork
 
+        this.updateArtWorkGrid()
+
+        this.paint()
+    }
+
+    private updateArtWorkGrid() {
+        let normalLength = this._artWork.size.width * this._artWork.size.height
+
         if (!this._artWork.grid) {
-            this._artWork.grid = new Array(this._artWork.size.width * this._artWork.size.height)
-            this._artWork.grid[2 * 2] = { ownerId: null, workItemId: "pixel-black" }
-            this._artWork.grid[3 * 2] = { ownerId: null, workItemId: "emoji-😁" }
+            this._artWork.grid = new Array(normalLength)
         }
-
-
-        this.paint
+        else if (this._artWork.grid.length < normalLength) {
+            this._artWork.grid = this._artWork.grid.concat(new Array(normalLength - this._artWork.grid.length).fill(null))
+        }
+        else if (this._artWork.grid.length > normalLength) {
+            this._artWork.grid.slice(0)
+        }
     }
 
     @Output()
@@ -115,6 +124,15 @@ export class ArtWorkEditionComponent implements AfterViewInit {
             x: Math.floor(((x - rect.left) / (rect.right - rect.left)) * this._artWork.size.width),
             y: Math.floor(((y - rect.top) / (rect.bottom - rect.top)) * this._artWork.size.height)
         }
+    }
+
+    changeArtWorkSize(width, height) {
+        this._artWork.size.width = width
+        this._artWork.size.height = height
+
+        this.updateArtWorkGrid()
+
+        this.paint()
     }
 
     mouseMove(event: MouseEvent) {
@@ -182,6 +200,9 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     }
 
     private paint() {
+        if (!this.context)
+            return
+
         Paint.clear(400, 400, this.context)
         if (this.mouseOver)
             Paint.drawCell(this._artWork, this.mouseOver.x, this.mouseOver.y, 400, 400, this.context)

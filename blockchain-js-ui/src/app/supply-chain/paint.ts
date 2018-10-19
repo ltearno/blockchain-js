@@ -54,6 +54,9 @@ export function drawCell(artWork: Model.ArtWork, i: number, j: number, width: nu
 }
 
 export function clear(width: number, height: number, ctx: CanvasRenderingContext2D) {
+    if (!ctx)
+        return
+
     ctx.fillStyle = 'white'
     ctx.fillRect(0, 0, width, height)
 }
