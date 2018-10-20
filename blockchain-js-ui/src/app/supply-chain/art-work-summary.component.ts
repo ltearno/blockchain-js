@@ -7,7 +7,7 @@ import { text } from '@angular/core/src/render3/instructions';
 @Component({
     selector: 'art-work-summary',
     templateUrl: './art-work-summary.component.html',
-    /*styles: [`
+    styles: [`
     .square {
         width:50%;
     }
@@ -17,7 +17,17 @@ import { text } from '@angular/core/src/render3/instructions';
         display: block;
         padding-bottom: 100%;
     }
-    `]*/
+
+
+    .artWork-card{
+        box-shadow: 0px 0px 5em 10px rgba(193, 187, 187, 0.1), 5px 6px 15px 1px rgba(10, 10, 10, 0.1);
+        overflow: hidden;
+    }
+
+    .card-image {
+        box-shadow: 0px 8px 15px 4px rgba(169, 169, 169, 0.13);
+    }
+    `]
 })
 export class ArtWorkSummaryComponent implements AfterViewInit {
     @ViewChild("canvas")
