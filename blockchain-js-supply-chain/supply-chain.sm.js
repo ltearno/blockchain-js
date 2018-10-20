@@ -23,7 +23,7 @@
         return artWork.grid && artWork.grid.every(cell => !cell || cell.ownerId != null)
     }
 
-    const addParticipations = (artWork, participations) => {
+    const addParticipations = (data, artWork, participations) => {
         if (!artWork.validated)
             return
 
@@ -41,16 +41,12 @@
                 participations[cell.ownerId]++
             }
             else if (cell.workItemId.startsWith('artwork-')) {
-                addParticipations(this.data.artWorks[cell.workItemId.substr('artwork-'.length)], participations)
+                addParticipations(data, data.artWorks[cell.workItemId.substr('artwork-'.length)], participations)
             }
             else {
                 console.error(`unkown item id`)
             }
         })
-    }
-
-    const pickRedistributableItem = (data) => {
-        return data.redistributableItems[Math.ceil(data.redistributableItems.length * Math.random())]
     }
 
     const updateArtWorkGrid = (artWork) => {
@@ -75,13 +71,117 @@
          */
         init: function () {
             this.data.redistributableItems = [
-                "pixel-red",
-                "pixel-green",
-                "pixel-blue",
-                "pixel-purple",
+                "pixel-#7fc6b6",
+                "pixel-#a8583f",
+                "pixel-#e8a77b",
+                "pixel-#c38d9d",
+                "pixel-#40b3a1",
+                "pixel-#563d67",
+                "pixel-#8e8741",
+                "pixel-#bd986b",
+                "pixel-#5cdb94",
+                "pixel-#fc4444",
+                "pixel-#1d1d1d",
+                "pixel-#a9bcd4",
+                "pixel-#557a95",
+                "pixel-#4201ff",
+                "pixel-#66fbf1",
+                "pixel-#1c552a",
+                "pixel-#786d01",
                 "emoji-😁",
                 "emoji-💛",
-                "emoji-🎷"
+                "emoji-🎷",
+                "emoji-😀",
+                "emoji-😁",
+                "emoji-💓",
+                "emoji-👧",
+                "emoji-🧑",
+                "emoji-👨",
+                "emoji-👶",
+                "emoji-🤲",
+                "emoji-💪",
+                "emoji-🤘",
+                "emoji-📢",
+                "emoji-🎥",
+                "emoji-🍇",
+                "emoji-🥝",
+                "emoji-🍅",
+                "emoji-🥥",
+                "emoji-🍛",
+                "emoji-🍜",
+                "emoji-😺",
+                "emoji-🐵",
+                "emoji-🐄",
+                "emoji-🐷",
+                "emoji-🐘",
+                "emoji-🐼",
+                "emoji-🐋",
+                "emoji-🐬",
+                "emoji-🕷",
+                "emoji-🕸",
+                "emoji-🦂",
+                "emoji-🌹",
+                "emoji-🥀",
+                "emoji-🌺",
+                "emoji-🌻",
+                "emoji-🛅",
+                "emoji-⚠",
+                "emoji-🚸",
+                "emoji-⛔",
+                "emoji-🚫",
+                "emoji-🚭",
+                "emoji-🛂",
+                "emoji-🔓",
+                "emoji-🔥",
+                "emoji-🎲",
+                "emoji-🎴",
+                "emoji-🎭",
+                "emoji-🚅",
+                "emoji-🚍",
+                "emoji-🚎",
+                "emoji-🚑",
+                "emoji-🚒",
+                "emoji-🚓",
+                "emoji-🚔",
+                "emoji-🚜",
+                "emoji-🚲",
+                "emoji-🛴",
+                "emoji-🛥",
+                "emoji-🚢",
+                "emoji-✈",
+                "emoji-🌎",
+                "emoji-🏥",
+                "emoji-🌅",
+                "emoji-🌝",
+                "emoji-🌞",
+                "emoji-⛈",
+                "emoji-🌤",
+                "emoji-🌈",
+                "emoji-☔",
+                "emoji-🕔",
+                "emoji-🏁",
+                "emoji-🚩",
+                "emoji-🎌",
+                "emoji-💞",
+                "emoji-😂",
+                "emoji-🤣",
+                "emoji-😃",
+                "emoji-😄",
+                "emoji-😅",
+                "emoji-😆",
+                "emoji-😉",
+                "emoji-😊",
+                "emoji-😋",
+                "emoji-😎",
+                "emoji-😍",
+                "emoji-😘",
+                "emoji-😗",
+                "emoji-😙",
+                "emoji-😚",
+                "emoji-☺️",
+                "emoji-🙂",
+                "emoji-🤗",
+                "emoji-🤩"
             ]
 
             this.data.accounts = {}
@@ -190,12 +290,18 @@
             this.data.redistributableItems.push('artwork-' + artWork.id)
             // compte les participations par personne
             let participations = {}
-            addParticipations(artWork, participations)
+            addParticipations(this.data, artWork, participations)
+
+            let random = (modulo) => {
+                let randomString = callContract('random-generator-v1', 0, 'generate', args)
+                let result = parseInt(randomString.substr(0, 8), 16)
+                return result % modulo
+            }
 
             for (let userId in participations) {
                 let count = participations[userId]
                 while (count--) {
-                    let winnedItemId = pickRedistributableItem(this.data)
+                    let winnedItemId = this.data.redistributableItems[random(this.data.redistributableItems.length)]
                     let inventory = this.data.accounts[userId].inventory
                     if (!inventory[winnedItemId])
                         inventory[winnedItemId] = 1

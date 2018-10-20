@@ -3,7 +3,7 @@ import {
   Block,
   FullNode,
   NetworkApi,
-  NetworkClientBrowserImpl,
+  NetworkClientBrowserImpl
 } from 'blockchain-js-core'
 import * as PeerToPeer from 'rencontres'
 import * as CryptoJS from 'crypto-js'
@@ -432,7 +432,7 @@ export class AppComponent {
     let storageBlocksString = localStorage.getItem(STORAGE_BLOCKS)
     if (storageBlocksString) {
       try {
-        let storageBlocks = JSON.parse(storageBlocksString)
+        let storageBlocks = Block.deserializeBlockData(storageBlocksString)
         if (Array.isArray(storageBlocks)) {
           this.log(`loading blocks from local storage`)
           let i = 0
@@ -451,12 +451,41 @@ export class AppComponent {
     }
   }
 
-  saveBlocks() {
+  async saveBlocks() {
     // TODO only save blocks that are in branches...
+    console.log(`saving blocks...`)
     let toSave = []
     let blocks: Map<string, Block.Block> = this.state.fullNode.node.blocks()
-    blocks.forEach((block, blockId) => toSave.push({ blockId, block }))
-    localStorage.setItem(STORAGE_BLOCKS, JSON.stringify(toSave))
-    this.log(`blocks saved`)
+    let itr = blocks.entries()
+
+    for (let it = itr.next(); !it.done; it = itr.next()) {
+      let [blockId, block] = it.value
+      if (blockId != await Block.idOfBlock(Block.deserializeBlockData(Block.serializeBlockData(block)))) {
+        console.log(`errord`)
+        debugger
+      }
+      toSave.push({ blockId, block })
+    }
+
+    if (false) {
+      const serializedBlocks = Block.serializeBlockData(toSave)
+      localStorage.setItem(STORAGE_BLOCKS, serializedBlocks)
+      this.log(`blocks saved`)
+
+      const deserializedBlocks = Block.deserializeBlockData(serializedBlocks)
+      let re = Block.serializeBlockData(deserializedBlocks)
+      if (re != serializedBlocks) {
+        console.error(`BADDDD ${re} ${serializedBlocks}`)
+        debugger
+      }
+      for (let { blockId, block } of deserializedBlocks) {
+        let deserializedId = await Block.idOfBlock(block)
+        if (blockId != deserializedId) {
+          console.log(`original block : ${blockId} ${Block.serializeBlockData(blocks.get(blockId))}`, blocks.get(blockId))
+          console.log(`deserialized b : ${deserializedId} ${Block.serializeBlockData(block)}`, block)
+          debugger
+        }
+      }
+    }
   }
 }

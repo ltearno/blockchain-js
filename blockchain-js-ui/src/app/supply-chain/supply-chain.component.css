@@ -32,3 +32,14 @@
 .grille > div {
     background-color: aqua;
 }
+
+.artWorks {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}
+
+.artWorks>*{
+    padding: .2em;
+}

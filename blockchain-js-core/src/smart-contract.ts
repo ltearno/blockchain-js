@@ -319,6 +319,8 @@ export class SmartContract {
         let backup = JSON.stringify(contractState.instanceData)
 
         try {
+            args = args != null ? JSON.parse(JSON.stringify(args)) : args
+
             let callResult = liveInstance[method].apply({
                 uuid: contractState.uuid,
                 name: contractState.name,

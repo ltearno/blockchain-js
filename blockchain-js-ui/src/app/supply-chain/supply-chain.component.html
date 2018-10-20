@@ -1,8 +1,14 @@
 <div *ngIf='!state.hasSupplyChainAccount'>Supply Chain account creation, please wait...</div>
 <div *ngIf='state.hasSupplyChainAccount'>
+    <div>
+        <h2>Users</h2>
+        {{ users }}
+    </div>
     <div *ngIf='!editingArtwork' class="container">
         <h2>Artworks</h2>
-        <art-work-summary *ngFor='let artWork of artWorksToDisplay()' [artWork]='artWork' (edit)='editArtWork($event)'></art-work-summary>
+        <div class="artWorks">
+            <art-work-summary *ngFor='let artWork of artWorksToDisplay()' [artWork]='artWork' (edit)='editArtWork($event)'></art-work-summary>
+        </div>
 
         <h2>Inventory</h2>
         <div *ngFor='let item of inventory' [class.selected]='item.id == selectedInInventory'>
@@ -24,5 +30,5 @@
             (cancel)='cancelArtwork()'></art-work-edition>
     </div>
 
-    {{ state.programState | json }}
+    <!--{{ state.programState | json }}-->
 </div>

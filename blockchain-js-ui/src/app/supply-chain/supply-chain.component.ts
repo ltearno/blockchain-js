@@ -22,6 +22,10 @@ export class SupplyChainComponent {
 
     private tempInventory = null
 
+    get users() {
+        return Object.keys(this.state.programState.accounts).join(', ')
+    }
+
     get inventory() {
         let inv = this.state.programState.accounts[this.state.user.pseudo].inventory
         let claims = this.claimsByOthers()

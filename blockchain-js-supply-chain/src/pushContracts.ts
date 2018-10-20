@@ -46,7 +46,7 @@ async function run() {
         peerInfo.fullNodePeerInfo = fullNode.addPeer(peerNode.remoteFacade(), `peer added through REST: ${peer.address}:${peer.port}`)
 
 
-        await wait(5000)
+        await wait(1000)
 
         let smartContract = new SmartContract.SmartContract(fullNode.node, Block.MASTER_BRANCH, 'people', fullNode.miner)
         smartContract.initialise()

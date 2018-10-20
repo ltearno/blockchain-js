@@ -6,7 +6,18 @@ import { text } from '@angular/core/src/render3/instructions';
 
 @Component({
     selector: 'art-work-summary',
-    templateUrl: './art-work-summary.component.html'
+    templateUrl: './art-work-summary.component.html',
+    /*styles: [`
+    .square {
+        width:50%;
+    }
+
+    .square:after {
+        content: "";
+        display: block;
+        padding-bottom: 100%;
+    }
+    `]*/
 })
 export class ArtWorkSummaryComponent implements AfterViewInit {
     @ViewChild("canvas")
