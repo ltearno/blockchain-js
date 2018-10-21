@@ -49,6 +49,27 @@
         })
     }
 
+    const containsArtWorkId = (data, searchedArtWorkId, workItemId) => {
+        if (!workItemId)
+            return false
+
+        if (!workItemId.startsWith('artwork-'))
+            return false
+
+        let artWorkId = workItemId.substr('artwork-'.length)
+        if (artWorkId == searchedArtWorkId)
+            return true
+
+        artWork = data.artWorks[artWorkId]
+        if (!artWork)
+            return false
+
+        if (artWork.grid)
+            return artWork.grid.some(cell => cell && containsArtWorkId(data, searchedArtWorkId, cell.workItemId))
+
+        return false
+    }
+
     const updateArtWorkGrid = (artWork) => {
         let normalLength = artWork.size.width * artWork.size.height
 
@@ -383,6 +404,11 @@
             if (!artWork)
                 return false
 
+            if (containsArtWorkId(this.data, artWorkId, itemId)) {
+                console.log(`cannot add this artwork has it would produce a cycle !`)
+                return false
+            }
+
             if (this.data.accounts[artWork.author].inventory[itemId] > 0) {
                 let coordIndex = x + artWork.size.width * y
                 artWork.grid[coordIndex] = {
@@ -409,6 +435,11 @@
             const artWork = this.data.artWorks[artWorkId]
             if (!artWork)
                 return false
+
+            if (containsArtWorkId(this.data, artWorkId, itemId)) {
+                console.log(`cannot add this artwork has it would produce a cycle !`)
+                return false
+            }
 
             let coordIndex = x + artWork.size.width * y
 
