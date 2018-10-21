@@ -16,10 +16,6 @@ export class SupplyChainComponent {
         return Object.keys(this.state.programState.artWorks).sort().map(k => this.state.programState.artWorks[k])
     }
 
-    selectedCreation = null
-    selectedArtWork = null
-    selectedInInventory = null
-
     private tempInventory = null
 
     get users() {

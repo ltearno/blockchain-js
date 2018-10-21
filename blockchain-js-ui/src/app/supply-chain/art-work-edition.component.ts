@@ -31,7 +31,7 @@ export class ArtWorkEditionComponent implements AfterViewInit {
 
         let claims = this.claimsByOthers()
 
-        return Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] }))
+        return Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(i => i.count > 0)
     }
 
     get othersInventory() {
@@ -45,7 +45,7 @@ export class ArtWorkEditionComponent implements AfterViewInit {
             })
         })
 
-        return Object.keys(res).map(itemId => ({ id: itemId, count: res[itemId] }))
+        return Object.keys(res).map(itemId => ({ id: itemId, count: res[itemId] })).filter(i => i.count > 0)
     }
 
     // les choses que je possède que les autres veulent

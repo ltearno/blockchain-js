@@ -5,18 +5,9 @@
     <div>Registered Identity : {{ state.registeredOnIdentityContract ? '✔️' : '❌' }}</div>
 </div>
 <div *ngIf='state.hasSupplyChainAccount'>
-    <div>
-        <h2>Users</h2>
-        {{ users }}
-    </div>
     <div *ngIf='!editingArtwork' class="container">
-        <h2>Artworks</h2>
-        <div class="artWorks">
-            <art-work-summary *ngFor='let artWork of artWorksToDisplay()' [artWork]='artWork' (edit)='editArtWork($event)'></art-work-summary>
-        </div>
-
         <h2>Inventory</h2>
-        <div *ngFor='let item of inventory' [class.selected]='item.id == selectedInInventory'>
+        <div *ngFor='let item of inventory' style='display: inline-block;'>
             <art-work-icon [artWorkId]='item.id'></art-work-icon>
             <b>{{ item.count }}</b>
             <div *ngFor='let claim of item.claimsBy'>
@@ -25,8 +16,12 @@
             </div>
         </div>
 
+        <h2>Artworks</h2> ({{ users.length }} registered users)
         <div>
             <button class='button is-primary' (click)='initArtWorkCreation()'>Create a new Artwork</button>
+        </div>
+        <div class="artWorks">
+            <art-work-summary *ngFor='let artWork of artWorksToDisplay()' [artWork]='artWork' (edit)='editArtWork($event)'></art-work-summary>
         </div>
     </div>
 
