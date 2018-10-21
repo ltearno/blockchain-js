@@ -1,4 +1,9 @@
-<div *ngIf='!state.hasSupplyChainAccount'>Supply Chain account creation, please wait...</div>
+<div *ngIf='!state.hasSupplyChainAccount'>
+    <h2>Supply Chain account creation, please wait...</h2>
+    <div>RSA keys: {{ state.user.keys != null ? '✔️' : '❌' }}</div>
+    <div>Identity contract : {{ state.hasIdentityContract ? '✔️' : '❌' }}</div>
+    <div>Registered Identity : {{ state.registeredOnIdentityContract ? '✔️' : '❌' }}</div>
+</div>
 <div *ngIf='state.hasSupplyChainAccount'>
     <div>
         <h2>Users</h2>

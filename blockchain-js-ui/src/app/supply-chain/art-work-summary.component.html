@@ -21,8 +21,8 @@
                         <i>{{ message.author }} :</i> {{ message.text }}
                     </div>
                 </div>
-                <input #newMessage type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)' style='font-size: 80%;'>
-                <button class='button' (click)='sendMessage(artWork.id, newMessage)'>Send message</button>
+                <input *ngIf='!artWork.validated' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)' style='font-size: 80%;'>
+                <button *ngIf='!artWork.validated' class='button' (click)='sendMessage(artWork.id, newMessage)'>Send message</button>
             </div>
         </div>
     </div>

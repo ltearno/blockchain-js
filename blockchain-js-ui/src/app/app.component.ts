@@ -79,7 +79,7 @@ export class AppComponent {
     return count
   }
 
-  constructor(private state: State) {
+  constructor(public state: State) {
     this.onUnloadListener = _ => {
       if (this.autoSave) {
         this.saveBlocks()
@@ -460,32 +460,9 @@ export class AppComponent {
 
     for (let it = itr.next(); !it.done; it = itr.next()) {
       let [blockId, block] = it.value
-      if (blockId != await Block.idOfBlock(Block.deserializeBlockData(Block.serializeBlockData(block)))) {
-        console.log(`errord`)
-        debugger
-      }
       toSave.push({ blockId, block })
     }
 
-    if (false) {
-      const serializedBlocks = Block.serializeBlockData(toSave)
-      localStorage.setItem(STORAGE_BLOCKS, serializedBlocks)
-      this.log(`blocks saved`)
-
-      const deserializedBlocks = Block.deserializeBlockData(serializedBlocks)
-      let re = Block.serializeBlockData(deserializedBlocks)
-      if (re != serializedBlocks) {
-        console.error(`BADDDD ${re} ${serializedBlocks}`)
-        debugger
-      }
-      for (let { blockId, block } of deserializedBlocks) {
-        let deserializedId = await Block.idOfBlock(block)
-        if (blockId != deserializedId) {
-          console.log(`original block : ${blockId} ${Block.serializeBlockData(blocks.get(blockId))}`, blocks.get(blockId))
-          console.log(`deserialized b : ${deserializedId} ${Block.serializeBlockData(block)}`, block)
-          debugger
-        }
-      }
-    }
+    localStorage.setItem(STORAGE_BLOCKS, Block.serializeBlockData(toSave))
   }
 }
