@@ -88,9 +88,7 @@ export class State {
         return Object.getOwnPropertyNames(this.state)
     }
 
-    get programState(): ProgramState {
-        return this.suppyChain.getSuppyChainState()
-    }
+    programState: ProgramState = null
 
 
 
@@ -140,6 +138,7 @@ export class State {
         this.messageSequence.addEventListener('change', (sequenceItemsByBlock) => this.updateStatusFromSequence(sequenceItemsByBlock))
 
         this.smartContract = new Blockchain.SmartContract.SmartContract(this.fullNode.node, Blockchain.Block.MASTER_BRANCH, 'people', this.fullNode.miner)
+        this.smartContract.addChangeListener(() => this.programState = JSON.parse(JSON.stringify(this.suppyChain.getSuppyChainState())))
         this.smartContract.initialise()
 
         this.suppyChain.setSmartContract(this.smartContract)
@@ -186,8 +185,6 @@ export class State {
             blocks: []
         }
 
-        let count = 0
-
         let toFetchs = [toFetch]
         while (toFetchs.length) {
             let fetching = toFetchs.shift()
@@ -200,8 +197,6 @@ export class State {
             branchState.blocks.push({ blockMetadata, blockData })
 
             blockData && blockData.previousBlockIds && blockData.previousBlockIds.forEach(b => !toFetchs.some(bid => bid == b) && toFetchs.push(b))
-
-            count++
         }
 
         state[branch] = branchState

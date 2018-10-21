@@ -76,6 +76,7 @@ export class SmartContract {
     private contractItemList: SequenceStorage.SequenceStorage
     private registeredChangeListener: SequenceStorage.SequenceChangeListener
     private contractsLiveInstances = new Map<string, Map<string, LiveInstance>>()
+    private listeners: { (): any }[] = []
 
     constructor(
         private node: NodeApi.NodeApi,
@@ -95,6 +96,14 @@ export class SmartContract {
         this.contractItemList.removeEventListener(this.registeredChangeListener)
         this.contractItemList.terminate()
         this.node = undefined
+    }
+
+    addChangeListener(listener: () => any) {
+        this.listeners.push(listener)
+    }
+
+    removeChangeListener(listener: () => any) {
+        this.listeners = this.listeners.filter(l => l != listener)
     }
 
     private setLiveInstance(contractUuid: string, iterationId: number, liveInstance: any) {
@@ -291,6 +300,8 @@ export class SmartContract {
                 console.log(`instance resolved state: ${JSON.stringify(contractState.instanceData, null, 2)}`)
             }
         }*/
+
+        this.listeners.forEach(listener => listener())
     }
 
     /**
