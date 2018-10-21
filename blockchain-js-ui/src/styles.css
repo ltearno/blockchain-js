@@ -1,1 +1,23 @@
-/* You can add global styles to this file, and also import other style files */
+.artWorks {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+}
+
+.artWorks>*{
+    padding: .3em;
+    box-sizing: border-box;
+}
+
+.inventory {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+}
+
+.inventory > * {
+    padding: .3em;
+    box-sizing: border-box;
+}
