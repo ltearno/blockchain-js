@@ -21,10 +21,10 @@ spec:
     spec:
       containers:
       - name: webserver
-        image: danjellz/http-server
+        image: eu.gcr.io/blockchain-js/blockchain-js/certbot:arnaud@sha256:d882780a7a6b7f0d1744a06b51e2f05167319fa168a4dea879fe9c8bfe5d6b0a
         imagePullPolicy: Always
         ports:
-        - containerPort: 8080
+        - containerPort: 80
           protocol: TCP
 ---
 apiVersion: v1
@@ -49,6 +49,6 @@ spec:
   - name: http-redirect
     protocol: TCP
     port: 80
-    targetPort: 8080
+    targetPort: 80
   selector:
     run: blockchain-js-ui
