@@ -270,8 +270,8 @@ export class SmartContract {
 
                         try {
                             let callResult = this.callContractInstance(callId, method, args, liveInstance, contractState, state.returnValues, true)
-                            if (callResult)
-                                console.log(`call on ${contractUuid}@${iterationId}:${method} produced result : ${JSON.stringify(callResult)}`)
+                            //if (callResult)
+                            //    console.log(`call on ${contractUuid}@${iterationId}:${method} produced result : ${JSON.stringify(callResult)}`)
                         }
                         catch (error) {
                             console.error(`error when calling ${method} on contract ${contractUuid}, caused by item ${JSON.stringify(contractItem)}`, error)
@@ -320,11 +320,6 @@ export class SmartContract {
 
         if (!(method in liveInstance))
             throw `method ${method} does not exist on contract, cannot apply`
-
-        if (commitCall) {
-            //console.log(`applying call to method ${method} of smart contract with params ${JSON.stringify(args)}`)
-            console.log(`applying call to method ${method} of smart contract ${contractState.uuid}`)
-        }
 
         // make a copy of the current state
         let backup = JSON.stringify(contractState.instanceData)
