@@ -10,7 +10,7 @@
     </div>
 
     <div *ngIf='editingArtwork' class='container'>
-        <art-work-edition [artWork]='editingArtwork' (save)='saveArtwork()' (validate)='validateArtWork(editingArtwork)'
+        <art-work-edition [artWork]='editingArtwork' (validate)='validateArtWork(editingArtwork)'
             (cancel)='cancelArtwork()'></art-work-edition>
     </div>
 

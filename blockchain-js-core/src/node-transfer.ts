@@ -59,7 +59,7 @@ export class NodeTransfer {
         this.knownNodes.push(remoteNode)
 
         let listener: NodeApi.NodeEventListener<'head'> = async (event) => {
-            console.log(`receive branch ${event.branch} change`)
+            //console.log(`receive branch ${event.branch} change`)
             try {
                 await this.registerBlockInFetchList(event.headBlockId, remoteNode)
                 this.processBlockLoad()
@@ -76,7 +76,7 @@ export class NodeTransfer {
 
     private async processBlockLoad() {
         if (this.fetchingItem) {
-            console.log(`already fetching`)
+            //console.log(`already fetching`)
             return
         }
 
@@ -89,13 +89,13 @@ export class NodeTransfer {
         this.fetchingItem = await this.chooseFetchItemToLoad()
         if (!this.fetchingItem) {
             this.isLoading = false
-            console.log(`cannot choose an item to load`)
+            //console.log(`cannot choose an item to load`)
             return
         }
 
         this.isLoading = true
 
-        console.log(`fetching ${this.fetchingItem.blockId}`)
+        //console.log(`fetching ${this.fetchingItem.blockId}`)
 
         try {
             if (this.fetchingItem.nodes.length == 0 || !this.fetchingItem.blockId) {
@@ -142,7 +142,7 @@ export class NodeTransfer {
                 }
             }
 
-            console.log(`block fetched, sending to local node`)
+            console.log(`block ${fetchedBlockId.substr(0, 5)} fetched, sending to local node`)
 
             this.node.registerBlock(fetchedBlockId, loadedBlock)
 
@@ -159,7 +159,7 @@ export class NodeTransfer {
         if (await this.node.knowsBlock(id))
             return
 
-        console.log(`register ${id}`)
+        //console.log(`register ${id}`)
         // TODO insert the block at random place in the list
 
         if (this.fetchList.has(id)) {
@@ -180,10 +180,10 @@ export class NodeTransfer {
         let toRemove = []
         let toProcess: FetchItem = null
 
-        console.log(`fetchList size ${this.fetchList.size}`)
+        //console.log(`fetchList size ${this.fetchList.size}`)
 
         for (let fetchItem of this.fetchList.values()) {
-            console.log(`test ${fetchItem.blockId}`)
+            //console.log(`test ${fetchItem.blockId}`)
 
             if (await this.node.knowsBlock(fetchItem.blockId)) {
                 toRemove.push()

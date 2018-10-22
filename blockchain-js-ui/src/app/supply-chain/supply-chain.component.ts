@@ -32,7 +32,7 @@ export class SupplyChainComponent {
             id: id,
             author: this.state.user.pseudo,
             title: 'New ArtWork',
-            description: 'Very new and empty',
+            description: 'New and empty',
             validated: false,
             size: { width: 4, height: 4 },
             grid: new Array(4 * 4).fill(null),
@@ -44,16 +44,6 @@ export class SupplyChainComponent {
 
     editArtWork(artWorkId: string) {
         this.editingArtworkId = artWorkId
-    }
-
-    async saveArtwork() {
-        let editingArtwork = this.editingArtwork
-        this.editingArtworkId = null
-
-        if (this.state.programState.artWorks[editingArtwork.id] == editingArtwork)
-            return
-
-        await this.state.suppyChain.registerArtWork(editingArtwork)
     }
 
     cancelArtwork() {

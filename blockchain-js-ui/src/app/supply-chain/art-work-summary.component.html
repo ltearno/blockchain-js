@@ -21,7 +21,6 @@
                     </div>
                 </div>
                 <input *ngIf='!artWork.validated' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)' style='font-size: 80%;'>
-                <button *ngIf='!artWork.validated' class='button' (click)='sendMessage(artWork.id, newMessage)'>Send message</button>
             </div>
         </div>
     </div>

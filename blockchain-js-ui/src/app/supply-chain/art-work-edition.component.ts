@@ -76,9 +76,6 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     }
 
     @Output()
-    save = new EventEmitter<void>()
-
-    @Output()
     validate = new EventEmitter<void>()
 
     @Output()

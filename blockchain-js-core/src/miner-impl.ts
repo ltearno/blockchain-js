@@ -37,7 +37,7 @@ export class MinerImpl {
                     this.schedule()
                 }
             })
-        }, 500)
+        }, 10)
     }
 
     /**
@@ -54,11 +54,11 @@ export class MinerImpl {
         let dataToMineByBranch = this.dataToMineByBranch
         this.dataToMineByBranch = new Map()
 
-        let nbMinedBlocks = 0
+        let minedBlockIds = []
         let errors = []
 
         let startTime = Date.now()
-        console.log("START MINING")
+        //console.log("START MINING")
 
         for (let entry of dataToMineByBranch.entries()) {
             let branch = entry[0]
@@ -85,17 +85,17 @@ export class MinerImpl {
 
             let blockId = await Block.idOfBlock(block)
 
-            console.log(`mined block ${blockId.substring(0, 5)}`)
+            //console.log(`mined block ${blockId.substring(0, 5)}`)
 
-            let metadata = await this.node.registerBlock(blockId, block)
+            await this.node.registerBlock(blockId, block)
 
-            nbMinedBlocks++
+            minedBlockIds.push(blockId)
         }
 
         let endTime = Date.now()
 
-        console.log(`MINING TIME: ${endTime - startTime}, mined blocks : ${nbMinedBlocks}`)
+        console.log(`mining time: ${endTime - startTime}, mined blocks : ${minedBlockIds.map(id => id.substr(0, 5)).join()}`)
 
-        return { nbMinedBlocks, errors }
+        return { nbMinedBlocks: minedBlockIds.length, errors }
     }
 }
