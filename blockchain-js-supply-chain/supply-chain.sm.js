@@ -372,10 +372,9 @@
             if (!artWork)
                 return false
 
+            let coordIndex = x + artWork.size.width * y
             if (!artWork.grid[coordIndex])
                 return true
-
-            let coordIndex = x + artWork.size.width * y
 
             let ownerId = artWork.grid[coordIndex].ownerId
             let itemId = artWork.grid[coordIndex].workItemId
