@@ -6,12 +6,11 @@
 </div>
 <div *ngIf='state.hasSupplyChainAccount'>
     <div *ngIf='!editingArtwork' class="container">
-        <supply-chain-overview (initArtWorkCreation)='initArtWorkCreation()' (editArtWork)='editArtWork($event)'></supply-chain-overview>
+        <supply-chain-overview (initArtWorkCreation)='initArtWorkCreation()' (editArtWork)='editArtWork($event)' (giveItem)='acceptGivingItem($event)'></supply-chain-overview>
     </div>
 
     <div *ngIf='editingArtwork' class='container'>
-        <art-work-edition [artWork]='editingArtwork' (validate)='validateArtWork(editingArtwork)'
-            (cancel)='cancelArtwork()'></art-work-edition>
+        <art-work-edition [artWork]='editingArtwork' (validate)='validateArtWork(editingArtwork)' (cancel)='cancelArtwork()'></art-work-edition>
     </div>
 
     <!--{{ state.programState | json }}-->

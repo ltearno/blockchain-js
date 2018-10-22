@@ -60,7 +60,7 @@ export class SupplyChainComponent {
      * Other
      */
 
-    acceptGivingItem(itemId: string, artWorkId: string) {
-        this.state.suppyChain.acceptGivingItem(this.state.user.pseudo, itemId, artWorkId)
+    acceptGivingItem(event: { itemId: string; artWorkId: string }) {
+        this.state.suppyChain.acceptGivingItem(this.state.user.pseudo, event.itemId, event.artWorkId)
     }
 }

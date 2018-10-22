@@ -8,7 +8,10 @@ import { State } from "./state";
 }
 )
 export class SupplyChainOverviewComponent implements OnInit, OnDestroy {
-    private smartContractChangeListener = () => this.changeDetectionRef.detectChanges()
+    private smartContractChangeListener = () => {
+        if (!this.changeDetectionRef['destroyed'])
+            this.changeDetectionRef.detectChanges()
+    }
 
     constructor(private changeDetectionRef: ChangeDetectorRef,
         private state: State) {
@@ -50,6 +53,13 @@ export class SupplyChainOverviewComponent implements OnInit, OnDestroy {
         }
 
         return this.tempInventory
+    }
+
+    @Output()
+    giveItem = new EventEmitter<{ itemId: string; artWorkId: string }>()
+
+    acceptGivingItem(itemId: string, artWorkId: string) {
+        this.giveItem.emit({ itemId, artWorkId })
     }
 
     // les choses que je possède que les autres veulent

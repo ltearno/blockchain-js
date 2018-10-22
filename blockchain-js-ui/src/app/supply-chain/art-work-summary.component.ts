@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, Input, Output, EventEmitter } from '@angular/core'
+import { Component, OnInit, ViewChild, AfterViewInit, Input, Output, EventEmitter, ChangeDetectorRef, OnDestroy } from '@angular/core'
 import * as Model from './model'
 import * as Paint from './paint'
 import { State } from './state'
@@ -19,16 +19,34 @@ import { text } from '@angular/core/src/render3/instructions';
     }
     `]
 })
-export class ArtWorkSummaryComponent implements AfterViewInit {
+export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy {
     @ViewChild("canvas")
     canvas
 
     private context: CanvasRenderingContext2D
     private _artWork: Model.ArtWork = null
 
+    private smartContractChangeListener = () => {
+        if (!this.changeDetectionRef['destroyed'])
+            this.changeDetectionRef.detectChanges()
+        this.paint()
+    }
+
     constructor(
+        private changeDetectionRef: ChangeDetectorRef,
         public state: State
-    ) { }
+    ) {
+        this.changeDetectionRef.detach()
+        this.state.smartContract.addChangeListener(this.smartContractChangeListener)
+    }
+
+    ngOnInit() {
+        this.changeDetectionRef.detectChanges()
+    }
+
+    ngOnDestroy() {
+        this.state.smartContract.removeChangeListener(this.smartContractChangeListener)
+    }
 
     @Input()
     set artWork(artWork) {

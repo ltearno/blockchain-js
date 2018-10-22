@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, Input, Output, EventEmitter } from '@angular/core'
+import { Component, OnInit, ViewChild, AfterViewInit, Input, Output, EventEmitter, OnDestroy, ChangeDetectorRef } from '@angular/core'
 import * as Model from './model'
 import * as Paint from './paint'
 import { State } from './state'
@@ -12,7 +12,21 @@ import { State } from './state'
     }
     `]
 })
-export class ArtWorkEditionComponent implements AfterViewInit {
+export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy {
+    private smartContractChangeListener = () => {
+        if (!this.changeDetectionRef['destroyed'])
+            this.changeDetectionRef.detectChanges()
+        this.paint()
+    }
+
+    ngOnInit() {
+        this.changeDetectionRef.detectChanges()
+    }
+
+    ngOnDestroy() {
+        this.state.smartContract.removeChangeListener(this.smartContractChangeListener)
+    }
+
     @ViewChild("canvas")
     canvas
 
@@ -89,8 +103,10 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     private _artWork: Model.ArtWork = null
 
     constructor(
-        public state: State
+        private changeDetectionRef: ChangeDetectorRef, public state: State
     ) {
+        this.changeDetectionRef.detach()
+        this.state.smartContract.addChangeListener(this.smartContractChangeListener)
     }
 
     ngAfterViewInit() {
@@ -162,11 +178,15 @@ export class ArtWorkEditionComponent implements AfterViewInit {
     selectInventory(itemId) {
         this.selectedInOthersInventory = null
         this.selectedInInventory = itemId
+
+        this.changeDetectionRef.detectChanges()
     }
 
     selectOthersInventory(itemId) {
         this.selectedInInventory = null
         this.selectedInOthersInventory = itemId
+
+        this.changeDetectionRef.detectChanges()
     }
 
     async canValidate() {
