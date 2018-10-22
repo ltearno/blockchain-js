@@ -16,8 +16,8 @@
  * mais on peut vendre un ensemble (itemId devient celui du ask validé)
  */
 ((() => {
-    const NB_ITEMS_PACKET_AT_ACCOUNT_CREATION = 20
-    const PACKET_QUANTITY = 1
+    const NB_ITEMS_PACKET_AT_ACCOUNT_CREATION = 5
+    const PACKET_QUANTITY = 5
 
     const canValidateArtWork = (artWork) => {
         return artWork.grid && artWork.grid.every(cell => !cell || cell.ownerId != null)
@@ -371,6 +371,9 @@
             const artWork = this.data.artWorks[artWorkId]
             if (!artWork)
                 return false
+
+            if (!artWork.grid[coordIndex])
+                return true
 
             let coordIndex = x + artWork.size.width * y
 

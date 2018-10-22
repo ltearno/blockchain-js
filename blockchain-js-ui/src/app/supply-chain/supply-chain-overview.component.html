@@ -1,0 +1,20 @@
+<h2>Inventory</h2>
+<div class="inventory">
+    <div *ngFor='let item of inventory'>
+        <art-work-icon [artWorkId]='item.id'></art-work-icon>
+        <b>{{ item.count }}</b>
+        <div *ngFor='let claim of item.claimsBy'>
+            asked by <b>{{ claim.userId }}</b> to build <b>{{
+                state.programState.artWorks[claim.artWorkId].title }}</b>
+            <button class='button is-primary' (click)='acceptGivingItem(item.id, claim.artWorkId)'>accept</button>
+        </div>
+    </div>
+</div>
+
+<h2>Artworks</h2> ({{ countUsers }} registered users)
+<div>
+    <button class='button is-primary' (click)='initArtWorkCreation.emit()'>Create a new Artwork</button>
+</div>
+<div class="artWorks">
+    <art-work-summary *ngFor='let artWork of artWorksToDisplay()' [artWork]='artWork' (edit)='editArtWork.emit($event.id)'></art-work-summary>
+</div>
