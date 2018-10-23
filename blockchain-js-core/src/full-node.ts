@@ -8,6 +8,7 @@ import * as NetworkApi from './network-api'
 export interface Peer {
     address: string
     port: number
+    secure?: boolean
 }
 
 export interface PeerInfo {

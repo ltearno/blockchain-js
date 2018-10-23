@@ -108,25 +108,18 @@ data:
         }
 
         server {
-            listen 9091 ssl;
+            listen 443 ssl;
+
             location / {
-                proxy_pass http://blockchain-js-core:9091;
+                proxy_pass http://blockchain-js-ui:8080;
+            }
+
+            location /events {
+                proxy_pass http://blockchain-js-core:9091/events;
+
                 proxy_http_version 1.1;
                 proxy_set_header Upgrade $http_upgrade;
                 proxy_set_header Connection $connection_upgrade;
-            }
-            
-            server_name         blockchain-js.com;
-            ssl_certificate     cert.pem;
-            ssl_certificate_key key.pem;
-            ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
-            ssl_ciphers         HIGH:!aNULL:!MD5;
-        }
-
-        server {
-            listen 443 ssl;
-            location / {
-                proxy_pass http://blockchain-js-ui:8080;
             }
 
             server_name         blockchain-js.com;
@@ -209,9 +202,5 @@ spec:
     protocol: TCP
     port: 80
     targetPort: 8080
-  - name: node-core
-    protocol: TCP
-    port: 9091
-    targetPort: 9091
   selector:
     run: blockchain-js-front

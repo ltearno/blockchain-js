@@ -72,7 +72,7 @@ app.post('/peers', async (req, res) => {
         fullNodePeerInfo: null
     }
 
-    let peerNode = new NodeNetworkClient.NodeClient(fullNode.node, peer.address, peer.port, () => fullNode.removePeer(peerInfo.fullNodePeerInfo.id), NETWORK_CLIENT_API)
+    let peerNode = new NodeNetworkClient.NodeClient(fullNode.node, peer.address, peer.port, peer.secure, () => fullNode.removePeer(peerInfo.fullNodePeerInfo.id), NETWORK_CLIENT_API)
 
     try {
         await peerNode.initialize()

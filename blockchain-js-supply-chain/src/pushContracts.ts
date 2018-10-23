@@ -29,8 +29,9 @@ async function run() {
     let fullNode = new FullNode.FullNode()
 
     let peer = {
-        address: 'localhost',
-        port: 9091
+        address: 'blockchain-js.com',
+        port: 443,
+        secure: true
     }
 
     let peerInfo = {
@@ -38,7 +39,10 @@ async function run() {
         fullNodePeerInfo: null
     }
 
-    let peerNode = new NodeNetworkClient.NodeClient(fullNode.node, peer.address, peer.port, () => fullNode.removePeer(peerInfo.fullNodePeerInfo.id), NETWORK_CLIENT_API)
+    let peerNode = new NodeNetworkClient.NodeClient(fullNode.node, peer.address, peer.port, peer.secure, () => {
+        if (peerInfo.fullNodePeerInfo && peerInfo.fullNodePeerInfo.id)
+            fullNode.removePeer(peerInfo.fullNodePeerInfo.id)
+    }, NETWORK_CLIENT_API)
 
     try {
         await peerNode.initialize()

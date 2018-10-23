@@ -59,7 +59,7 @@ async function testNodeTransfer() {
             let server = new NodeNetworkServer.NodeServer(node, newPeer => { }, closedPeer => { })
             server.initialize(app)
 
-            let proxy = new NodeNetworkClient.NodeClient(node, 'localhost', port, () => { }, NETWORK_CLIENT_API)
+            let proxy = new NodeNetworkClient.NodeClient(node, 'localhost', port, false, () => { }, NETWORK_CLIENT_API)
             proxy.initialize()
 
             node = proxy.remoteFacade()
@@ -176,7 +176,7 @@ async function testNodeProxy() {
     let app = Tools.createExpressApp(9000)
     server.initialize(app)
 
-    let proxy = new NodeNetworkClient.NodeClient(null, 'localhost', 9000, () => { }, NETWORK_CLIENT_API)
+    let proxy = new NodeNetworkClient.NodeClient(null, 'localhost', 9000, false, () => { }, NETWORK_CLIENT_API)
     proxy.initialize()
 
     let miner = TestTools.createSimpleMiner(Block.MASTER_BRANCH, null, 3)

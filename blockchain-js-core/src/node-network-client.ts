@@ -17,6 +17,7 @@ export class NodeClient {
         public localNode: NodeApi.NodeApi,
         private peerAddress: string,
         private peerPort: number,
+        private peerSecure: boolean,
         private closeListener: () => void,
         private networkApi: NetworkApi.NetworkApi) {
     }
@@ -49,19 +50,21 @@ export class NodeClient {
             }
 
             try {
-                this.ws = this.networkApi.createClientWebSocket(`ws://${this.peerAddress}:${this.peerPort}/events`)
+                let url = `${this.peerSecure ? 'wss' : 'ws'}://${this.peerAddress}:${this.peerPort}/events`
+
+                this.ws = this.networkApi.createClientWebSocket(url)
 
                 this.ws.on('open', () => {
                     this.opened = true
 
-                    console.log(`web socket connected to ws://${this.peerAddress}:${this.peerPort}/events, instantiating`)
+                    console.log(`web socket connected to ${url}, instantiating`)
                     this.connector = new WebSocketConnector.WebSocketConnector(this.localNode, this.ws)
 
                     resolve()
                 })
 
                 this.ws.on('error', (err) => {
-                    console.log(`error on ws, closing : ${err}`)
+                    console.log(`error on ws ${url}, closing : ${err}`)
                 })
 
                 this.ws.on('close', () => {
