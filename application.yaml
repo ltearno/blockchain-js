@@ -84,13 +84,19 @@ data:
         }
 
         server {
-            listen 9091;
+            listen 9091 ssl;
             location / {
                 proxy_pass http://blockchain-js-core:9091;
                 proxy_http_version 1.1;
                 proxy_set_header Upgrade $http_upgrade;
                 proxy_set_header Connection $connection_upgrade;
             }
+            
+            server_name         blockchain-js.com;
+            ssl_certificate     cert.pem;
+            ssl_certificate_key key.pem;
+            ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+            ssl_ciphers         HIGH:!aNULL:!MD5;
         }
 
         server {
@@ -105,6 +111,7 @@ data:
             location / {
                 proxy_pass https://blockchain-js-ui;
             }
+
             server_name         blockchain-js.com;
             ssl_certificate     cert.pem;
             ssl_certificate_key key.pem;

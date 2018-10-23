@@ -1,8 +1,8 @@
 PROJECT := $(shell gcloud config get-value project)
 IMAGE_NAME := "eu.gcr.io/${PROJECT}/blockchain-js/certbot:arnaud"
 
-UI_IMAGE_REF=$(shell gcloud container images list-tags --format='get(digest)' --filter=tags:latest eu.gcr.io/blockchain-js/blockchain-js-ui)
-CORE_IMAGE_REF=$(shell gcloud container images list-tags --format='get(digest)' --filter=tags:latest eu.gcr.io/blockchain-js/blockchain-js-core)
+UI_IMAGE_REF = $(shell gcloud container images list-tags --format='get(digest)' --filter=tags:latest eu.gcr.io/blockchain-js/blockchain-js-ui)
+CORE_IMAGE_REF = $(shell gcloud container images list-tags --format='get(digest)' --filter=tags:latest eu.gcr.io/blockchain-js/blockchain-js-core)
 
 all:
 

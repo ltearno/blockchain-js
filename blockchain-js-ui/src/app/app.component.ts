@@ -292,7 +292,7 @@ export class AppComponent {
   async addPeer(peerHost, peerPort) {
     console.log(`add peer ${peerHost}:${peerPort}`)
 
-    let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`${location.protocol == 'https' ? 'wss' : 'ws'}://${peerHost}:${peerPort}/events`)
+    let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`${window.location.protocol.startsWith('https') ? 'wss' : 'ws'}://${peerHost}:${peerPort}/events`)
 
     this.addPeerBySocket(ws, `${peerHost}:${peerPort}`, true, `direct peer ${peerHost}:${peerPort}`)
   }
