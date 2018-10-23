@@ -26,17 +26,17 @@ spec:
         ports:
         - containerPort: 443
           protocol: TCP
-      - name: rencontres
-        image: eu.gcr.io/blockchain-js/rencontres:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8999
-          protocol: TCP
       - name: http-redirect
         image: eu.gcr.io/blockchain-js/http-redirect:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
+          protocol: TCP
+      - name: blockchain-js-core
+        image: eu.gcr.io/blockchain-js/blockchain-js-core:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9091
           protocol: TCP
 ---
 apiVersion: v1
@@ -62,5 +62,9 @@ spec:
     protocol: TCP
     port: 80
     targetPort: 8080
+  - name: node-core
+    protocol: TCP
+    port: 9091
+    targetPort: 9091
   selector:
     run: blockchain-js-ui
