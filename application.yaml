@@ -1,3 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: blockchain-js-ui
+  labels:
+    run: blockchain-js-ui
+spec:
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+  selector:
+    run: blockchain-js-ui
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -24,14 +39,23 @@ spec:
         image: eu.gcr.io/blockchain-js/blockchain-js-ui:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 443
-          protocol: TCP
-      - name: http-redirect
-        image: eu.gcr.io/blockchain-js/http-redirect:latest
-        imagePullPolicy: Always
-        ports:
         - containerPort: 8080
           protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blockchain-js-core
+  labels:
+    run: blockchain-js-core
+spec:
+  ports:
+  - name: node-core
+    protocol: TCP
+    port: 9091
+    targetPort: 9091
+  selector:
+    run: blockchain-js-core
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -100,16 +124,9 @@ data:
         }
 
         server {
-            listen 8080;
-            location / {
-                proxy_pass https://blockchain-js-ui;
-            }
-        }
-
-        server {
             listen 443 ssl;
             location / {
-                proxy_pass https://blockchain-js-ui;
+                proxy_pass http://blockchain-js-ui:8080;
             }
 
             server_name         blockchain-js.com;
@@ -117,6 +134,13 @@ data:
             ssl_certificate_key key.pem;
             ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
             ssl_ciphers         HIGH:!aNULL:!MD5;
+        }
+
+        server {
+            listen 8080;
+            location / {
+                return 301 https://$host$request_uri;
+            }
         }
     }
 ---
@@ -191,37 +215,3 @@ spec:
     targetPort: 9091
   selector:
     run: blockchain-js-front
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: blockchain-js-ui
-  labels:
-    run: blockchain-js-ui
-spec:
-  ports:
-  - name: http
-    protocol: TCP
-    port: 8080
-    targetPort: 8080
-  - name: https
-    protocol: TCP
-    port: 443
-    targetPort: 443
-  selector:
-    run: blockchain-js-ui
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: blockchain-js-core
-  labels:
-    run: blockchain-js-core
-spec:
-  ports:
-  - name: node-core
-    protocol: TCP
-    port: 9091
-    targetPort: 9091
-  selector:
-    run: blockchain-js-core
