@@ -5,7 +5,6 @@ import {
   NetworkApi,
   NetworkClientBrowserImpl
 } from 'blockchain-js-core'
-import * as PeerToPeer from 'rencontres'
 import * as CryptoJS from 'crypto-js'
 import { WebSocketConnector } from 'blockchain-js-core/dist/websocket-connector';
 import { State } from './supply-chain/state';
@@ -34,15 +33,12 @@ export class AppComponent {
   otherEncryptionKeys: string[] = []
   desiredNbIncomingPeers = 3
   desiredNbOutgoingPeers = 3
-  autoP2P = false
   autoSave = true
   autoStart = true
   miningDifficulty = 100
   maxNumberDisplayedMessages = 100
 
   selectedTab = 5
-
-  p2pBroker: PeerToPeer.PeerToPeerBrokering
 
   isMining = false
   autoMining = false
@@ -96,85 +92,15 @@ export class AppComponent {
     this.state.init(() => this.savePreferencesToLocalStorage())
     this.loadPreferencesFromLocalStorage()
     this.tryLoadBlocksFromLocalStorage()
-    this.initP2pBroker()
   }
 
-  private initP2pBroker() {
-    this.p2pBroker = new PeerToPeer.PeerToPeerBrokering(`${window.location.protocol.startsWith('https') ? 'wss' : 'ws'}://${window.location.hostname}:8999/signal`,
-      () => {
-        this.maybeOfferP2PChannel()
-      },
-
-      (offerId, offerMessage) => {
-        if (!this.autoP2P) {
-          return { accepted: false, message: `nope` }
-        }
-
-        if (this.incomingPeersCount >= this.desiredNbIncomingPeers) {
-          return { accepted: false, message: `nope` }
-        }
-
-        if (this.knownAcceptedMessages.has(offerMessage) || this.accepting.has(offerMessage)) {
-          return { accepted: false, message: `i know you` }
-        }
-
-        this.accepting.set(offerMessage, { offerId, offerMessage })
-        setTimeout(() => this.accepting.delete(offerMessage), 5000)
-
-        this.log(`accepted offer ${offerId.substr(0, 7)}:${offerMessage}`)
-
-        return { accepted: true, message: this.state.user.pseudo }
-      },
-
-      (description, channel) => {
-        let counterPartyMessage = description.counterPartyMessage
-
-        this.knownAcceptedMessages.add(counterPartyMessage)
-
-        channel.on('close', () => this.knownAcceptedMessages.delete(counterPartyMessage))
-
-        this.addPeerBySocket(channel, counterPartyMessage, description.isSelfInitiated, `p2p with ${counterPartyMessage} on channel ${description.offerId.substr(0, 5)} ${description.isSelfInitiated ? '[OUT]' : '[IN]'} (as '${this.state.user.pseudo}')`)
-
-        setTimeout(() => this.maybeOfferP2PChannel(), 500)
-      }
-    )
-
-    this.p2pBroker.createSignalingSocket()
-
-    setInterval(() => {
-      if (this.autoP2P && this.p2pBroker.ready)
-        this.maybeOfferP2PChannel()
-    }, 10000)
-  }
-
-  async setPseudo(pseudo: string, comment: string, enablePeerToPeer: boolean) {
+  async setPseudo(pseudo: string, comment: string) {
     if (pseudo == '')
       return
 
     this.state.setPseudo(pseudo, comment)
 
-    this.autoP2P = enablePeerToPeer
-
     this.savePreferencesToLocalStorage()
-
-    this.maybeOfferP2PChannel()
-  }
-
-
-
-  maybeOfferP2PChannel() {
-    if (this.autoP2P && this.p2pBroker.ready && this.outgoingPeersCount < this.desiredNbOutgoingPeers) {
-      this.offerP2PChannel()
-    }
-
-    // CHECK ONLY ONE PEER BY COUNTERPARTYID
-
-    // todo remove when too much peers ?
-    // todo remove unconnected peers ?
-  }
-
-  offerP2PChannel() {
-    this.p2pBroker.offerChannel(this.state.user.pseudo)
   }
 
   addEncryptionKey(newEncryptionKey: string) {
@@ -263,16 +189,6 @@ export class AppComponent {
     this.state.log(message)
   }
 
-  toggleAutoP2P() {
-    if (this.autoP2P) {
-      this.autoP2P = false
-    }
-    else {
-      this.autoP2P = true
-      this.maybeOfferP2PChannel()
-    }
-  }
-
   toggleAutomine(minedData, automineTimer) {
     if (this.autoMining) {
       this.autoMining = false
@@ -289,10 +205,11 @@ export class AppComponent {
     }
   }
 
-  async addPeer(peerHost, peerPort) {
+  async addPeer(peerHost, peerPort, peerSecure) {
     console.log(`add peer ${peerHost}:${peerPort}`)
 
-    let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`${window.location.protocol.startsWith('https') ? 'wss' : 'ws'}://${peerHost}:${peerPort}/events`)
+    //let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`${window.location.protocol.startsWith('https') ? 'wss' : 'ws'}://${peerHost}:${peerPort}/events`)
+    let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`${peerSecure ? 'wss' : 'ws'}://${peerHost}:${peerPort}/events`)
 
     this.addPeerBySocket(ws, `${peerHost}:${peerPort}`, true, `direct peer ${peerHost}:${peerPort}`)
   }
@@ -369,7 +286,6 @@ export class AppComponent {
       desiredNbIncomingPeers: this.desiredNbIncomingPeers,
       desiredNbOutgoingPeers: this.desiredNbOutgoingPeers,
       miningDifficulty: this.miningDifficulty,
-      autoP2P: this.autoP2P,
       autoSave: this.autoSave,
       autoStart: this.autoStart
     }
@@ -409,7 +325,6 @@ export class AppComponent {
       if (settings.miningDifficulty)
         this.miningDifficulty = settings.miningDifficulty
 
-      this.autoP2P = !!settings.autoP2P
       this.autoSave = !!settings.autoSave
       this.autoStart = !!settings.autoStart
 

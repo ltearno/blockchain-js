@@ -26,20 +26,18 @@
       <div class="field">
         <label class="label">Pseudo</label>
         <div class="control">
-          <input #pseudo class='input' (keyup.enter)='setPseudo(pseudo.value, userComment.value, true)' type="text"
-            [value]='proposedPseudo' size="30" placeholder="Your pseudo">
+          <input #pseudo class='input' (keyup.enter)='setPseudo(pseudo.value, userComment.value)' type="text" [value]='proposedPseudo'
+            size="30" placeholder="Your pseudo">
         </div>
       </div>
       <div class="field">
         <label class="label">Comment</label>
         <div class="control">
-          <input #userComment class='input' (keyup.enter)='setPseudo(pseudo.value, userComment.value, true)' type="text"
-            size="30" placeholder="Your comment / description">
+          <input #userComment class='input' (keyup.enter)='setPseudo(pseudo.value, userComment.value)' type="text" size="30"
+            placeholder="Your comment / description">
         </div>
       </div>
-      <button class='button is-link' (click)='setPseudo(pseudo.value, true)'>Connect to the blockchain</button>
-      <br />
-      <a (click)='setPseudo(pseudo.value, userComment.value, false)'>connect to local node only</a>
+      <button class='button is-link' (click)='setPseudo(pseudo.value, userComment.value)'>Connect to the blockchain</button>
     </div>
   </div>
 
@@ -64,12 +62,6 @@
   </div>
 
   <div *ngIf='state.userStarted() && selectedTab==1'>
-    <div *ngIf='!autoP2P && !(state.fullNode.peerInfos?.length)' class="container is-fluid">
-      <button class='button is-success' (click)='toggleAutoP2P()'>Enable peer to peer connectivity</button>
-      <br />
-      <br />
-    </div>
-
     <div class="container is-fluid">
       <div class="field has-addons">
         <p class="control is-expanded">
@@ -118,43 +110,6 @@
   </div>
 
   <div *ngIf='state.userStarted() && selectedTab==2'>
-    <div class="container is-fluid">
-      <div *ngIf='p2pBroker.ready' class='box'>
-        <h2 class="subtitle">Peer to peer connectivity</h2>
-        <div *ngIf='autoP2P' class="field">
-          <label class="label">Peer to peer connectivity is enabled</label>
-          <button (click)='toggleAutoP2P()' class='button is-warning'>disable</button>
-        </div>
-
-        <div *ngIf='!autoP2P' class='field'>
-          <label class="label">Peer to peer connectivity is disabled</label>
-          <button (click)='toggleAutoP2P()' class='button is-primary'>enable</button>
-        </div>
-
-        <div class='field'>
-          <label class="label">You can manually propose a communication channel on the peer to peer network.</label>
-          <button (click)='offerP2PChannel()' class='button'>offer channel</button>
-        </div>
-
-        <div class="field">
-          <label class="label">Desired number of incoming peers (actually {{incomingPeersCount}})</label>
-          <input type="number" min="1" max="20" class="input" [(ngModel)]='desiredNbIncomingPeers'>
-        </div>
-
-        <div class="field">
-          <label class="label">Desired number of outgoing peers (actually {{outgoingPeersCount}})</label>
-          <input type="number" min="1" max="20" class="input" [(ngModel)]='desiredNbOutgoingPeers'>
-        </div>
-      </div>
-      <br />
-    </div>
-
-    <div class="container is-fluid" *ngIf='!p2pBroker.ready'>
-      <div class='box' style='color:red;'>Peer to peer connectivity is not ready</div>
-
-      <br />
-    </div>
-
     <div class="container is-fluid" *ngIf="state.fullNode.peerInfos.length">
       <div class="box">
         <h2 class='subtitle'>Connected peers</h2>
@@ -187,7 +142,11 @@
           <input type="text" class='input' #peerPort value="9091">
         </div>
         <div class="field">
-          <button (click)='addPeer(peerHost.value, peerPort.value)' class='button'>connect</button>
+          <label class="label">Secure</label>
+          <input type="checkbox" class='checkbox' #peerSecure value='peerSecure' checked>
+        </div>
+        <div class="field">
+          <button (click)='addPeer(peerHost.value, peerPort.value, peerSecure.checked)' class='button'>connect</button>
         </div>
       </div>
     </div>
@@ -317,7 +276,6 @@
       </p>
       <p *ngIf='state.userStarted()'>
         <span>{{state.fullNode.peerInfos.length}} peers connected</span>
-        <span *ngIf='!p2pBroker.ready' style='color:red;'> - peer to peer connectivity is not ready</span>
         <span *ngIf='state.fullNode.transfer.isLoading' style='color:green;'> - loading</span>
         <span> - {{state.fullNode.node.blockCount}} blocks</span>
         <span *ngIf='autoMining' style='color:green;'> - auto-mining enabled</span>
