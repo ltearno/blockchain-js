@@ -1,7 +1,0 @@
-= Rencontres
-
-A peer to peer websocket meeting server.
-
-== Protocol
-
-A   SRV    B

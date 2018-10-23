@@ -47,12 +47,6 @@ As a prerequisite, for the ui, you need to install angular's cli :
 
 First you need to build and link projects together.
 
-        cd rencontres
-        yarn install
-        yarn build
-        yarn link
-        cd ..
-
         cd blockchain-js-core
         yarn install
         yarn build
@@ -60,22 +54,16 @@ First you need to build and link projects together.
         cd ..
 
         cd blockchain-js-ui
-        yarn link rencontres blockchain-js-core
+        yarn link blockchain-js-core
         yarn install
         yarn build
         cd ..
 
-Then to build the three projects (blockchain-js-core, rencontres and blockchain-js-ui), simply call :
+Then to build the three projects (blockchain-js-core and blockchain-js-ui), simply call :
 
         ./build.sh
 
-To run the demo projects, you will have to two in two separate terminal :
-
-        # this will launch the peer to peer connectivity server (no blockchain here)
-        cd rencontres
-        node dist/index.js
-
-In another terminal :
+To run the demo projects :
 
         cd blockchain-js-ui/dist
         # if you had not installed http-server before :
@@ -87,11 +75,6 @@ the demo application, which is a blockchain distributed amongst all connected no
 in which the client add messages by mining some blocks and transmitting them to peer nodes.
 
 === Development mode
-
-        cd rencontres
-        node dist/index.js
-
-And in another terminal
 
         cd blockchain-js-ui
         ng serve

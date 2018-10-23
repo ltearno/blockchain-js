@@ -2,11 +2,6 @@
 
 set -e
 
-echo "building rencontres..."
-cd rencontres
-yarn build
-cd ..
-
 echo "building core..."
 cd blockchain-js-core
 yarn build
