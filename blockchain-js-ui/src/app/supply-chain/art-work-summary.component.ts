@@ -29,6 +29,7 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
     private smartContractChangeListener = () => {
         if (!this.changeDetectionRef['destroyed'])
             this.changeDetectionRef.detectChanges()
+    
         this.paint()
     }
 
@@ -57,11 +58,6 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
 
     get artWork() {
         return this._artWork
-    }
-
-    updatePainting() {
-        this.paint()
-        return ""
     }
 
     @Output()

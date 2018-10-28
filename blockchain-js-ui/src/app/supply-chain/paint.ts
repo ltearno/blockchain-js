@@ -1,6 +1,6 @@
 import * as Model from './model'
 
-export function drawPixel(color: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
+function drawPixel(color: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
     const MARGIN = width / 15
 
     ctx.fillStyle = color
@@ -20,7 +20,7 @@ export function drawPixel(color: string, width: number, height: number, ctx: Can
     ctx.fill()
 }
 
-export function drawEmoji(text: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
+function drawEmoji(text: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
     ctx.fillStyle = 'black'
     ctx.font = `${Math.min(width, height) * .64}px Verdana`
 
@@ -33,6 +33,8 @@ export function drawArtWork(state: Model.ProgramState, artWork: Model.ArtWork, w
     if (!artWork || !artWork.grid)
         return
 
+    console.log(`drawArtWork`)
+
     const CW = width / artWork.size.width
     const CH = height / artWork.size.height
 
@@ -43,7 +45,7 @@ export function drawArtWork(state: Model.ProgramState, artWork: Model.ArtWork, w
             if (value) {
                 ctx.save()
                 ctx.translate(i * CW, j * CH)
-                drawWorkItem(state, value.workItemId, CW, CH, ctx)
+                drawWorkItemInternal(state, value.workItemId, CW, CH, ctx)
                 if (!value.ownerId) {
                     ctx.beginPath()
                     ctx.strokeStyle = 'rgba(0,0,0,.4)'
@@ -60,7 +62,29 @@ export function drawArtWork(state: Model.ProgramState, artWork: Model.ArtWork, w
     }
 }
 
+let paintBuffer = []
+
 export function drawWorkItem(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
+    //drawWorkItemInternal(state, id, width, height, ctx)
+
+    paintBuffer = paintBuffer.filter(item => item.ctx != ctx)
+    paintBuffer.push({ state, id, width, height, ctx })
+    requestAnimationFrame(scheduledPaint)
+}
+
+function scheduledPaint() {
+    if (paintBuffer.length == 0)
+        return
+
+    let { state, id, width, height, ctx } = paintBuffer.shift()
+
+    drawWorkItemInternal(state, id, width, height, ctx)
+
+    requestAnimationFrame(scheduledPaint)
+}
+
+function drawWorkItemInternal(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
+    console.log(`drawWorkItem`)
     if (id.startsWith('pixel-')) {
         drawPixel(id.substr('pixel-'.length), width, height, ctx)
     }

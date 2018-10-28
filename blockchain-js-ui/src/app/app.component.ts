@@ -57,6 +57,12 @@ export class AppComponent {
     this.selectedTab = i
   }
 
+  get head() {
+    if (this.state && this.state[this.state.selectedBranch] && this.state[this.state.selectedBranch].head)
+      return this.state[this.state.selectedBranch].head.substr(0, 5)
+    return ""
+  }
+
   get incomingPeersCount() {
     let count = 0
     this.state.fullNode.peerInfos.forEach(peer => {
