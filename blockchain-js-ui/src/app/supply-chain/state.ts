@@ -31,6 +31,8 @@ export class State {
         }
     } = null
 
+    currentHead = ''
+
     hasSupplyChainAccount = false
 
     async setPseudo(pseudo: string, comment: string) {
@@ -126,6 +128,7 @@ export class State {
         this.fullNode.node.addEventListener('head', async (event) => {
             this.log(`new head on branch '${event.branch}': ${event.headBlockId.substr(0, 7)}`)
             this.triggerLoad(event.branch, event.headBlockId)
+            this.currentHead = event.headBlockId.substr(0, 7)
         })
 
         this.messageSequence = new Blockchain.SequenceStorage.SequenceStorage(

@@ -278,7 +278,7 @@
         <span>{{state.fullNode.peerInfos.length}} peers connected</span>
         <span *ngIf='state.fullNode.transfer.isLoading' style='color:green;'> - loading</span>
         <span> - {{state.fullNode.node.blockCount}} blocks</span>
-        <span> - {{head}} blocks</span>
+        <span> - {{state.currentHead}}</span>
         <span *ngIf='autoMining' style='color:green;'> - auto-mining enabled</span>
       </p>
     </div>
