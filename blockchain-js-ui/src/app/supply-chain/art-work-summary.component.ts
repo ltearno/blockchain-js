@@ -77,7 +77,7 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
 
     private paint() {
         Paint.clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
-        this._artWork && this.context && Paint.drawArtWork(this.state.programState, this._artWork, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
+        this._artWork && this.context && Paint.drawArtWork(this.state.programState, this._artWork.id, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
     }
 
     sendMessage(artWorkId: string, textInput: HTMLInputElement) {

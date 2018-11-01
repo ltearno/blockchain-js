@@ -201,7 +201,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy
             return
 
         Paint.clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
-        Paint.drawArtWork(this.state.programState, this._artWork, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
+        Paint.drawArtWork(this.state.programState, this._artWork.id, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
         if (this.mouseOver)
             Paint.drawCell(this._artWork, this.mouseOver.x, this.mouseOver.y, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
     }
