@@ -24,7 +24,7 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
     canvas
 
     private context: CanvasRenderingContext2D
-    private _artWork: Model.ArtWork = null
+    private _artWorkId: string = null
 
     private smartContractChangeListener = () => {
         if (!this.changeDetectionRef['destroyed']) {
@@ -49,14 +49,14 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
     }
 
     @Input()
-    set artWork(artWork) {
-        this._artWork = artWork
+    set artWorkId(artWorkId) {
+        this._artWorkId = artWorkId
 
         this.paint()
     }
 
     get artWork() {
-        return this._artWork
+        return this.state.programState.artWorks[this._artWorkId]
     }
 
     @Output()
@@ -77,7 +77,7 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
 
     private paint() {
         Paint.clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
-        this._artWork && this.context && Paint.drawArtWork(this.state.programState, this._artWork.id, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
+        this._artWorkId && this.context && Paint.drawArtWork(this.state.programState, this._artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
     }
 
     sendMessage(artWorkId: string, textInput: HTMLInputElement) {

@@ -29,7 +29,7 @@ export class SupplyChainOverviewComponent implements OnInit, OnDestroy {
     }
 
     artWorksToDisplay() {
-        return Object.keys(this.state.programState.artWorks).sort().map(k => this.state.programState.artWorks[k])
+        return Object.keys(this.state.programState.artWorks).sort()
     }
 
     @Output()

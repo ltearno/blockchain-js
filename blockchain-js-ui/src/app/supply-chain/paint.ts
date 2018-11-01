@@ -1,15 +1,14 @@
 import * as Model from './model'
 import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants'
 
-let backCanvasMapMaxSize = 50
-let backCanvas = document.createElement('canvas')
-backCanvas.width = CANVAS_BASE_WIDTH * backCanvasMapMaxSize
-backCanvas.height = CANVAS_BASE_HEIGHT
-let backCanvasContext = backCanvas.getContext('2d')
-let backCanvasMap = {}
-let backCanvasMapSize = 0
+interface BackBuffer {
+    canvas: HTMLCanvasElement
+    ctx: CanvasRenderingContext2D
+}
 
-window['backCanvas'] = () => document.body.appendChild(backCanvas)
+let backCanvasMap = new Map<string, BackBuffer>()
+
+//window['backCanvas'] = () => document.body.appendChild(backCanvas)
 
 export function setSmartProgram(smartContract) {
     smartContract.addChangeListener(() => resetCache())
@@ -33,8 +32,7 @@ export function clear(width: number, height: number, ctx: CanvasRenderingContext
 }
 
 function resetCache() {
-    backCanvasMap = {}
-    backCanvasMapSize = 0
+    backCanvasMap.clear()
 }
 
 let paintBuffer = []
@@ -65,45 +63,29 @@ function drawWorkItemInternal(state: Model.ProgramState, id: string, width: numb
 }
 
 export function drawArtWork(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
-    if (backCanvasMap[artWorkId] !== undefined) {
+    if (backCanvasMap.has(artWorkId)) {
         //console.log(`cache draw ${artWorkId}`)
-        ctx.drawImage(backCanvas, backCanvasMap[artWorkId] * CANVAS_BASE_WIDTH, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
+        ctx.drawImage(backCanvasMap.get(artWorkId).canvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
     }
-    else if (backCanvasMapSize < backCanvasMapMaxSize) {
-        // reserve a place in the cache
-        let cacheCell = backCanvasMapSize++
+    else {
+        // create back canvas
+        let backCanvas = document.createElement('canvas')
+        backCanvas.width = CANVAS_BASE_WIDTH
+        backCanvas.height = CANVAS_BASE_HEIGHT
+        let backCtx = backCanvas.getContext('2d')
+        backCanvasMap.set(artWorkId, {
+            canvas: backCanvas,
+            ctx: backCtx
+        })
 
         // draw in the cache
-        backCanvasContext.save()
-        backCanvasContext.translate(cacheCell * CANVAS_BASE_WIDTH, 0)
-
-        console.log(`draw on backCanvas ${artWorkId} x:${cacheCell * CANVAS_BASE_WIDTH}`)
-
-        clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCanvasContext)
-        drawArtWorkInternal(state, artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCanvasContext)
-
-        /*backCanvasContext.fillStyle = 'rgb(.2,.2,.2)'
-        backCanvasContext.fillRect(0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT)
-        backCanvasContext.strokeStyle = "10px solid black"
-        backCanvasContext.strokeRect(0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT)*/
-
-        backCanvasContext.restore()
+        console.log(`draw on backCanvas ${artWorkId}`)
+        clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx)
+        drawArtWorkInternal(state, artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx)
 
         // draw from cache
         console.log(`draw on canvas from back ${artWorkId} w:${width} h:${height}`)
-        ctx.drawImage(backCanvas, cacheCell * CANVAS_BASE_WIDTH, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
-
-        ctx.save()
-        ctx.strokeStyle = "10px solid black"
-        ctx.strokeRect(0, 0, width, height)
-        ctx.restore()
-
-        // register
-        backCanvasMap[artWorkId] = cacheCell
-    }
-    else {
-        console.log(`direct draw ${artWorkId}`)
-        drawArtWorkInternal(state, artWorkId, width, height, ctx)
+        ctx.drawImage(backCanvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
     }
 }
 
