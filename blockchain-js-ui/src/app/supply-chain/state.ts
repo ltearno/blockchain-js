@@ -74,6 +74,13 @@ export class State {
     smartContract: Blockchain.SmartContract.SmartContract = null
     suppyChain: SupplyChainAdapter.SupplyChainAdapter = new SupplyChainAdapter.SupplyChainAdapter()
 
+    // a counter to know which components are loading something
+    loaders = 0
+
+    isLoading() {
+        return this.loaders > 0 || this.fullNode.transfer.isLoading
+    }
+
     private userKeyUpdateListener
 
     init(userKeyUpdateListener: () => any) {
@@ -210,7 +217,7 @@ export class State {
     private async registerIdentity() {
         let callLater = true
 
-        if (this.fullNode.transfer.isLoading) {
+        if (this.isLoading()) {
             console.log(`registerIdentity : wait loading finished`)
         }
         else if (!this.user) {

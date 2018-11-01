@@ -1,5 +1,5 @@
 import * as Model from './model'
-import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants';
+import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants'
 
 let backCanvasMapMaxSize = 50
 let backCanvas = document.createElement('canvas')
@@ -12,11 +12,10 @@ let backCanvasMapSize = 0
 window['backCanvas'] = () => document.body.appendChild(backCanvas)
 
 export function setSmartProgram(smartContract) {
-    smartContract.addChangeListener(() => resetCache('-'))
+    smartContract.addChangeListener(() => resetCache())
 }
 
-function resetCache(commit: string) {
-    console.log(`=== PAINT RESET CACHE FOR COMMIT ${commit} ===`)
+function resetCache() {
     backCanvasMap = {}
     backCanvasMapSize = 0
 }
@@ -49,7 +48,43 @@ function drawEmoji(text: string, width: number, height: number, ctx: CanvasRende
 }
 
 export function drawArtWork(state: Model.ProgramState, artWork: Model.ArtWork, width: number, height: number, ctx: CanvasRenderingContext2D) {
-    drawArtWorkInternal(state, artWork, width, height, ctx)
+    drawArtWorkInternalFromCache(state, artWork, width, height, ctx)
+}
+
+export function drawArtWorkInternalFromCache(state: Model.ProgramState, artWork: Model.ArtWork, width: number, height: number, ctx: CanvasRenderingContext2D) {
+    if (!artWork || !artWork.grid)
+        return
+
+    const id = artWork.id
+
+    if (backCanvasMap[id] !== undefined) {
+        ctx.drawImage(backCanvas, backCanvasMap[id] * CANVAS_BASE_WIDTH, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
+    }
+    else if (backCanvasMapSize < backCanvasMapMaxSize) {
+        // reserve a place in the cache
+        let cacheCell = backCanvasMapSize++
+        backCanvasMap[id] = cacheCell
+
+        // draw in the cache
+        backCanvasContext.save()
+        backCanvasContext.translate(cacheCell * CANVAS_BASE_WIDTH, 0)
+
+        clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCanvasContext)
+        drawArtWorkInternal(state, artWork, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCanvasContext)
+
+        /*backCanvasContext.fillStyle = 'rgb(.2,.2,.2)'
+        backCanvasContext.fillRect(0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT)
+        backCanvasContext.strokeStyle = "10px solid black"
+        backCanvasContext.strokeRect(0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT)*/
+
+        backCanvasContext.restore()
+
+        // draw from cache
+        ctx.drawImage(backCanvas, cacheCell * CANVAS_BASE_WIDTH, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
+    }
+    else {
+        drawArtWorkInternal(state, artWork, width, height, ctx)
+    }
 }
 
 export function drawArtWorkInternal(state: Model.ProgramState, artWork: Model.ArtWork, width: number, height: number, ctx: CanvasRenderingContext2D) {
@@ -59,6 +94,11 @@ export function drawArtWorkInternal(state: Model.ProgramState, artWork: Model.Ar
     const CW = width / artWork.size.width
     const CH = height / artWork.size.height
 
+    if (CW < 1 || CH < 1) {
+        console.log(`too fine grained ${CW}x${CH} !`)
+        return
+    }
+
     for (let i = 0; i < artWork.size.width; i++) {
         for (let j = 0; j < artWork.size.height; j++) {
             let value = artWork.grid[j * artWork.size.width + i]
@@ -66,17 +106,20 @@ export function drawArtWorkInternal(state: Model.ProgramState, artWork: Model.Ar
             if (value) {
                 ctx.save()
                 ctx.translate(i * CW, j * CH)
-                drawWorkItemInternal(state, value.workItemId, CW, CH, ctx)
                 if (!value.ownerId) {
-                    ctx.beginPath()
+                    /*ctx.beginPath()
                     ctx.strokeStyle = 'rgba(0,0,0,.4)'
                     ctx.lineWidth = CW / 5
                     ctx.moveTo(0, 0)
                     ctx.lineTo(CW - 1, CH - 1)
                     ctx.moveTo(CW - 1, 0)
                     ctx.lineTo(0, CH - 1)
-                    ctx.stroke()
+                    ctx.stroke()*/
+
+                    ctx.fillStyle = 'rgba(0,0,0,.2)'
+                    ctx.fillRect(0, 0, CW, CH)
                 }
+                drawWorkItemInternal(state, value.workItemId, CW, CH, ctx)
                 ctx.restore()
             }
         }
@@ -112,30 +155,7 @@ function drawWorkItemInternal(state: Model.ProgramState, id: string, width: numb
         drawEmoji(id.substr('emoji-'.length), width, height, ctx)
     }
     else if (id.startsWith('artwork-')) {
-        if (backCanvasMap[id] !== undefined) {
-            ctx.drawImage(backCanvas, backCanvasMap[id] * CANVAS_BASE_WIDTH, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
-        }
-        else if (backCanvasMapSize < backCanvasMapMaxSize) {
-            // reserve a place in the cache
-            let cacheCell = backCanvasMapSize++
-            backCanvasMap[id] = cacheCell
-
-            // draw in the cache
-            backCanvasContext.save()
-            backCanvasContext.translate(cacheCell * CANVAS_BASE_WIDTH, 0)
-            drawArtWorkInternal(state, state.artWorks[id.substr('artwork-'.length)], CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCanvasContext)
-            backCanvasContext.fillStyle = 'rgb(.2,.2,.2)'
-            backCanvasContext.fillRect(0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT)
-            backCanvasContext.strokeStyle = "10px solid black"
-            backCanvasContext.strokeRect(0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT)
-            backCanvasContext.restore()
-
-            // draw from cache
-            ctx.drawImage(backCanvas, cacheCell * CANVAS_BASE_WIDTH, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
-        }
-        else {
-            drawArtWorkInternal(state, state.artWorks[id.substr('artwork-'.length)], width, height, ctx)
-        }
+        drawArtWorkInternal(state, state.artWorks[id.substr('artwork-'.length)], width, height, ctx)
     }
 }
 

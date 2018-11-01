@@ -349,6 +349,7 @@ export class AppComponent {
   private async tryLoadBlocksFromLocalStorage() {
     let storageBlocksString = localStorage.getItem(STORAGE_BLOCKS)
     if (storageBlocksString) {
+      this.state.loaders++
       try {
         let storageBlocks = Block.deserializeBlockData(storageBlocksString)
         if (Array.isArray(storageBlocks)) {
@@ -366,6 +367,7 @@ export class AppComponent {
       catch (e) {
         this.log(`error loading from local storage : ${e}`)
       }
+      this.state.loaders--
     }
   }
 
