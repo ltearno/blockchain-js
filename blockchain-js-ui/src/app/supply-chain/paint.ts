@@ -11,7 +11,11 @@ let backCanvasMapSize = 0
 
 window['backCanvas'] = () => document.body.appendChild(backCanvas)
 
-export function resetCache(commit: string) {
+export function setSmartProgram(smartContract) {
+    smartContract.addChangeListener(() => resetCache('-'))
+}
+
+function resetCache(commit: string) {
     console.log(`=== PAINT RESET CACHE FOR COMMIT ${commit} ===`)
     backCanvasMap = {}
     backCanvasMapSize = 0
@@ -120,6 +124,10 @@ function drawWorkItemInternal(state: Model.ProgramState, id: string, width: numb
             backCanvasContext.save()
             backCanvasContext.translate(cacheCell * CANVAS_BASE_WIDTH, 0)
             drawArtWorkInternal(state, state.artWorks[id.substr('artwork-'.length)], CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCanvasContext)
+            backCanvasContext.fillStyle = 'rgb(.2,.2,.2)'
+            backCanvasContext.fillRect(0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT)
+            backCanvasContext.strokeStyle = "10px solid black"
+            backCanvasContext.strokeRect(0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT)
             backCanvasContext.restore()
 
             // draw from cache

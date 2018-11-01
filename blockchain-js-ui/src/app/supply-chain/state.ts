@@ -210,15 +210,22 @@ export class State {
     private async registerIdentity() {
         let callLater = true
 
-        if (!this.user) {
+        if (this.fullNode.transfer.isLoading) {
+            console.log(`registerIdentity : wait loading finished`)
         }
-        if (!this.hasIdentityContract) {
+        else if (!this.user) {
+            console.log(`registerIdentity : wait user presence`)
+        }
+        else if (!this.hasIdentityContract) {
+            console.log(`registerIdentity : wait identity contract`)
             this.checkIdentityContract()
         }
         else if (!this.registeredOnIdentityContract) {
+            console.log(`registerIdentity : wait identity contract registration`)
             await this.registerIdentityImpl()
         }
         else if (!this.hasSupplyChainAccount) {
+            console.log(`registerIdentity : wait supply chain account`)
             await this.registerAccount()
         }
         else {

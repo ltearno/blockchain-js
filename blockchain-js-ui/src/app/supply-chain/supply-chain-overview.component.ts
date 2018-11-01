@@ -10,7 +10,6 @@ import * as Paint from './paint'
 )
 export class SupplyChainOverviewComponent implements OnInit, OnDestroy {
     private smartContractChangeListener = () => {
-        Paint.resetCache(this.state.currentHead)
         if (!this.changeDetectionRef['destroyed'])
             this.changeDetectionRef.detectChanges()
     }

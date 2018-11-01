@@ -8,6 +8,7 @@ import {
 import * as CryptoJS from 'crypto-js'
 import { WebSocketConnector } from 'blockchain-js-core/dist/websocket-connector';
 import { State } from './supply-chain/state';
+import { setSmartProgram } from './supply-chain/paint';
 
 const NETWORK_CLIENT_IMPL = new NetworkClientBrowserImpl.NetworkClientBrowserImpl()
 
@@ -92,6 +93,8 @@ export class AppComponent {
     this.state.init(() => this.savePreferencesToLocalStorage())
     this.loadPreferencesFromLocalStorage()
     this.tryLoadBlocksFromLocalStorage()
+
+    setSmartProgram(this.state.smartContract)
   }
 
   async setPseudo(pseudo: string, comment: string) {
