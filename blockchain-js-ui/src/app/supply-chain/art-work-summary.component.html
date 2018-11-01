@@ -1,7 +1,7 @@
 <div class="card artWork-card">
     <div class="card-image">
         <figure class="image square">
-            <canvas #canvas width="400" height="400"></canvas>
+            <canvas #canvas></canvas>
         </figure>
     </div>
     <div class="card-content">
@@ -20,7 +20,8 @@
                         <i>{{ message.author }} :</i> {{ message.text }}
                     </div>
                 </div>
-                <input *ngIf='!artWork.validated' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)' style='font-size: 80%;'>
+                <input *ngIf='!artWork.validated' #newMessage placeholder="type any message here" type="text"
+                    (keyup.enter)='sendMessage(artWork.id, newMessage)' style='font-size: 80%;'>
             </div>
         </div>
     </div>

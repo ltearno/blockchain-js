@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, AfterViewInit, Input, Output, EventEmitte
 import * as Model from './model'
 import * as Paint from './paint'
 import { State } from './state'
+import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants';
 
 @Component({
     selector: 'art-work-edition',
@@ -111,6 +112,8 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy
 
     ngAfterViewInit() {
         let canvas = this.canvas.nativeElement
+        canvas.width = CANVAS_BASE_WIDTH
+        canvas.height = CANVAS_BASE_HEIGHT
         this.canvasElement = canvas
         this.context = canvas.getContext("2d")
 
@@ -197,9 +200,9 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy
         if (!this.context)
             return
 
-        Paint.clear(400, 400, this.context)
-        Paint.drawArtWork(this.state.programState, this._artWork, 400, 400, this.context)
+        Paint.clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
+        Paint.drawArtWork(this.state.programState, this._artWork, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
         if (this.mouseOver)
-            Paint.drawCell(this._artWork, this.mouseOver.x, this.mouseOver.y, 400, 400, this.context)
+            Paint.drawCell(this._artWork, this.mouseOver.x, this.mouseOver.y, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
     }
 }

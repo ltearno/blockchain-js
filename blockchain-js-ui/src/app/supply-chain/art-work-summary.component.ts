@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, AfterViewInit, Input, Output, EventEmitte
 import * as Model from './model'
 import * as Paint from './paint'
 import { State } from './state'
+import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants';
 
 @Component({
     selector: 'art-work-summary',
@@ -26,9 +27,10 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
     private _artWork: Model.ArtWork = null
 
     private smartContractChangeListener = () => {
-        if (!this.changeDetectionRef['destroyed'])
+        if (!this.changeDetectionRef['destroyed']) {
             this.changeDetectionRef.detectChanges()
-    
+        }
+
         this.paint()
     }
 
@@ -36,7 +38,6 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
         private changeDetectionRef: ChangeDetectorRef,
         public state: State
     ) {
-        this.changeDetectionRef.detach()
         this.state.smartContract.addChangeListener(this.smartContractChangeListener)
     }
 
@@ -66,14 +67,17 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
 
     ngAfterViewInit() {
         let canvas = this.canvas.nativeElement
+        canvas.width = CANVAS_BASE_WIDTH
+        canvas.height = CANVAS_BASE_HEIGHT
         this.context = canvas.getContext("2d")
 
         this.paint()
+        this.changeDetectionRef.detach()
     }
 
     private paint() {
-        Paint.clear(400, 400, this.context)
-        this._artWork && this.context && Paint.drawArtWork(this.state.programState, this._artWork, 400, 400, this.context)
+        Paint.clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
+        this._artWork && this.context && Paint.drawArtWork(this.state.programState, this._artWork, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
     }
 
     sendMessage(artWorkId: string, textInput: HTMLInputElement) {

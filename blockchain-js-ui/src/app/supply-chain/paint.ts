@@ -1,15 +1,18 @@
 import * as Model from './model'
+import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants';
 
 let backCanvasMapMaxSize = 50
 let backCanvas = document.createElement('canvas')
-backCanvas.width = 400 * backCanvasMapMaxSize
-backCanvas.height = 400
+backCanvas.width = CANVAS_BASE_WIDTH * backCanvasMapMaxSize
+backCanvas.height = CANVAS_BASE_HEIGHT
 let backCanvasContext = backCanvas.getContext('2d')
 let backCanvasMap = {}
 let backCanvasMapSize = 0
 
-export function resetCache() {
-    console.log(`=== PAINT RESET CACHE ===`)
+window['backCanvas'] = () => document.body.appendChild(backCanvas)
+
+export function resetCache(commit: string) {
+    console.log(`=== PAINT RESET CACHE FOR COMMIT ${commit} ===`)
     backCanvasMap = {}
     backCanvasMapSize = 0
 }
@@ -106,7 +109,7 @@ function drawWorkItemInternal(state: Model.ProgramState, id: string, width: numb
     }
     else if (id.startsWith('artwork-')) {
         if (backCanvasMap[id] !== undefined) {
-            ctx.drawImage(backCanvas, backCanvasMap[id] * 400, 0, 400, 400, 0, 0, width, height)
+            ctx.drawImage(backCanvas, backCanvasMap[id] * CANVAS_BASE_WIDTH, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
         }
         else if (backCanvasMapSize < backCanvasMapMaxSize) {
             // reserve a place in the cache
@@ -115,12 +118,12 @@ function drawWorkItemInternal(state: Model.ProgramState, id: string, width: numb
 
             // draw in the cache
             backCanvasContext.save()
-            backCanvasContext.translate(cacheCell * 400, 0)
-            drawArtWorkInternal(state, state.artWorks[id.substr('artwork-'.length)], 400, 400, backCanvasContext)
+            backCanvasContext.translate(cacheCell * CANVAS_BASE_WIDTH, 0)
+            drawArtWorkInternal(state, state.artWorks[id.substr('artwork-'.length)], CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCanvasContext)
             backCanvasContext.restore()
 
             // draw from cache
-            ctx.drawImage(backCanvas, cacheCell * 400, 0, 400, 400, 0, 0, width, height)
+            ctx.drawImage(backCanvas, cacheCell * CANVAS_BASE_WIDTH, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
         }
         else {
             drawArtWorkInternal(state, state.artWorks[id.substr('artwork-'.length)], width, height, ctx)
