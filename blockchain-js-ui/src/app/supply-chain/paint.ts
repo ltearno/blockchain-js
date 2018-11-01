@@ -1,11 +1,23 @@
 import * as Model from './model'
 
+let backCanvasMapMaxSize = 50
+let backCanvas = document.createElement('canvas')
+backCanvas.width = 400 * backCanvasMapMaxSize
+backCanvas.height = 400
+let backCanvasContext = backCanvas.getContext('2d')
+let backCanvasMap = {}
+let backCanvasMapSize = 0
+
+export function resetCache() {
+    console.log(`=== PAINT RESET CACHE ===`)
+    backCanvasMap = {}
+    backCanvasMapSize = 0
+}
+
 function drawPixel(color: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
     const MARGIN = width / 15
 
     ctx.fillStyle = color
-    //ctx.fillRect(0, 0, width, height)
-
     ctx.strokeStyle = color
     ctx.lineJoin = "round"
     ctx.lineWidth = width / 8
@@ -30,10 +42,12 @@ function drawEmoji(text: string, width: number, height: number, ctx: CanvasRende
 }
 
 export function drawArtWork(state: Model.ProgramState, artWork: Model.ArtWork, width: number, height: number, ctx: CanvasRenderingContext2D) {
+    drawArtWorkInternal(state, artWork, width, height, ctx)
+}
+
+export function drawArtWorkInternal(state: Model.ProgramState, artWork: Model.ArtWork, width: number, height: number, ctx: CanvasRenderingContext2D) {
     if (!artWork || !artWork.grid)
         return
-
-    console.log(`drawArtWork`)
 
     const CW = width / artWork.size.width
     const CH = height / artWork.size.height
@@ -84,7 +98,6 @@ function scheduledPaint() {
 }
 
 function drawWorkItemInternal(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
-    console.log(`drawWorkItem`)
     if (id.startsWith('pixel-')) {
         drawPixel(id.substr('pixel-'.length), width, height, ctx)
     }
@@ -92,7 +105,26 @@ function drawWorkItemInternal(state: Model.ProgramState, id: string, width: numb
         drawEmoji(id.substr('emoji-'.length), width, height, ctx)
     }
     else if (id.startsWith('artwork-')) {
-        drawArtWork(state, state.artWorks[id.substr('artwork-'.length)], width, height, ctx)
+        if (backCanvasMap[id] !== undefined) {
+            ctx.drawImage(backCanvas, backCanvasMap[id] * 400, 0, 400, 400, 0, 0, width, height)
+        }
+        else if (backCanvasMapSize < backCanvasMapMaxSize) {
+            // reserve a place in the cache
+            let cacheCell = backCanvasMapSize++
+            backCanvasMap[id] = cacheCell
+
+            // draw in the cache
+            backCanvasContext.save()
+            backCanvasContext.translate(cacheCell * 400, 0)
+            drawArtWorkInternal(state, state.artWorks[id.substr('artwork-'.length)], 400, 400, backCanvasContext)
+            backCanvasContext.restore()
+
+            // draw from cache
+            ctx.drawImage(backCanvas, cacheCell * 400, 0, 400, 400, 0, 0, width, height)
+        }
+        else {
+            drawArtWorkInternal(state, state.artWorks[id.substr('artwork-'.length)], width, height, ctx)
+        }
     }
 }
 

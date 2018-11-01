@@ -1,5 +1,6 @@
 import { Component, ChangeDetectorRef, OnInit, Output, EventEmitter, OnDestroy } from "@angular/core";
 import { State } from "./state";
+import * as Paint from './paint'
 
 
 @Component({
@@ -9,6 +10,7 @@ import { State } from "./state";
 )
 export class SupplyChainOverviewComponent implements OnInit, OnDestroy {
     private smartContractChangeListener = () => {
+        Paint.resetCache()
         if (!this.changeDetectionRef['destroyed'])
             this.changeDetectionRef.detectChanges()
     }

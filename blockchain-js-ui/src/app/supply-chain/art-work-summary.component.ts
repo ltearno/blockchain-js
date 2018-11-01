@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild, AfterViewInit, Input, Output, EventEmitte
 import * as Model from './model'
 import * as Paint from './paint'
 import { State } from './state'
-import { text } from '@angular/core/src/render3/instructions';
 
 @Component({
     selector: 'art-work-summary',
@@ -42,7 +41,6 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
     }
 
     ngOnInit() {
-        this.changeDetectionRef.detectChanges()
     }
 
     ngOnDestroy() {

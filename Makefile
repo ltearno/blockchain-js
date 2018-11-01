@@ -14,6 +14,10 @@ build-ui:
 	echo "building UI..."
 	cd blockchain-js-ui && yarn build
 
+run-ui:
+	echo "Running UI..."
+	cd blockchain-js-ui && ./node_modules/.bin/ng serve
+
 push-core: build-core
 	echo "pushing blockchain-core (${CORE_IMAGE_REF})..."
 	cd blockchain-js-core && docker build . -t eu.gcr.io/blockchain-js/blockchain-js-core:${CORE_IMAGE_REF}

@@ -23,10 +23,12 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
     constructor(
         private changeDetectionRef: ChangeDetectorRef,
         public state: State
-    ) { }
+    ) {
+    }
 
     ngOnInit() {
-        this.changeDetectionRef.detectChanges()
+        this.changeDetectionRef.detach()
+        this.state.smartContract.addChangeListener(this.smartContractChangeListener)
     }
 
     ngOnDestroy() {
