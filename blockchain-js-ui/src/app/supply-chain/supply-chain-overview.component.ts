@@ -38,8 +38,6 @@ export class SupplyChainOverviewComponent implements OnInit, OnDestroy {
     @Output()
     editArtWork = new EventEmitter<string>()
 
-    private tempInventory = null
-
     get countUsers() {
         return Object.keys(this.state.programState.accounts).length
     }
@@ -47,13 +45,7 @@ export class SupplyChainOverviewComponent implements OnInit, OnDestroy {
     get inventory() {
         let inv = this.state.programState.accounts[this.state.user.pseudo].inventory
         let claims = this.claimsByOthers()
-        let tempInventory = Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(item => item.count > 0)
-
-        if (!this.tempInventory || JSON.stringify(tempInventory) != JSON.stringify(this.tempInventory)) {
-            this.tempInventory = tempInventory
-        }
-
-        return this.tempInventory
+        return Object.keys(inv).sort().map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(item => item.count > 0)
     }
 
     @Output()

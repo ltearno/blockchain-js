@@ -16,8 +16,6 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
     private _artWorkId: string = null
 
     private smartContractChangeListener = () => {
-        if (!this.changeDetectionRef['destroyed'])
-            this.changeDetectionRef.detectChanges()
         this.paint()
     }
 
@@ -56,14 +54,14 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
 
     ngAfterViewInit() {
         let canvas = this.canvas.nativeElement
-        canvas.width = CANVAS_BASE_WIDTH
-        canvas.height = CANVAS_BASE_HEIGHT
+        canvas.width = 100
+        canvas.height = 100
         this.context = canvas.getContext("2d")
 
         this.paint()
     }
 
     private paint() {
-        this._artWorkId && this.context && Paint.drawWorkItem(this.state.programState, this._artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
+        this._artWorkId && this.context && Paint.drawWorkItem(this.state.programState, this._artWorkId, 100, 100, this.context)
     }
 }

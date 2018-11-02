@@ -1,6 +1,8 @@
 import * as Model from './model'
 import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants'
 
+const USE_BACK_CACHE = true
+
 interface BackBuffer {
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
@@ -63,29 +65,34 @@ function drawWorkItemInternal(state: Model.ProgramState, id: string, width: numb
 }
 
 export function drawArtWork(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
-    if (backCanvasMap.has(artWorkId)) {
-        //console.log(`cache draw ${artWorkId}`)
-        ctx.drawImage(backCanvasMap.get(artWorkId).canvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
+    if (USE_BACK_CACHE) {
+        if (backCanvasMap.has(artWorkId)) {
+            //console.log(`cache draw ${artWorkId}`)
+            ctx.drawImage(backCanvasMap.get(artWorkId).canvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
+        }
+        else {
+            // create back canvas
+            let backCanvas = document.createElement('canvas')
+            backCanvas.width = CANVAS_BASE_WIDTH
+            backCanvas.height = CANVAS_BASE_HEIGHT
+            let backCtx = backCanvas.getContext('2d')
+            backCanvasMap.set(artWorkId, {
+                canvas: backCanvas,
+                ctx: backCtx
+            })
+
+            // draw in the cache
+            console.log(`draw on backCanvas ${artWorkId}`)
+            clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx)
+            drawArtWorkInternal(state, artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx)
+
+            // draw from cache
+            console.log(`draw on canvas from back ${artWorkId} w:${width} h:${height}`)
+            ctx.drawImage(backCanvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
+        }
     }
     else {
-        // create back canvas
-        let backCanvas = document.createElement('canvas')
-        backCanvas.width = CANVAS_BASE_WIDTH
-        backCanvas.height = CANVAS_BASE_HEIGHT
-        let backCtx = backCanvas.getContext('2d')
-        backCanvasMap.set(artWorkId, {
-            canvas: backCanvas,
-            ctx: backCtx
-        })
-
-        // draw in the cache
-        console.log(`draw on backCanvas ${artWorkId}`)
-        clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx)
-        drawArtWorkInternal(state, artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx)
-
-        // draw from cache
-        console.log(`draw on canvas from back ${artWorkId} w:${width} h:${height}`)
-        ctx.drawImage(backCanvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
+        drawArtWorkInternal(state, artWorkId, width, height, ctx)
     }
 }
 
