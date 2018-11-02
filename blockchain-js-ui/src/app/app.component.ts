@@ -79,7 +79,7 @@ export class AppComponent {
   constructor(public state: State) {
     this.onUnloadListener = _ => {
       if (this.autoSave) {
-        this.saveBlocks()
+        //this.saveBlocks()
 
         this.savePreferencesToLocalStorage()
       }
@@ -92,7 +92,7 @@ export class AppComponent {
 
     this.state.init(() => this.savePreferencesToLocalStorage())
     this.loadPreferencesFromLocalStorage()
-    this.tryLoadBlocksFromLocalStorage()
+    //this.tryLoadBlocksFromLocalStorage()
 
     setSmartProgram(this.state.smartContract)
   }
