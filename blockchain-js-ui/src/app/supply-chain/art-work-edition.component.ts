@@ -46,7 +46,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy
 
         let claims = this.claimsByOthers()
 
-        return Object.keys(inv).map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(i => i.count > 0)
+        return Object.keys(inv).sort().map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(i => i.count > 0)
     }
 
     get othersInventory() {
@@ -60,7 +60,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy
             })
         })
 
-        return Object.keys(res).map(itemId => ({ id: itemId, count: res[itemId] })).filter(i => i.count > 0)
+        return Object.keys(res).sort().map(itemId => ({ id: itemId, count: res[itemId] })).filter(i => i.count > 0)
     }
 
     // les choses que je possède que les autres veulent

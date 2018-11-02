@@ -16,8 +16,10 @@
  * mais on peut vendre un ensemble (itemId devient celui du ask validé)
  */
 ((() => {
-    const NB_ITEMS_PACKET_AT_ACCOUNT_CREATION = 5
-    const PACKET_QUANTITY = 5
+    const ACCOUNT_CREATION_NB_PIXELS_PACKETS = 7
+    const ACCOUNT_CREATION_NB_PIXEL_PER_PACKET = 7
+    const ACCOUNT_CREATION_NB_REDISTRIBUTABLE_ITEMS = 2
+    const PARTICIPATION_REDITRIBUTABLE_RATIO = 7
 
     const canValidateArtWork = (artWork) => {
         return artWork.grid && artWork.grid.every(cell => !cell || cell.ownerId != null)
@@ -92,23 +94,6 @@
          */
         init: function () {
             this.data.redistributableItems = [
-                "pixel-#7fc6b6",
-                "pixel-#a8583f",
-                "pixel-#e8a77b",
-                "pixel-#c38d9d",
-                "pixel-#40b3a1",
-                "pixel-#563d67",
-                "pixel-#8e8741",
-                "pixel-#bd986b",
-                "pixel-#5cdb94",
-                "pixel-#fc4444",
-                "pixel-#1d1d1d",
-                "pixel-#a9bcd4",
-                "pixel-#557a95",
-                "pixel-#4201ff",
-                "pixel-#66fbf1",
-                "pixel-#1c552a",
-                "pixel-#786d01",
                 "emoji-😁",
                 "emoji-💛",
                 "emoji-🎷",
@@ -235,14 +220,29 @@
                 return result % modulo
             }
 
+            let randomColor = () => {
+                let randomString = callContract('random-generator-v1', 0, 'generate', args)
+                return `${randomString.substr(0, 1)}0${randomString.substr(1, 1)}0${randomString.substr(2, 1)}0`
+            }
+
             let items = {}
 
-            for (let i = 0; i < NB_ITEMS_PACKET_AT_ACCOUNT_CREATION; i++) {
+            // give pixels
+            for (let i = 0; i < ACCOUNT_CREATION_NB_PIXELS_PACKETS; i++) {
+                let item = `pixel-#${randomColor()}`
+                if (item in items)
+                    items[item] += ACCOUNT_CREATION_NB_PIXEL_PER_PACKET
+                else
+                    items[item] = ACCOUNT_CREATION_NB_PIXEL_PER_PACKET
+            }
+
+            // give redistributable items
+            for (let i = 0; i < ACCOUNT_CREATION_NB_REDISTRIBUTABLE_ITEMS; i++) {
                 let item = this.data.redistributableItems[random(this.data.redistributableItems.length)]
                 if (item in items)
-                    items[item] += PACKET_QUANTITY
+                    items[item] += 1
                 else
-                    items[item] = PACKET_QUANTITY
+                    items[item] = 1
             }
 
             this.data.accounts[email] = {
@@ -319,10 +319,20 @@
                 return result % modulo
             }
 
+            let randomColor = () => {
+                let randomString = callContract('random-generator-v1', 0, 'generate', args)
+                return `${randomString.substr(0, 1)}0${randomString.substr(1, 1)}0${randomString.substr(2, 1)}0`
+            }
+
             for (let userId in participations) {
                 let count = participations[userId]
                 while (count--) {
-                    let winnedItemId = this.data.redistributableItems[random(this.data.redistributableItems.length)]
+                    let winnedItemId
+                    if (count % PARTICIPATION_REDITRIBUTABLE_RATIO == 0)
+                        winnedItemId = this.data.redistributableItems[random(this.data.redistributableItems.length)]
+                    else
+                        winnedItemId = `pixel-#${randomColor()}`
+
                     let inventory = this.data.accounts[userId].inventory
                     if (!inventory[winnedItemId])
                         inventory[winnedItemId] = 1
