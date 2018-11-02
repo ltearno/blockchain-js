@@ -13,19 +13,57 @@ import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants';
     }
     `]
 })
-export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy {
+export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     private smartContractChangeListener = () => {
-        if (!this.changeDetectionRef['destroyed'])
-            this.changeDetectionRef.detectChanges()
+        console.log(`edititon receives change listener`)
+        this.updateFromContract()
+        this.changeDetectorRef.detectChanges()
         this.paint()
     }
 
+    @Input()
+    artWorkId: string = null
+
+    @Output()
+    validate = new EventEmitter<void>()
+
+    @Output()
+    cancel = new EventEmitter<void>()
+
+    constructor(public state: State, private changeDetectorRef: ChangeDetectorRef) {
+    }
+
     ngOnInit() {
-        this.changeDetectionRef.detectChanges()
+        this.state.smartContract.addChangeListener(this.smartContractChangeListener)
+        this.updateFromContract()
     }
 
     ngOnDestroy() {
         this.state.smartContract.removeChangeListener(this.smartContractChangeListener)
+    }
+
+    private updateFromContract() {
+        this.artWork = this.state.programState.artWorks[this.artWorkId]
+
+        // inventory
+        let inv = this.state.programState.accounts[this.state.user.pseudo].inventory
+        let claims = this.claimsByOthers()
+        this.inventory = Object.keys(inv).sort().map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(i => i.count > 0)
+
+        // other's inventories
+        let res = {}
+        Object.keys(this.state.programState.accounts).filter(userId => userId != this.state.user.pseudo).forEach(userId => {
+            let inv = this.state.programState.accounts[userId].inventory
+            Object.keys(inv).forEach(itemId => {
+                if (!res[itemId])
+                    res[itemId] = 0
+                res[itemId] += inv[itemId]
+            })
+        })
+        this.othersInventory = Object.keys(res).sort().map(itemId => ({ id: itemId, count: res[itemId] })).filter(i => i.count > 0)
+
+        // can validate
+        this.canValidate = this.artWork && this.artWork.grid.every(cell => !cell || cell.ownerId != null)
     }
 
     @ViewChild("canvas")
@@ -41,27 +79,9 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy
     selectedInInventory = null
     selectedInOthersInventory = null
 
-    get inventory() {
-        let inv = this.state.programState.accounts[this.state.user.pseudo].inventory
-
-        let claims = this.claimsByOthers()
-
-        return Object.keys(inv).sort().map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(i => i.count > 0)
-    }
-
-    get othersInventory() {
-        let res = {}
-        Object.keys(this.state.programState.accounts).filter(userId => userId != this.state.user.pseudo).forEach(userId => {
-            let inv = this.state.programState.accounts[userId].inventory
-            Object.keys(inv).forEach(itemId => {
-                if (!res[itemId])
-                    res[itemId] = 0
-                res[itemId] += inv[itemId]
-            })
-        })
-
-        return Object.keys(res).sort().map(itemId => ({ id: itemId, count: res[itemId] })).filter(i => i.count > 0)
-    }
+    inventory = []
+    othersInventory = []
+    canValidate = false
 
     // les choses que je possède que les autres veulent
     private claimsByOthers() {
@@ -83,32 +103,8 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy
         return claims
     }
 
-    @Input()
-    set artWork(artWork) {
-        this._artWork = artWork
-
-        this.paint()
-    }
-
-    @Output()
-    validate = new EventEmitter<void>()
-
-    @Output()
-    cancel = new EventEmitter<void>()
-
-    get artWork() {
-        return this._artWork
-    }
-
     private context: CanvasRenderingContext2D
-    private _artWork: Model.ArtWork = null
-
-    constructor(
-        private changeDetectionRef: ChangeDetectorRef, public state: State
-    ) {
-        this.changeDetectionRef.detach()
-        this.state.smartContract.addChangeListener(this.smartContractChangeListener)
-    }
+    artWork: Model.ArtWork = null
 
     ngAfterViewInit() {
         let canvas = this.canvas.nativeElement
@@ -124,21 +120,21 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy
         let rect = this.canvasElement.getBoundingClientRect()
 
         return {
-            x: Math.floor(((x - rect.left) / (rect.right - rect.left)) * this._artWork.size.width),
-            y: Math.floor(((y - rect.top) / (rect.bottom - rect.top)) * this._artWork.size.height)
+            x: Math.floor(((x - rect.left) / (rect.right - rect.left)) * this.artWork.size.width),
+            y: Math.floor(((y - rect.top) / (rect.bottom - rect.top)) * this.artWork.size.height)
         }
     }
 
     async updateArtWorkTitle(title) {
-        await this.state.suppyChain.updateArtWorkTitle(this._artWork.id, title)
+        await this.state.suppyChain.updateArtWorkTitle(this.artWork.id, title)
     }
 
     async updateArtWorkDescription(description) {
-        await this.state.suppyChain.updateArtWorkDescription(this._artWork.id, description)
+        await this.state.suppyChain.updateArtWorkDescription(this.artWork.id, description)
     }
 
     async changeArtWorkSize(width, height) {
-        await this.state.suppyChain.updateArtWorkSize(this._artWork.id, width, height)
+        await this.state.suppyChain.updateArtWorkSize(this.artWork.id, width, height)
 
         this.paint()
     }
@@ -157,10 +153,10 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy
 
     async mouseClick(event: MouseEvent) {
         let coords = this.pointToCoordinates(event.clientX, event.clientY)
-        let coordIndex = coords.x + this._artWork.size.width * coords.y
+        let coordIndex = coords.x + this.artWork.size.width * coords.y
 
-        if (this._artWork.grid[coordIndex]) {
-            await this.state.suppyChain.removeCellFromArtWork(this._artWork.id, coords.x, coords.y)
+        if (this.artWork.grid[coordIndex]) {
+            await this.state.suppyChain.removeCellFromArtWork(this.artWork.id, coords.x, coords.y)
         }
         else {
             let itemId = this.selectedInInventory || this.selectedInOthersInventory
@@ -168,10 +164,10 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy
                 return
 
             if (this.selectedInInventory) {
-                await this.state.suppyChain.addItemInArtWorkFromInventory(this._artWork.id, this.selectedInInventory, coords.x, coords.y)
+                await this.state.suppyChain.addItemInArtWorkFromInventory(this.artWork.id, this.selectedInInventory, coords.x, coords.y)
             }
             else if (this.selectedInOthersInventory) {
-                await this.state.suppyChain.askItemForArtWork(this._artWork.id, this.selectedInOthersInventory, coords.x, coords.y)
+                await this.state.suppyChain.askItemForArtWork(this.artWork.id, this.selectedInOthersInventory, coords.x, coords.y)
             }
         }
 
@@ -181,19 +177,11 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy
     selectInventory(itemId) {
         this.selectedInOthersInventory = null
         this.selectedInInventory = itemId
-
-        this.changeDetectionRef.detectChanges()
     }
 
     selectOthersInventory(itemId) {
         this.selectedInInventory = null
         this.selectedInOthersInventory = itemId
-
-        this.changeDetectionRef.detectChanges()
-    }
-
-    async canValidate() {
-        return await this.state.suppyChain.canValidateArtWork(this._artWork)
     }
 
     private paint() {
@@ -201,8 +189,8 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnInit, OnDestroy
             return
 
         Paint.clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
-        Paint.drawArtWork(this.state.programState, this._artWork.id, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
+        Paint.drawArtWork(this.state.programState, this.artWork.id, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
         if (this.mouseOver)
-            Paint.drawCell(this._artWork, this.mouseOver.x, this.mouseOver.y, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
+            Paint.drawCell(this.artWork, this.mouseOver.x, this.mouseOver.y, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
     }
 }

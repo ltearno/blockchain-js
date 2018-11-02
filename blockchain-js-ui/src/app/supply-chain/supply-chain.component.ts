@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, ChangeDetectorRef } from '@angular/core'
 import * as Model from './model'
 import { State } from './state'
 
@@ -9,21 +9,25 @@ import { State } from './state'
 })
 export class SupplyChainComponent {
     constructor(
-        public state: State
-    ) { }
+        public state: State,
+        private changeDetectorRef: ChangeDetectorRef
+    ) {
+        this.state.smartContract.addChangeListener(this.smartContractChangeListener)
+    }
+
+    ngOnDestroy() {
+        this.state.smartContract.removeChangeListener(this.smartContractChangeListener)
+    }
+
+    private smartContractChangeListener = () => {
+        this.changeDetectorRef.detectChanges()
+    }
 
     /**
      * ArtWork creation
      */
 
     editingArtworkId: string = null
-
-    get editingArtwork(): Model.ArtWork {
-        if (!this.editingArtworkId)
-            return null
-
-        return this.state.programState.artWorks[this.editingArtworkId]
-    }
 
     async initArtWorkCreation() {
         let id = `r${Math.random()}`
@@ -50,8 +54,9 @@ export class SupplyChainComponent {
         this.editingArtworkId = null
     }
 
-    validateArtWork(artWork: Model.ArtWork) {
-        this.state.suppyChain.validateArtWork(artWork.id)
+    validateArtWork() {
+        if (this.editingArtworkId)
+            this.state.suppyChain.validateArtWork(this.editingArtworkId)
 
         this.editingArtworkId = null
     }

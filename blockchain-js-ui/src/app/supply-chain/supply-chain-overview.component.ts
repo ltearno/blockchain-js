@@ -8,28 +8,24 @@ import * as Paint from './paint'
     templateUrl: 'supply-chain-overview.component.html'
 }
 )
-export class SupplyChainOverviewComponent implements OnInit, OnDestroy {
+export class SupplyChainOverviewComponent implements OnDestroy, OnInit {
     private smartContractChangeListener = () => {
+        this.updateModel()
         if (!this.changeDetectionRef['destroyed'])
             this.changeDetectionRef.detectChanges()
     }
 
     constructor(private changeDetectionRef: ChangeDetectorRef,
         private state: State) {
-        this.changeDetectionRef.detach()
         this.state.smartContract.addChangeListener(this.smartContractChangeListener)
     }
 
     ngOnInit() {
-        this.changeDetectionRef.detectChanges()
+        this.updateModel()
     }
 
     ngOnDestroy() {
         this.state.smartContract.removeChangeListener(this.smartContractChangeListener)
-    }
-
-    artWorksToDisplay() {
-        return Object.keys(this.state.programState.artWorks).sort()
     }
 
     @Output()
@@ -38,14 +34,18 @@ export class SupplyChainOverviewComponent implements OnInit, OnDestroy {
     @Output()
     editArtWork = new EventEmitter<string>()
 
-    get countUsers() {
-        return Object.keys(this.state.programState.accounts).length
-    }
+    artWorksToDisplay = []
+    countUsers = 0
+    inventory = []
 
-    get inventory() {
+    private updateModel() {
         let inv = this.state.programState.accounts[this.state.user.pseudo].inventory
         let claims = this.claimsByOthers()
-        return Object.keys(inv).sort().map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(item => item.count > 0)
+        this.inventory = Object.keys(inv).sort().map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(item => item.count > 0)
+
+        this.countUsers = Object.keys(this.state.programState.accounts).length
+
+        this.artWorksToDisplay = Object.keys(this.state.programState.artWorks).sort()
     }
 
     @Output()

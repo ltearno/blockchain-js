@@ -10,12 +10,11 @@
                 <div *ngIf='!artWork.validated'>🚧 👷 In progress 👷 🚧</div>
                 <p class="title is-4">{{ artWork.title }}</p>
                 <p class="subtitle is-6">{{ artWork.author }}</p>
-                <p class="subtitle is-6">{{ artWork.id }}</p>
-                <div>Grid size {{ artWork.size.width }} x {{ artWork.size.height }}</div>
-                <p>{{ artWork.description }}</p>
-                <div *ngIf='artWork.author==state.user.pseudo'>
-                    <button *ngIf='!artWork.validated' class='button is-primary' (click)='edit.emit(artWork)'>Edit</button>
-                </div>
+
+                <!--<p class="subtitle is-6">{{ artWork | json }}</p>-->
+
+                <!--<div>Grid size {{ artWork.size.width }} x {{ artWork.size.height }}</div>
+                <p>{{ artWork.description }}</p>-->
                 <div *ngIf='artWork.messages'>
                     <div *ngFor='let message of artWork.messages'>
                         <i>{{ message.author }} :</i> {{ message.text }}
@@ -23,6 +22,9 @@
                 </div>
                 <input *ngIf='!artWork.validated' #newMessage placeholder="type any message here" type="text"
                     (keyup.enter)='sendMessage(artWork.id, newMessage)' style='font-size: 80%;'>
+                <div *ngIf='artWork.author==state.user.pseudo'>
+                    <button *ngIf='!artWork.validated' class='button is-primary' (click)='edit.emit(artWork)'>Edit</button>
+                </div>
             </div>
         </div>
     </div>

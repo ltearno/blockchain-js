@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, Input, Output, EventEmitter, ChangeDetectorRef, OnDestroy } from '@angular/core'
+import { Component, ViewChild, AfterViewInit, Input, Output, EventEmitter, OnDestroy, ChangeDetectorRef } from '@angular/core'
 import * as Model from './model'
 import * as Paint from './paint'
 import { State } from './state'
@@ -19,7 +19,7 @@ import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants';
     }
     `]
 })
-export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy {
+export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
     @ViewChild("canvas")
     canvas
 
@@ -27,21 +27,16 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
     private _artWorkId: string = null
 
     private smartContractChangeListener = () => {
-        if (!this.changeDetectionRef['destroyed']) {
-            this.changeDetectionRef.detectChanges()
-        }
-
+        this.updateArtWorkFromId()
+        this.changeDetectorRef.detectChanges()
         this.paint()
     }
 
     constructor(
-        private changeDetectionRef: ChangeDetectorRef,
-        public state: State
+        public state: State,
+        private changeDetectorRef: ChangeDetectorRef
     ) {
         this.state.smartContract.addChangeListener(this.smartContractChangeListener)
-    }
-
-    ngOnInit() {
     }
 
     ngOnDestroy() {
@@ -51,13 +46,16 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
     @Input()
     set artWorkId(artWorkId) {
         this._artWorkId = artWorkId
+        this.updateArtWorkFromId()
 
         this.paint()
     }
 
-    get artWork() {
-        return this.state.programState.artWorks[this._artWorkId]
+    private updateArtWorkFromId() {
+        this.artWork = this.state.programState.artWorks[this._artWorkId]
     }
+
+    artWork: Model.ArtWork = null
 
     @Output()
     select = new EventEmitter<Model.ArtWork>()
@@ -72,7 +70,6 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnInit, OnDestroy
         this.context = canvas.getContext("2d")
 
         this.paint()
-        this.changeDetectionRef.detach()
     }
 
     private paint() {

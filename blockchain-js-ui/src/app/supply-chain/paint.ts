@@ -1,6 +1,7 @@
 import * as Model from './model'
 import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants'
 
+const DEFERRED_PAINT = false
 const USE_BACK_CACHE = true
 
 interface BackBuffer {
@@ -39,10 +40,8 @@ function resetCache() {
 
 let paintBuffer = []
 
-const DEFERRED_PAIN = false
-
 export function drawWorkItem(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
-    if (DEFERRED_PAIN) {
+    if (DEFERRED_PAINT) {
         paintBuffer = paintBuffer.filter(item => item.ctx != ctx)
         paintBuffer.push({ state, id, width, height, ctx })
         requestAnimationFrame(scheduledPaint)
@@ -67,7 +66,6 @@ function drawWorkItemInternal(state: Model.ProgramState, id: string, width: numb
 export function drawArtWork(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
     if (USE_BACK_CACHE) {
         if (backCanvasMap.has(artWorkId)) {
-            //console.log(`cache draw ${artWorkId}`)
             ctx.drawImage(backCanvasMap.get(artWorkId).canvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
         }
         else {
@@ -82,12 +80,10 @@ export function drawArtWork(state: Model.ProgramState, artWorkId: string, width:
             })
 
             // draw in the cache
-            console.log(`draw on backCanvas ${artWorkId}`)
             clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx)
             drawArtWorkInternal(state, artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx)
 
             // draw from cache
-            console.log(`draw on canvas from back ${artWorkId} w:${width} h:${height}`)
             ctx.drawImage(backCanvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
         }
     }
@@ -105,7 +101,6 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
     const CH = height / artWork.size.height
 
     if (CW < 1 || CH < 1) {
-        console.log(`too fine grained ${CW}x${CH} !`)
         return
     }
 

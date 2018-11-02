@@ -6,14 +6,14 @@
     </div>
     <p class="help">Title of the ArtWork</p>
 </div>
-<div class="field">
+<!--<div class="field">
     <label class="label">Description</label>
     <div class="control">
         <textarea #description name="" cols="30" rows="10" (input)='updateArtWorkDescription(description.value)'
             [value]='artWork.description'></textarea>
     </div>
     <p class="help">Description of the ArtWork</p>
-</div>
+</div>-->
 <div class="field">
     <label class="label">Size</label>
     <div class="control">
@@ -45,7 +45,6 @@
 
 <div>
     <button class="button" (click)='cancel.emit()'>Back</button><br />
-    <!--<button [disabled]='!canValidate()' class="button is-primary" (click)='validate.emit()'>Validate</button><br />
-    <span *ngIf='!canValidate()'>You cannot validate because not all items have been accepted !</span><br />-->
-    <button class="button is-primary" (click)='validate.emit()'>Validate</button><br />
+    <button [disabled]='!canValidate' class="button is-primary" (click)='validate.emit()'>Validate</button><br />
+    <span *ngIf='!canValidate'>You cannot validate because not all items have been accepted !</span><br />
 </div>
