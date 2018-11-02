@@ -221,8 +221,7 @@
             }
 
             let randomColor = () => {
-                let randomString = callContract('random-generator-v1', 0, 'generate', args)
-                return `${randomString.substr(0, 1)}0${randomString.substr(1, 1)}0${randomString.substr(2, 1)}0`
+                return `${(2 * random(8)).toString(16)}0${(2 * random(8)).toString(16)}0${(2 * random(8)).toString(16)}0`
             }
 
             let items = {}
@@ -320,8 +319,7 @@
             }
 
             let randomColor = () => {
-                let randomString = callContract('random-generator-v1', 0, 'generate', args)
-                return `${randomString.substr(0, 1)}0${randomString.substr(1, 1)}0${randomString.substr(2, 1)}0`
+                return `${(2 * random(8)).toString(16)}0${(2 * random(8)).toString(16)}0${(2 * random(8)).toString(16)}0`
             }
 
             for (let userId in participations) {
