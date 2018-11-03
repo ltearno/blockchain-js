@@ -107,8 +107,8 @@ export class NodeTransfer {
                 continue
 
             const BATCH_SIZE = 2
-            let loadedBlocks = await nodeInfo.node.blockChainBlockData(blockId, BATCH_SIZE)
             let loadedBlockIds = await nodeInfo.node.blockChainBlockIds(blockId, BATCH_SIZE)
+            let loadedBlocks = await nodeInfo.node.blockChainBlockData(blockId, BATCH_SIZE)
             if (loadedBlocks && loadedBlockIds) {
                 for (let blockIdx = 0; blockIdx < loadedBlocks.length; blockIdx++) {
                     let loadedBlock = loadedBlocks[blockIdx]
