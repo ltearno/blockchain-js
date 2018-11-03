@@ -78,7 +78,7 @@ export class State {
     loaders = 0
 
     isLoading() {
-        return this.loaders > 0 || this.fullNode.transfer.isLoading
+        return this.loaders > 0 || this.fullNode.transfer.isLoading()
     }
 
     private userKeyUpdateListener

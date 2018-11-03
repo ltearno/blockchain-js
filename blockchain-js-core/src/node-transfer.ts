@@ -1,9 +1,10 @@
-import * as Block from './block'
 import * as NodeApi from './node-api'
 
-interface FetchItem {
-    blockId: string
-    nodes: NodeApi.NodeApi[]
+interface NodeInfo {
+    node: NodeApi.NodeApi
+    listener: NodeApi.NodeEventListener<'head'>
+    lastEvents: { [branch: string]: { head: string } }
+    isLoading: boolean
 }
 
 /**
@@ -13,25 +14,18 @@ interface FetchItem {
  * they can be removed with the removeRemoteNode function
  */
 export class NodeTransfer {
-    private listeners: any[] = undefined
-    private knownNodes: NodeApi.NodeApi[] = undefined
-
-    private fetchingItem: FetchItem = null
-    private fetchList = new Map<string, FetchItem>()
-    isLoading: boolean = false
+    private knownNodes: NodeInfo[] = undefined
 
     constructor(public node: NodeApi.NodeApi) {
     }
 
-    initialize(knownNodes: NodeApi.NodeApi[]) {
-        this.listeners = []
-        this.knownNodes = []
-
-        knownNodes.forEach(node => this.initRemoteNode(node))
+    isLoading() {
+        return this.knownNodes.some(nodeInfo => nodeInfo.isLoading)
     }
 
-    getKnownNodes() {
-        return this.knownNodes
+    initialize(knownNodes: NodeApi.NodeApi[]) {
+        this.knownNodes = []
+        knownNodes.forEach(node => this.initRemoteNode(node))
     }
 
     addRemoteNode(remoteNode: NodeApi.NodeApi) {
@@ -39,163 +33,91 @@ export class NodeTransfer {
     }
 
     removeRemoteNode(remoteNode: NodeApi.NodeApi) {
-        let index = this.knownNodes.indexOf(remoteNode)
-        if (index < 0)
-            return
+        this.knownNodes = this.knownNodes.filter(nodeInfo => {
+            if (nodeInfo.node === remoteNode) {
+                nodeInfo.node.removeEventListener(nodeInfo.listener)
+                return false
+            }
 
-        remoteNode.removeEventListener(this.listeners[index])
-        this.listeners.splice(index, 1)
-        this.knownNodes.splice(index, 1)
+            return true
+        })
     }
 
     terminate() {
-        this.knownNodes.forEach((remoteNode, index) => remoteNode.removeEventListener(this.listeners[index]))
-        this.listeners = undefined
+        this.knownNodes.forEach(nodeInfo => nodeInfo.node.removeEventListener(nodeInfo.listener))
         this.node = undefined
         this.knownNodes = undefined
     }
 
     private initRemoteNode(remoteNode: NodeApi.NodeApi) {
-        this.knownNodes.push(remoteNode)
-
-        let listener: NodeApi.NodeEventListener<'head'> = async (event) => {
-            //console.log(`receive branch ${event.branch} change`)
-            try {
-                await this.registerBlockInFetchList(event.headBlockId, remoteNode)
-                this.processBlockLoad()
-            }
-            catch (err) {
-                console.error(`error when fetching branch ${event.branch}:${event.headBlockId} for node: ${err}`)
-            }
+        let nodeInfo: NodeInfo = {
+            node: remoteNode,
+            isLoading: false,
+            listener: async (event) => {
+                //console.log(`receive branch ${event.branch} change to ${event.headBlockId}`)
+                nodeInfo.lastEvents[event.branch] = { head: event.headBlockId }
+                this.triggerLoadFromRemoteNode(nodeInfo)
+            },
+            lastEvents: {}
         }
 
-        remoteNode.addEventListener('head', listener)
+        this.knownNodes.push(nodeInfo)
 
-        this.listeners.push(listener)
+        remoteNode.addEventListener('head', nodeInfo.listener)
     }
 
-    private async processBlockLoad() {
-        if (this.fetchingItem) {
-            //console.log(`already fetching`)
+    private async triggerLoadFromRemoteNode(nodeInfo: NodeInfo) {
+        if (nodeInfo.isLoading)
             return
-        }
 
-        // to mark that we are searching for an item to load
-        this.fetchingItem = {
-            blockId: null,
-            nodes: null
-        }
-
-        this.fetchingItem = await this.chooseFetchItemToLoad()
-        if (!this.fetchingItem) {
-            this.isLoading = false
-            //console.log(`cannot choose an item to load`)
-            return
-        }
-
-        this.isLoading = true
-
-        //console.log(`fetching ${this.fetchingItem.blockId}`)
+        nodeInfo.isLoading = true
 
         try {
-            if (this.fetchingItem.nodes.length == 0 || !this.fetchingItem.blockId) {
-                this.fetchList.delete(this.fetchingItem.blockId)
-                this.fetchingItem = null
-                console.log(`no nodes or no blockId`)
-
-                this.processBlockLoad()
-                return
-            }
-
-            // fetch the block from this first available node and remove this node from the list,
-            let nodeToFetchFrom = this.fetchingItem.nodes.shift()
-
-            let loadedBlock: Block.Block = null
-            try {
-                let loadedBlocks = await nodeToFetchFrom.blockChainBlockData(this.fetchingItem.blockId, 1)
-                loadedBlock = loadedBlocks && loadedBlocks.length && loadedBlocks[0]
-            }
-            catch (e) {
-                console.log(`error fetching ${e}`)
-            }
-
-            // if error, push the node at the end of fetchList (for a later try)
-            if (!loadedBlock) {
-                this.fetchingItem.nodes.push(nodeToFetchFrom)
-                this.fetchingItem = null
-                console.log(`block not loaded`)
-
-                this.processBlockLoad()
-                return
-            }
-
-            // remove the block from the fetch list and register the parent blocks for loading on that node
-            let fetchedBlockId = this.fetchingItem.blockId
-            this.fetchingItem = null
-            this.fetchList.delete(fetchedBlockId)
-
-            if (loadedBlock.previousBlockIds) {
-                for (let blockId of loadedBlock.previousBlockIds) {
-                    console.log(`adding block ${blockId} to fetch list`)
-
-                    await this.registerBlockInFetchList(blockId, nodeToFetchFrom)
-                }
-            }
-
-            console.log(`block ${fetchedBlockId.substr(0, 5)} fetched, sending to local node`)
-
-            this.node.registerBlock(fetchedBlockId, loadedBlock)
-
-            this.processBlockLoad()
+            await this.loadFromRemoteNode(nodeInfo)
+        } catch (error) {
+            console.error(`error when loading from node: ${error}`, error)
         }
-        catch (e) {
-            console.log(`error fetching ${e}`)
 
-            this.processBlockLoad()
-        }
+        nodeInfo.isLoading = false
+
+        // something to do ?
+        if (Object.keys(nodeInfo.lastEvents).length)
+            setTimeout(() => this.triggerLoadFromRemoteNode(nodeInfo), 1)
     }
 
-    private async registerBlockInFetchList(id: string, node: NodeApi.NodeApi) {
-        if (await this.node.knowsBlock(id))
+    private async loadFromRemoteNode(nodeInfo: NodeInfo) {
+        // find branch
+        let branches = Object.keys(nodeInfo.lastEvents)
+        if (!branches || !branches.length)
             return
 
-        //console.log(`register ${id}`)
-        // TODO insert the block at random place in the list
+        // find blockId
+        let processedBranch = branches[0]
+        let lastEvent = nodeInfo.lastEvents[processedBranch]
+        if (!lastEvent)
+            return
+        let processedBlockId = lastEvent.head
 
-        if (this.fetchList.has(id)) {
-            if (!this.fetchList.get(id).nodes.includes(node))
-                this.fetchList.get(id).nodes.push(node)
-        }
-        else {
-            let fetchItem = {
-                blockId: id,
-                nodes: [node]
-            }
-            this.fetchList.set(id, fetchItem)
-        }
-    }
+        // load blocks
+        let blockList = []
+        blockList.push(processedBlockId)
+        while (blockList.length) {
+            let blockId = blockList.shift()
 
-    private async chooseFetchItemToLoad() {
-        // choose a block and clean blocks with no node in fetchList
-        let toRemove = []
-        let toProcess: FetchItem = null
+            if (!await this.node.knowsBlock(blockId)) {
+                let loadedBlocks = await nodeInfo.node.blockChainBlockData(blockId, 1)
+                let loadedBlock = loadedBlocks && loadedBlocks.length && loadedBlocks[0]
 
-        //console.log(`fetchList size ${this.fetchList.size}`)
+                if (loadedBlock.previousBlockIds)
+                    loadedBlock.previousBlockIds.forEach(parentId => blockList.unshift(parentId))
 
-        for (let fetchItem of this.fetchList.values()) {
-            //console.log(`test ${fetchItem.blockId}`)
-
-            if (await this.node.knowsBlock(fetchItem.blockId)) {
-                toRemove.push()
-            }
-            else {
-                toProcess = fetchItem
-                break
+                this.node.registerBlock(blockId, loadedBlock)
             }
         }
 
-        toRemove.forEach(blockId => this.fetchList.delete(blockId))
-
-        return toProcess
+        // if last event is still the same, remove it
+        if (nodeInfo.lastEvents[processedBranch] && nodeInfo.lastEvents[processedBranch].head == processedBlockId) {
+            delete nodeInfo.lastEvents[processedBranch]
+        }
     }
 }
