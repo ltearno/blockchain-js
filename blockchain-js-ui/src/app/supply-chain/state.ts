@@ -162,8 +162,10 @@ export class State {
                 break
             }
         }
-        if (startIdx < 0)
+        if (startIdx < 0) {
+            this.messages = []
             startIdx = 0
+        }
 
         for (let idx = startIdx; idx < sequenceItemsByBlock.length; idx++) {
             let { items } = sequenceItemsByBlock[idx]
