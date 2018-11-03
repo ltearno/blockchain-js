@@ -103,15 +103,24 @@ export class NodeTransfer {
         blockList.push(processedBlockId)
         while (blockList.length) {
             let blockId = blockList.shift()
+            if (await this.node.knowsBlock(blockId))
+                continue
 
-            if (!await this.node.knowsBlock(blockId)) {
-                let loadedBlocks = await nodeInfo.node.blockChainBlockData(blockId, 1)
-                let loadedBlock = loadedBlocks && loadedBlocks.length && loadedBlocks[0]
+            const BATCH_SIZE = 2
+            let loadedBlocks = await nodeInfo.node.blockChainBlockData(blockId, BATCH_SIZE)
+            let loadedBlockIds = await nodeInfo.node.blockChainBlockIds(blockId, BATCH_SIZE)
+            if (loadedBlocks && loadedBlockIds) {
+                for (let blockIdx = 0; blockIdx < loadedBlocks.length; blockIdx++) {
+                    let loadedBlock = loadedBlocks[blockIdx]
+                    let loadedBlockId = loadedBlockIds[blockIdx]
 
-                if (loadedBlock.previousBlockIds)
-                    loadedBlock.previousBlockIds.forEach(parentId => blockList.unshift(parentId))
+                    await this.node.registerBlock(loadedBlockId, loadedBlock)
 
-                this.node.registerBlock(blockId, loadedBlock)
+                    if (loadedBlock.previousBlockIds) {
+                        for (let idx = (blockIdx < loadedBlocks.length - 1 ? 1 : 0); idx < loadedBlock.previousBlockIds.length; idx++)
+                            blockList.unshift(loadedBlock.previousBlockIds[idx])
+                    }
+                }
             }
         }
 

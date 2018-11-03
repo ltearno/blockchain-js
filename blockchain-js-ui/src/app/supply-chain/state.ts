@@ -105,7 +105,6 @@ export class State {
     private lastLoaded = { branch: null, blockId: null }
 
     private messages = []
-    private lastMessagesBlockId = ''
 
     hasIdentityContract = false
     registeredOnIdentityContract = false
@@ -133,7 +132,7 @@ export class State {
         }, 500)
 
         this.fullNode.node.addEventListener('head', async (event) => {
-            this.log(`new head on branch '${event.branch}': ${event.headBlockId.substr(0, 7)}`)
+            //this.log(`new head on branch '${event.branch}': ${event.headBlockId.substr(0, 7)}`)
             this.triggerLoad(event.branch, event.headBlockId)
             this.currentHead = event.headBlockId.substr(0, 7)
         })
@@ -155,24 +154,14 @@ export class State {
     }
 
     private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: Blockchain.SequenceStorage.SequenceItem[] }[]) {
-        let startIdx
-        for (startIdx = sequenceItemsByBlock.length - 1; startIdx >= 0; startIdx--) {
-            if (sequenceItemsByBlock[startIdx].blockId == this.lastMessagesBlockId) {
-                startIdx++ // because we start AFTER the last cached block
-                break
-            }
-        }
-        if (startIdx < 0) {
-            this.messages = []
-            startIdx = 0
-        }
+        this.messages = []
 
-        for (let idx = startIdx; idx < sequenceItemsByBlock.length; idx++) {
+        for (let idx = 0; idx < sequenceItemsByBlock.length; idx++) {
             let { items } = sequenceItemsByBlock[idx]
             this.messages = this.messages.concat(items)
         }
 
-        this.lastMessagesBlockId = sequenceItemsByBlock[sequenceItemsByBlock.length - 1].blockId
+        this.messages = this.messages.reverse()
     }
 
     private triggerLoad(branch: string, blockId: string) {

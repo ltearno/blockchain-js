@@ -81,12 +81,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     async registerBlock(blockId: string, block: Block.Block): Promise<Block.BlockMetadata> {
         //console.log(`receive block ${blockId}`)
 
-        if (!blockId || !block) {
-            console.error(`invalid block`)
-            return null
-        }
-
-        if (!block.branch) {
+        if (!blockId || !block || !block.branch) {
             console.error(`invalid block ! Aborting registration`)
             return null
         }
@@ -98,13 +93,8 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         let fixedId = await Block.idOfBlock(block)
         if (fixedId != blockId) {
-            console.warn(`registering a fixed block ${blockId} ${fixedId}\n${JSON.stringify(block, null, 4)}`)
-            blockId = fixedId
-        }
-
-        if (this.knownBlocksData.has(blockId)) {
-            console.log(`already registered block ${blockId && blockId.substring(0, 5)} after processing the id`)
-            return this.knownBlocks.get(blockId)
+            console.warn(`skipping a block with wrong advertized id ${blockId} ${fixedId}\n${JSON.stringify(block, null, 4)}`)
+            return null
         }
 
         this.knownBlocksData.set(blockId, block)
