@@ -27,13 +27,11 @@
         return `rgb(${randomColorComponent(randomFunction)},${randomColorComponent(randomFunction)},${randomColorComponent(randomFunction)})`
     }
 
-    const addParticipations = (data, artWork, participations, initialAuthor) => {
-        if (!artWork.validated)
-            return
-
-        if (!participations[artWork.author])
-            participations[artWork.author] = 0
-        participations[artWork.author]++
+    // grid cells :
+    // - pixels & emojis : for the author
+    // - artworks : add participations
+    const processArtWorkParticipations = (data, artWork) => {
+        const participations = {}
 
         artWork.grid.forEach(cell => {
             if (!cell)
@@ -45,12 +43,19 @@
                 participations[artWork.author]++
             }
             else if (cell.workItemId.startsWith('artwork-')) {
-                addParticipations(data, data.artWorks[cell.workItemId.substr('artwork-'.length)], participations, initialAuthor)
+                const participedArtWork = data.artWorks[cell.workItemId.substr('artwork-'.length)]
+                for (let author in participedArtWork.participations) {
+                    if (!participations[author])
+                        participations[author] = 0
+                    participations[author] += participedArtWork.participations[author]
+                }
             }
             else {
                 console.error(`unkown item id`)
             }
         })
+
+        artWork.participations = participations
     }
 
     const containsArtWorkId = (data, searchedArtWorkId, workItemId) => {
@@ -299,8 +304,7 @@
 
             artWork.validated = true
 
-            let participations = {}
-            addParticipations(this.data, artWork, participations, artWork.author)
+            processArtWorkParticipations(this.data, artWork)
 
             let random = (modulo) => {
                 let randomString = callContract('random-generator-v1', 0, 'generate', args)
@@ -308,11 +312,21 @@
                 return result % modulo
             }
 
-            for (let userId in participations) {
-                let count = participations[userId]
+            for (let userId in artWork.participations) {
+                let count = artWork.participations[userId]
+
+                // special case for the artwork author : we only count current artwork pixels and emojis
+                if (userId == artWork.author) {
+                    count = artWork.grid
+                        .filter(cell => cell != null)
+                        .map(cell => cell.workItemId)
+                        .filter(workItemId => workItemId.startsWith('pixel-') || workItemId.startsWith('emoji-'))
+                        .length
+                }
+
                 while (count--) {
                     let winnedItemId
-                    if (count % PARTICIPATION_REDITRIBUTABLE_RATIO == 0)
+                    if (count % PARTICIPATION_REDITRIBUTABLE_RATIO == (PARTICIPATION_REDITRIBUTABLE_RATIO - 1))
                         winnedItemId = 'emoji-' + this.data.redistributableItems[random(this.data.redistributableItems.length)]
                     else
                         winnedItemId = `pixel-${randomColor(random)}`
