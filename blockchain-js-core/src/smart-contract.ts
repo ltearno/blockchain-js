@@ -64,10 +64,10 @@ export interface ContractState {
 }
 
 export interface MachineState {
-    contracts: Map<string, ContractState>
+    contracts: { [contractUuid: string]: ContractState }
 
     // callId to return value
-    returnValues: Map<string, any>
+    returnValues: { [callId: string]: any }
 }
 
 type LiveInstance = any
@@ -124,6 +124,40 @@ export class SmartContract {
     private stateCache: MachineState = null
     private stateCacheBlockId = null
 
+    private statesCacheSize = 5
+    private statesCache: { blockId: string; serializedState: string; state?: MachineState }[] = []
+    private cacheState(blockId: string, state: MachineState) {
+        if (this.statesCache.some(cache => cache.blockId == blockId)) {
+            console.log(`cache skip`)
+            return
+        }
+
+        if (this.statesCache.length >= this.statesCacheSize) {
+            console.log(`cache trim`)
+            this.statesCache.shift()
+        }
+
+        console.log(`cache push`)
+
+        this.statesCache.push({ blockId, serializedState: JSON.stringify(state) })
+    }
+    private getStateCache(blockId: string) {
+        let cache = this.statesCache.find(c => c.blockId == blockId)
+        if (!cache) {
+            console.log(`cache miss`)
+            return null
+        }
+
+        console.log(`cache hit`)
+
+        if (!cache.state) {
+            console.log(`cache deserialize`)
+            cache.state = JSON.parse(cache.serializedState)
+        }
+
+        return cache.state
+    }
+
     private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
         let state: MachineState
 
@@ -137,12 +171,24 @@ export class SmartContract {
                 break
             }
         }
-        //let startIdx = sequenceItemsByBlock.findIndex(v => v.blockId == this.stateCacheBlockId)
+
+        if (startIdx < 0) {
+            // search in the cache FILO
+            for (let offset = 0; offset < this.statesCacheSize && offset < sequenceItemsByBlock.length; offset++) {
+                let cache = this.getStateCache(sequenceItemsByBlock[sequenceItemsByBlock.length - 1 - offset].blockId)
+                if (cache) {
+                    state = cache
+                    startIdx = sequenceItemsByBlock.length - offset // because we start AFTER the last cached block
+                    break
+                }
+            }
+        }
+
         if (startIdx < 0) {
             console.warn(`SmartContract : restart block running from beginning`)
             state = {
-                contracts: new Map(),
-                returnValues: new Map()
+                contracts: {},
+                returnValues: {}
             }
             startIdx = 0
         }
@@ -173,8 +219,8 @@ export class SmartContract {
 
                         // retrieve or create the contract state
                         let contractState: ContractState = null
-                        if (state.contracts.has(contractUuid)) {
-                            contractState = state.contracts.get(contractUuid)
+                        if (contractUuid in state.contracts) {
+                            contractState = state.contracts[contractUuid]
 
                             contractState.name = contractDescription.name
                             contractState.description = contractDescription.description
@@ -190,7 +236,7 @@ export class SmartContract {
                                 description: contractDescription.description
                             }
 
-                            state.contracts.set(contractUuid, contractState)
+                            state.contracts[contractUuid] = contractState
                         }
 
                         let iterationId = contractState.currentContractIterationId + 1
@@ -248,7 +294,7 @@ export class SmartContract {
                             continue
                         }
 
-                        let contractState: ContractState = state.contracts.get(contractUuid)
+                        let contractState: ContractState = state.contracts[contractUuid]
                         if (!contractState) {
                             console.error(`cannot call a contract without state, ignoring. ${JSON.stringify(contractItem)}`)
                             continue
@@ -290,6 +336,7 @@ export class SmartContract {
                 // store the contract state at the end of the block
                 this.stateCache = state
                 this.stateCacheBlockId = blockId
+                this.cacheState(blockId, state)
             }
         }
 
@@ -315,7 +362,7 @@ export class SmartContract {
      * @param resultValues a Map where to store result value of the call (if both the map and callId are given)
      * @param commitCall 
      */
-    private callContractInstance(callId: string, method: string, args: any, liveInstance: any, contractState: ContractState, resultValues: Map<string, any>, commitCall: boolean) {
+    private callContractInstance(callId: string, method: string, args: any, liveInstance: any, contractState: ContractState, resultValues: { [callUuid: string]: any }, commitCall: boolean) {
         if (!liveInstance)
             throw `liveInstance is null, cannot call contract method`
 
@@ -339,7 +386,8 @@ export class SmartContract {
 
             //callResult && console.log(`call returned a result : ${JSON.stringify(callResult)}`)
 
-            callId && resultValues && !resultValues.has(callId) && resultValues.set(callId, callResult)
+            if (callId && resultValues && !(callId in resultValues))
+                resultValues[callId] = callResult
 
             return callResult
         }
@@ -353,7 +401,7 @@ export class SmartContract {
         }
     }
 
-    private createLiveInstance(contractUuid: string, iterationId: number, code: string, contracts: Map<string, ContractState>, returnValues: Map<string, any>) {
+    private createLiveInstance(contractUuid: string, iterationId: number, code: string, contracts: { [contractUuid: string]: ContractState }, returnValues: { [callUuid: string]: any }) {
         let liveInstance = null
 
         let instanceSandbox = {
@@ -369,7 +417,7 @@ export class SmartContract {
                 if (!liveInstance)
                     throw 'no live instance, are you trying to do something weird?'
 
-                let contractState = contracts.get(uuid)
+                let contractState = contracts[uuid]
                 if (!contractState) {
                     console.warn(`contract ${contractUuid} asked for state of an unknown contract (${uuid})`)
                     return null
@@ -385,7 +433,7 @@ export class SmartContract {
                 if (!liveInstance)
                     throw 'no live instance, are you trying to do something weird?'
 
-                let contractState = contracts.get(uuid)
+                let contractState = contracts[uuid]
                 if (!contractState) {
                     console.error(`contract ${contractUuid} asked for calling method ${method} on an unknown contract (${uuid}@${iterationId})`)
                     return false
@@ -496,23 +544,23 @@ export class SmartContract {
         if (!liveInstance)
             return undefined
 
-        return this.callContractInstance(null, method, args, liveInstance, this.stateCache.contracts.get(contractUuid), null, false)
+        return this.callContractInstance(null, method, args, liveInstance, this.stateCache.contracts[contractUuid], null, false)
     }
 
     hasReturnValue(callId: string) {
-        return this.stateCache && this.stateCache.returnValues.has(callId)
+        return this.stateCache && (callId in this.stateCache.returnValues)
     }
 
     getReturnValue(callId: string) {
-        return this.stateCache && this.stateCache.returnValues.get(callId)
+        return this.stateCache && this.stateCache.returnValues[callId]
     }
 
     hasContract(contractUuid: string) {
-        return this.stateCache && this.stateCache.contracts && this.stateCache.contracts.has(contractUuid)
+        return this.stateCache && this.stateCache.contracts && (contractUuid in this.stateCache.contracts)
     }
 
     getContractState(contractUuid: string) {
-        return this.stateCache && this.stateCache.contracts && this.stateCache.contracts.get(contractUuid).instanceData
+        return this.stateCache && this.stateCache.contracts && this.stateCache.contracts[contractUuid].instanceData
     }
 
     getState() {
