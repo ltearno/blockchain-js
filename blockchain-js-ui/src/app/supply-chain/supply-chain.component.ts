@@ -30,7 +30,7 @@ export class SupplyChainComponent {
     editingArtworkId: string = null
 
     async initArtWorkCreation() {
-        const SIZE = 9
+        const SIZE = 7
 
         let id = `r${Math.random()}`
 
@@ -40,7 +40,7 @@ export class SupplyChainComponent {
             title: 'New ArtWork',
             validated: false,
             size: { width: SIZE, height: SIZE },
-            grid: new Array(SIZE * SIZE).fill(null),
+            grid: null,
             messages: []
         })
 

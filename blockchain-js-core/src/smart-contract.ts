@@ -398,6 +398,7 @@ export class SmartContract {
 
         let instanceSandbox = {
             JSON,
+            Array,
 
             console: {
                 log: (text, obj) => console.log(`### ${contractUuid}@${iterationId}     LOG: ${text}`, obj),

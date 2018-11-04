@@ -16,8 +16,8 @@
  * mais on peut vendre un ensemble (itemId devient celui du ask validé)
  */
 ((() => {
-    const ACCOUNT_CREATION_NB_PIXELS_PACKETS = 7
-    const ACCOUNT_CREATION_NB_PIXEL_PER_PACKET = 7
+    const ACCOUNT_CREATION_NB_PIXELS_PACKETS = 4
+    const ACCOUNT_CREATION_NB_PIXEL_PER_PACKET = 20
     const ACCOUNT_CREATION_NB_REDISTRIBUTABLE_ITEMS = 2
     const PARTICIPATION_REDITRIBUTABLE_RATIO = 13
 
@@ -262,6 +262,8 @@
                 console.log(`artwork ${artWork.id} already exists`)
                 return false
             }
+
+            artWork.grid = new Array(SIZE * SIZE).fill(null),
 
             // TODO sanity check
 
