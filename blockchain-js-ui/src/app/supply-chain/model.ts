@@ -21,11 +21,10 @@ export interface ArtWork {
     id: string
     title: string
     author: string
-    validated: boolean // if the ArtWork is finished (all cells with workitems must be accepted)
+    validated: boolean // if the ArtWork is finished (no further modifications allowed)
     size: { width: number; height: number }
     grid: {
         workItemId: string // id de l'item `artwork-XXX`, `pixel-XXX`, `emoji-XXX`
-        ownerId?: string // le possesseur initial
     }[] // by line
     messages: ChatMessage[]
 }

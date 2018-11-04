@@ -59,12 +59,4 @@ export class SupplyChainComponent {
 
         this.editingArtworkId = null
     }
-
-    /**
-     * Other
-     */
-
-    acceptGivingItem(event: { itemId: string; artWorkId: string }) {
-        this.state.suppyChain.acceptGivingItem(this.state.user.pseudo, event.itemId, event.artWorkId)
-    }
 }

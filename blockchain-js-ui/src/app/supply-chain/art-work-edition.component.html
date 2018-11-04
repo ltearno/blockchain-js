@@ -29,14 +29,12 @@
 
 <h2>Others Inventory</h2>
 <div class="inventory">
-    <div *ngFor='let item of othersInventory' [class.selected]='item.id == selectedInOthersInventory' (click)='selectOthersInventory(item.id)'>
-        <art-work-icon [artWorkId]='item.id' (selected)='selectOthersInventory(item.id)'></art-work-icon>
-        <b>{{ item.count }}</b>
+    <div *ngFor='let itemId of othersInventory' [class.selected]='itemId == selectedInOthersInventory' (click)='selectOthersInventory(itemId)'>
+        <art-work-icon [artWorkId]='itemId' (selected)='selectOthersInventory(itemId)'></art-work-icon>
     </div>
 </div>
 
 <div>
     <button class="button" (click)='cancel.emit()'>Back</button><br />
-    <button [disabled]='!canValidate' class="button is-primary" (click)='validate.emit()'>Validate</button><br />
-    <span *ngIf='!canValidate'>You cannot validate because not all items have been accepted !</span><br />
+    <button class="button is-primary" (click)='validate.emit()'>Validate</button><br />
 </div>

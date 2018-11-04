@@ -112,22 +112,23 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
                 ctx.save()
                 ctx.translate(i * CW, j * CH)
                 drawWorkItemInternal(state, value.workItemId, CW, CH, ctx)
-                if (!value.ownerId) {
-                    /*ctx.beginPath()
-                    ctx.strokeStyle = 'rgba(0,0,0,.4)'
-                    ctx.lineWidth = CW / 5
-                    ctx.moveTo(0, 0)
-                    ctx.lineTo(CW - 1, CH - 1)
-                    ctx.moveTo(CW - 1, 0)
-                    ctx.lineTo(0, CH - 1)
-                    ctx.stroke()*/
-
-                    ctx.fillStyle = 'rgba(0,0,0,.2)'
-                    ctx.fillRect(0, 0, CW, CH)
-                }
                 ctx.restore()
             }
         }
+    }
+
+    if (!artWork.validated) {
+        /*ctx.beginPath()
+        ctx.strokeStyle = 'rgba(0,0,0,.4)'
+        ctx.lineWidth = CW / 5
+        ctx.moveTo(0, 0)
+        ctx.lineTo(CW - 1, CH - 1)
+        ctx.moveTo(CW - 1, 0)
+        ctx.lineTo(0, CH - 1)
+        ctx.stroke()*/
+
+        ctx.fillStyle = 'rgba(0,0,0,.2)'
+        ctx.fillRect(0, 0, width, height)
     }
 }
 

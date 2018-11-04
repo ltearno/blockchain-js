@@ -40,24 +40,12 @@ export class SupplyChainAdapter {
         return await this.callContract('validateArtWork', { artWorkId })
     }
 
-    async canValidateArtWork(artWork: Model.ArtWork) {
-        return false// await this.simulateContract('canValidateArtWork', { artWork })
-    }
-
-    async acceptGivingItem(userId: string, itemId: string, artWorkId: string) {
-        return await this.callContract('acceptGivingItem', { userId, itemId, artWorkId })
-    }
-
     async removeCellFromArtWork(artWorkId: string, x: number, y: number) {
         return await this.callContract('removeCellFromArtWork', { artWorkId, x, y })
     }
 
     async addItemInArtWorkFromInventory(artWorkId: string, itemId: string, x: number, y: number) {
         return await this.callContract('addItemInArtWorkFromInventory', { artWorkId, itemId, x, y })
-    }
-
-    async askItemForArtWork(artWorkId: string, itemId: string, x: number, y: number) {
-        return await this.callContract('askItemForArtWork', { artWorkId, itemId, x, y })
     }
 
     async sendMessageOnArtWork(userId: string, artWorkId: string, text: string) {

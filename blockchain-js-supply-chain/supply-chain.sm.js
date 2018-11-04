@@ -21,10 +21,6 @@
     const ACCOUNT_CREATION_NB_REDISTRIBUTABLE_ITEMS = 2
     const PARTICIPATION_REDITRIBUTABLE_RATIO = 7
 
-    const canValidateArtWork = (artWork) => {
-        return artWork.grid && artWork.grid.every(cell => !cell || cell.ownerId != null)
-    }
-
     const addParticipations = (data, artWork, participations) => {
         if (!artWork.validated)
             return
@@ -38,9 +34,9 @@
                 return
 
             if (cell.workItemId.startsWith('pixel-') || cell.workItemId.startsWith('emoji-')) {
-                if (!participations[cell.ownerId])
-                    participations[cell.ownerId] = 0
-                participations[cell.ownerId]++
+                if (!participations[artWork.author])
+                    participations[artWork.author] = 0
+                participations[artWork.author]++
             }
             else if (cell.workItemId.startsWith('artwork-')) {
                 addParticipations(data, data.artWorks[cell.workItemId.substr('artwork-'.length)], participations)
@@ -94,100 +90,85 @@
          */
         init: function () {
             this.data.redistributableItems = [
-                "emoji-😁",
-                "emoji-💛",
-                "emoji-🎷",
-                "emoji-😀",
-                "emoji-😁",
-                "emoji-💓",
-                "emoji-👧",
-                "emoji-🧑",
-                "emoji-👨",
-                "emoji-👶",
-                "emoji-🤲",
-                "emoji-💪",
-                "emoji-🤘",
-                "emoji-📢",
-                "emoji-🎥",
-                "emoji-🍇",
-                "emoji-🥝",
-                "emoji-🍅",
-                "emoji-🥥",
-                "emoji-🍛",
-                "emoji-🍜",
-                "emoji-😺",
-                "emoji-🐵",
-                "emoji-🐄",
-                "emoji-🐷",
-                "emoji-🐘",
-                "emoji-🐼",
-                "emoji-🐋",
-                "emoji-🐬",
-                "emoji-🕷",
-                "emoji-🕸",
-                "emoji-🦂",
-                "emoji-🌹",
-                "emoji-🥀",
-                "emoji-🌺",
-                "emoji-🌻",
-                "emoji-🛅",
-                "emoji-⚠",
-                "emoji-🚸",
-                "emoji-⛔",
-                "emoji-🚫",
-                "emoji-🚭",
-                "emoji-🛂",
-                "emoji-🔓",
-                "emoji-🔥",
-                "emoji-🎲",
-                "emoji-🎴",
-                "emoji-🎭",
-                "emoji-🚅",
-                "emoji-🚍",
-                "emoji-🚎",
-                "emoji-🚑",
-                "emoji-🚒",
-                "emoji-🚓",
-                "emoji-🚔",
-                "emoji-🚜",
-                "emoji-🚲",
-                "emoji-🛴",
-                "emoji-🛥",
-                "emoji-🚢",
-                "emoji-✈",
-                "emoji-🌎",
-                "emoji-🏥",
-                "emoji-🌅",
-                "emoji-🌝",
-                "emoji-🌞",
-                "emoji-⛈",
-                "emoji-🌤",
-                "emoji-🌈",
-                "emoji-☔",
-                "emoji-🕔",
-                "emoji-🏁",
-                "emoji-🚩",
-                "emoji-🎌",
-                "emoji-💞",
-                "emoji-😂",
-                "emoji-🤣",
-                "emoji-😃",
-                "emoji-😄",
-                "emoji-😅",
-                "emoji-😆",
-                "emoji-😉",
-                "emoji-😊",
-                "emoji-😋",
-                "emoji-😎",
-                "emoji-😍",
-                "emoji-😘",
-                "emoji-😗",
-                "emoji-😙",
-                "emoji-😚",
-                "emoji-☺️",
-                "emoji-🙂",
-                "emoji-🤗",
-                "emoji-🤩"
+                "😁", "💛", "🎷", "😀",
+                "😁", "💓", "👧", "🧑",
+                "👨", "👶", "🤲", "💪",
+                "🤘", "📢", "🎥", "🍇",
+                "🥝", "🍅", "🥥", "🍛",
+                "🍜",
+                "😺",
+                "🐵",
+                "🐄",
+                "🐷",
+                "🐘",
+                "🐼",
+                "🐋",
+                "🐬",
+                "🕷",
+                "🕸",
+                "🦂",
+                "🌹",
+                "🥀",
+                "🌺",
+                "🌻",
+                "🛅",
+                "⚠",
+                "🚸",
+                "⛔",
+                "🚫",
+                "🚭",
+                "🛂",
+                "🔓",
+                "🔥",
+                "🎲",
+                "🎴",
+                "🎭",
+                "🚅",
+                "🚍",
+                "🚎",
+                "🚑",
+                "🚒",
+                "🚓",
+                "🚔",
+                "🚜",
+                "🚲",
+                "🛴",
+                "🛥",
+                "🚢",
+                "✈",
+                "🌎",
+                "🏥",
+                "🌅",
+                "🌝",
+                "🌞",
+                "⛈",
+                "🌤",
+                "🌈",
+                "☔",
+                "🕔",
+                "🏁",
+                "🚩",
+                "🎌",
+                "💞",
+                "😂",
+                "🤣",
+                "😃",
+                "😄",
+                "😅",
+                "😆",
+                "😉",
+                "😊",
+                "😋",
+                "😎",
+                "😍",
+                "😘",
+                "😗",
+                "😙",
+                "😚",
+                "☺️",
+                "🙂",
+                "🤗",
+                "🤩"
             ]
 
             this.data.accounts = {}
@@ -237,7 +218,7 @@
 
             // give redistributable items
             for (let i = 0; i < ACCOUNT_CREATION_NB_REDISTRIBUTABLE_ITEMS; i++) {
-                let item = this.data.redistributableItems[random(this.data.redistributableItems.length)]
+                let item = 'emoji-' + this.data.redistributableItems[random(this.data.redistributableItems.length)]
                 if (item in items)
                     items[item] += 1
                 else
@@ -302,14 +283,8 @@
             if (!artWork)
                 return false
 
-            if (!canValidateArtWork(artWork))
-                return false
-
             artWork.validated = true
 
-            // redistribute goods
-            this.data.redistributableItems.push('artwork-' + artWork.id)
-            // compte les participations par personne
             let participations = {}
             addParticipations(this.data, artWork, participations)
 
@@ -328,7 +303,7 @@
                 while (count--) {
                     let winnedItemId
                     if (count % PARTICIPATION_REDITRIBUTABLE_RATIO == 0)
-                        winnedItemId = this.data.redistributableItems[random(this.data.redistributableItems.length)]
+                        winnedItemId = 'emoji-' + this.data.redistributableItems[random(this.data.redistributableItems.length)]
                     else
                         winnedItemId = `pixel-#${randomColor()}`
 
@@ -339,33 +314,6 @@
                         inventory[winnedItemId]++
                 }
             }
-        },
-
-
-
-        acceptGivingItem: function (args) {
-            if (!lib.checkArgs(args, ['userId', 'itemId', 'artWorkId']))
-                return false
-
-            let userId = args['userId']
-            let itemId = args['itemId']
-            let artWorkId = args['artWorkId']
-
-            if (this.data.accounts[userId].inventory[itemId] <= 0)
-                return false
-
-            const artWork = this.data.artWorks[artWorkId]
-            if (!artWork || artWork.validated)
-                return false
-
-            let fittingCell = artWork.grid.find(cell => cell && cell.workItemId == itemId && !cell.ownerId)
-            if (!fittingCell)
-                return false
-
-            fittingCell.ownerId = userId
-            this.data.accounts[userId].inventory[itemId]--
-
-            return true
         },
 
 
@@ -385,17 +333,14 @@
             if (!artWork.grid[coordIndex])
                 return true
 
-            let ownerId = artWork.grid[coordIndex].ownerId
             let itemId = artWork.grid[coordIndex].workItemId
 
             artWork.grid[coordIndex] = null
 
-            if (ownerId) {
-                if (ownerId == artWork.author) { // cannot reverse an agreement !
-                    if (!this.data.accounts[ownerId].inventory[itemId])
-                        this.data.accounts[ownerId].inventory[itemId] = 0
-                    this.data.accounts[ownerId].inventory[itemId]++
-                }
+            if (itemId != null && (itemId.startsWith('pixel-') || itemId.startsWith('emoji-'))) {
+                if (!this.data.accounts[artWork.author].inventory[itemId])
+                    this.data.accounts[artWork.author].inventory[itemId] = 0
+                this.data.accounts[artWork.author].inventory[itemId]++
             }
 
             return true
@@ -415,47 +360,23 @@
             if (!artWork)
                 return false
 
-            if (containsArtWorkId(this.data, artWorkId, itemId)) {
-                console.log(`cannot add this artwork has it would produce a cycle !`)
-                return false
-            }
-
-            if (this.data.accounts[artWork.author].inventory[itemId] > 0) {
-                let coordIndex = x + artWork.size.width * y
-                artWork.grid[coordIndex] = {
-                    ownerId: artWork.author,
-                    workItemId: itemId
+            if (itemId.startsWith('pixel-') || itemId.startsWith('emoji-')) {
+                if (this.data.accounts[artWork.author].inventory[itemId] > 0) {
+                    this.data.accounts[artWork.author].inventory[itemId]--
                 }
-
-                this.data.accounts[artWork.author].inventory[itemId]--
+                else {
+                    return false
+                }
             }
-
-            return true
-        },
-
-
-        askItemForArtWork: function (args) {
-            if (!lib.checkArgs(args, ['artWorkId', 'itemId', 'x', 'y']))
-                return false
-
-            let artWorkId = args['artWorkId']
-            let itemId = args['itemId']
-            let x = args['x']
-            let y = args['y']
-
-            const artWork = this.data.artWorks[artWorkId]
-            if (!artWork)
-                return false
-
-            if (containsArtWorkId(this.data, artWorkId, itemId)) {
-                console.log(`cannot add this artwork has it would produce a cycle !`)
-                return false
+            else {
+                if (containsArtWorkId(this.data, artWorkId, itemId)) {
+                    console.log(`cannot add this artwork has it would produce a cycle !`)
+                    return false
+                }
             }
 
             let coordIndex = x + artWork.size.width * y
-
             artWork.grid[coordIndex] = {
-                ownerId: null,
                 workItemId: itemId
             }
 

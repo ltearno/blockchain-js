@@ -45,25 +45,10 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     private updateFromContract() {
         this.artWork = this.state.programState.artWorks[this.artWorkId]
 
-        // inventory
         let inv = this.state.programState.accounts[this.state.user.pseudo].inventory
-        let claims = this.claimsByOthers()
-        this.inventory = Object.keys(inv).sort().map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(i => i.count > 0 && i.id != 'artwork-' + this.artWorkId)
+        this.inventory = Object.keys(inv).sort().map(itemId => ({ id: itemId, count: inv[itemId] })).filter(item => item.count > 0)
 
-        // other's inventories
-        let res = {}
-        Object.keys(this.state.programState.accounts).filter(userId => userId != this.state.user.pseudo).forEach(userId => {
-            let inv = this.state.programState.accounts[userId].inventory
-            Object.keys(inv).filter(itemId => itemId.startsWith('artwork-')).forEach(itemId => {
-                if (!res[itemId])
-                    res[itemId] = 0
-                res[itemId] += inv[itemId]
-            })
-        })
-        this.othersInventory = Object.keys(res).sort().map(itemId => ({ id: itemId, count: res[itemId] })).filter(i => i.count > 0)
-
-        // can validate
-        this.canValidate = this.artWork && this.artWork.grid.every(cell => !cell || cell.ownerId != null)
+        this.othersInventory = Object.keys(this.state.programState.artWorks).sort()
     }
 
     @ViewChild("canvas")
@@ -81,27 +66,6 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
 
     inventory = []
     othersInventory = []
-    canValidate = false
-
-    // les choses que je possède que les autres veulent
-    private claimsByOthers() {
-        let claims = {}
-
-        for (let artWorkId in this.state.programState.artWorks) {
-            let artWork = this.state.programState.artWorks[artWorkId]
-            if (artWork.validated || !artWork.grid)
-                continue
-
-            artWork.grid.filter(cell => cell && !cell.ownerId && this.state.programState.accounts[this.state.user.pseudo].inventory[cell.workItemId] > 0)
-                .forEach(cell => {
-                    if (!claims[cell.workItemId])
-                        claims[cell.workItemId] = []
-                    claims[cell.workItemId].push(artWork.author)
-                })
-        }
-
-        return claims
-    }
 
     private context: CanvasRenderingContext2D
     artWork: Model.ArtWork = null
@@ -160,12 +124,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
             if (!itemId)
                 return
 
-            if (this.selectedInInventory) {
-                await this.state.suppyChain.addItemInArtWorkFromInventory(this.artWork.id, this.selectedInInventory, coords.x, coords.y)
-            }
-            else if (this.selectedInOthersInventory) {
-                await this.state.suppyChain.askItemForArtWork(this.artWork.id, this.selectedInOthersInventory, coords.x, coords.y)
-            }
+            await this.state.suppyChain.addItemInArtWorkFromInventory(this.artWork.id, itemId, coords.x, coords.y)
         }
 
         this.paint()
