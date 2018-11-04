@@ -1,4 +1,3 @@
-<h1>ArtWork edition</h1>
 <div class="field">
     <label class="label">Title</label>
     <div class="control">
@@ -19,7 +18,7 @@
 
 <canvas #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()' (click)='mouseClick($event)' style="border:1px solid black; width:15em; height: 15em;"></canvas>
 
-<h2>Inventory ({{ inventoryNbItems }} items in {{ inventory.length }} categories)</h2>
+<h2>Your items ({{ inventoryNbItems }} items in {{ inventory.length }} categories)</h2>
 <div class="inventory">
     <div *ngFor='let item of inventory' [class.selected]='item.id == selectedInInventory' (click)='selectInventory(item.id)'>
         <art-work-icon [artWorkId]='item.id' (selected)='selectInventory(item.id)'></art-work-icon>
@@ -27,7 +26,7 @@
     </div>
 </div>
 
-<h2>Others Inventory</h2>
+<h2>Available artworks</h2>
 <div class="inventory">
     <div *ngFor='let itemId of othersInventory' [class.selected]='itemId == selectedInOthersInventory' (click)='selectOthersInventory(itemId)'>
         <art-work-icon [artWorkId]='itemId' (selected)='selectOthersInventory(itemId)'></art-work-icon>
