@@ -263,7 +263,10 @@
                 return false
             }
 
-            artWork.grid = new Array(SIZE * SIZE).fill(null),
+            artWork.grid = []
+            let count = SIZE * SIZE
+            while (count--)
+                artWork.grid.push(null)
 
             // TODO sanity check
 
