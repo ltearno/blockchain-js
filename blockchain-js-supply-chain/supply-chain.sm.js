@@ -262,10 +262,6 @@
 
             this.data.artWorks[artWork.id] = artWork
 
-            if (!this.data.accounts[artWork.author].inventory['artwork-' + artWork.id])
-                this.data.accounts[artWork.author].inventory['artwork-' + artWork.id] = 0
-            this.data.accounts[artWork.author].inventory['artwork-' + artWork.id]++
-
             return true
         },
 

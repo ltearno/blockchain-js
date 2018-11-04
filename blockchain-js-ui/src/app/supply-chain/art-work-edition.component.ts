@@ -46,9 +46,15 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
         this.artWork = this.state.programState.artWorks[this.artWorkId]
 
         let inv = this.state.programState.accounts[this.state.user.pseudo].inventory
-        this.inventory = Object.keys(inv).sort().map(itemId => ({ id: itemId, count: inv[itemId] })).filter(item => item.count > 0)
+        this.inventory = Object.keys(inv)
+            .sort()
+            .map(itemId => ({ id: itemId, count: inv[itemId] }))
+            .filter(item => item.count > 0)
 
-        this.othersInventory = Object.keys(this.state.programState.artWorks).sort()
+        this.inventoryNbItems = 0
+        this.inventory.forEach(item => this.inventoryNbItems += item.count)
+
+        this.othersInventory = Object.keys(this.state.programState.artWorks).filter(artWorkId => artWorkId != this.artWorkId).sort().map(artWorkId => `artwork-${artWorkId}`)
     }
 
     @ViewChild("canvas")
@@ -64,6 +70,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     selectedInInventory = null
     selectedInOthersInventory = null
 
+    inventoryNbItems = 0
     inventory = []
     othersInventory = []
 

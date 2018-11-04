@@ -19,6 +19,15 @@ async function run() {
         secure: true
     }
 
+    if (process.argv.length > 2)
+        peer.address = process.argv[2]
+    if (process.argv.length > 3)
+        peer.port = parseInt(process.argv[3])
+    if (process.argv.length > 4)
+        peer.secure = process.argv[4] == 'secure'
+
+    console.log(`pushing contracts to ${peer.address}:${peer.port}`)
+
     let peerInfo = {
         peer,
         fullNodePeerInfo: null
