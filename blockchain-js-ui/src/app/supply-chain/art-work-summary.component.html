@@ -20,6 +20,7 @@
                     (keyup.enter)='sendMessage(artWork.id, newMessage)' style='font-size: 80%;'>
                 <div *ngIf='artWork.author==state.user.pseudo'>
                     <button *ngIf='!artWork.validated' class='button is-primary' (click)='edit.emit(artWork)'>Edit</button>
+                    <button *ngIf='!artWork.validated' class='button is-secondary' (click)='validate()'>Validate</button>
                 </div>
             </div>
         </div>

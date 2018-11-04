@@ -81,4 +81,8 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
         this.state.suppyChain.sendMessageOnArtWork(this.state.user.pseudo, artWorkId, textInput.value)
         textInput.value = ''
     }
+
+    validate() {
+        this.state.suppyChain.validateArtWork(this._artWorkId)
+    }
 }

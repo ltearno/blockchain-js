@@ -27,7 +27,7 @@
         return `rgb(${randomColorComponent(randomFunction)},${randomColorComponent(randomFunction)},${randomColorComponent(randomFunction)})`
     }
 
-    const addParticipations = (data, artWork, participations) => {
+    const addParticipations = (data, artWork, participations, initialAuthor) => {
         if (!artWork.validated)
             return
 
@@ -45,7 +45,7 @@
                 participations[artWork.author]++
             }
             else if (cell.workItemId.startsWith('artwork-')) {
-                addParticipations(data, data.artWorks[cell.workItemId.substr('artwork-'.length)], participations)
+                addParticipations(data, data.artWorks[cell.workItemId.substr('artwork-'.length)], participations, initialAuthor)
             }
             else {
                 console.error(`unkown item id`)
@@ -284,7 +284,7 @@
             artWork.validated = true
 
             let participations = {}
-            addParticipations(this.data, artWork, participations)
+            addParticipations(this.data, artWork, participations, artWork.author)
 
             let random = (modulo) => {
                 let randomString = callContract('random-generator-v1', 0, 'generate', args)
