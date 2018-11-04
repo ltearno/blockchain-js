@@ -30,6 +30,8 @@ export class SupplyChainComponent {
     editingArtworkId: string = null
 
     async initArtWorkCreation() {
+        const SIZE = 9
+
         let id = `r${Math.random()}`
 
         await this.state.suppyChain.registerArtWork({
@@ -37,8 +39,8 @@ export class SupplyChainComponent {
             author: this.state.user.pseudo,
             title: 'New ArtWork',
             validated: false,
-            size: { width: 4, height: 4 },
-            grid: new Array(4 * 4).fill(null),
+            size: { width: SIZE, height: SIZE },
+            grid: new Array(SIZE * SIZE).fill(null),
             messages: []
         })
 
