@@ -263,8 +263,17 @@
                 return false
             }
 
+            if (artWork.size.height <= 0)
+                artWork.size.height = 1
+            if (artWork.size.height > 10)
+                artWork.size.height = 10
+            if (artWork.size.width <= 0)
+                artWork.size.width = 1
+            if (artWork.size.width > 10)
+                artWork.size.width = 10
+
             artWork.grid = []
-            let count = SIZE * SIZE
+            let count = artWork.size.width * artWork.size.height
             while (count--)
                 artWork.grid.push(null)
 
@@ -450,6 +459,15 @@
             let artWorkId = args['artWorkId']
             let width = args['width']
             let height = args['height']
+
+            if (width <= 0)
+                width = 1
+            if (width > 10)
+                width = 10
+            if (height <= 0)
+                height = 1
+            if (height > 10)
+                height = 10
 
             const artWork = this.data.artWorks[artWorkId]
             if (!artWork)
