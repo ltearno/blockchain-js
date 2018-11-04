@@ -288,7 +288,7 @@
             return true
         },
 
-        
+
 
         validateArtWork: function (args) {
             if (!lib.checkArgs(args, ['artWorkId'])) {
@@ -489,24 +489,6 @@
                 return false
 
             artWork.title = title
-
-            return true
-        },
-
-
-
-        updateArtWorkDescription: function (args) {
-            if (!lib.checkArgs(args, ['artWorkId', 'description']))
-                return false
-
-            let artWorkId = args['artWorkId']
-            let description = args['description']
-
-            const artWork = this.data.artWorks[artWorkId]
-            if (!artWork)
-                return false
-
-            artWork.description = description
 
             return true
         },
