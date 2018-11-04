@@ -139,6 +139,7 @@ export class SmartContract {
         }
         //let startIdx = sequenceItemsByBlock.findIndex(v => v.blockId == this.stateCacheBlockId)
         if (startIdx < 0) {
+            console.warn(`SmartContract : restart block running from beginning`)
             state = {
                 contracts: new Map(),
                 returnValues: new Map()
