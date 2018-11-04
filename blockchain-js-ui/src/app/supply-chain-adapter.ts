@@ -67,10 +67,7 @@ export class SupplyChainAdapter {
     async updateArtWorkTitle(artWorkId: string, title: string) {
         return await this.callContract('updateArtWorkTitle', { artWorkId, title })
     }
-
-    async updateArtWorkDescription(artWorkId: string, description: string) {
-        return await this.callContract('updateArtWorkDescription', { artWorkId, description })
-    }
+    
     async updateArtWorkSize(artWorkId: string, width: number, height: number) {
         return await this.callContract('updateArtWorkSize', { artWorkId, width, height })
     }

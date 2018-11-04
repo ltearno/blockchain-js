@@ -36,7 +36,6 @@ export class SupplyChainComponent {
             id: id,
             author: this.state.user.pseudo,
             title: 'New ArtWork',
-            description: 'New and empty',
             validated: false,
             size: { width: 4, height: 4 },
             grid: new Array(4 * 4).fill(null),

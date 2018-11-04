@@ -11,10 +11,6 @@
                 <p class="title is-4">{{ artWork.title }}</p>
                 <p class="subtitle is-6">{{ artWork.author }}</p>
 
-                <!--<p class="subtitle is-6">{{ artWork | json }}</p>-->
-
-                <!--<div>Grid size {{ artWork.size.width }} x {{ artWork.size.height }}</div>
-                <p>{{ artWork.description }}</p>-->
                 <div *ngIf='artWork.messages'>
                     <div *ngFor='let message of artWork.messages'>
                         <i>{{ message.author }} :</i> {{ message.text }}

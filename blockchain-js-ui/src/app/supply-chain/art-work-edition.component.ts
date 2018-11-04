@@ -130,10 +130,6 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
         await this.state.suppyChain.updateArtWorkTitle(this.artWork.id, title)
     }
 
-    async updateArtWorkDescription(description) {
-        await this.state.suppyChain.updateArtWorkDescription(this.artWork.id, description)
-    }
-
     async changeArtWorkSize(width, height) {
         await this.state.suppyChain.updateArtWorkSize(this.artWork.id, width, height)
 

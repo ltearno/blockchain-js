@@ -20,7 +20,6 @@ export interface ChatMessage {
 export interface ArtWork {
     id: string
     title: string
-    description: string
     author: string
     validated: boolean // if the ArtWork is finished (all cells with workitems must be accepted)
     size: { width: number; height: number }
