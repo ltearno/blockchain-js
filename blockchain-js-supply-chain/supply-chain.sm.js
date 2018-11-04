@@ -19,7 +19,13 @@
     const ACCOUNT_CREATION_NB_PIXELS_PACKETS = 7
     const ACCOUNT_CREATION_NB_PIXEL_PER_PACKET = 7
     const ACCOUNT_CREATION_NB_REDISTRIBUTABLE_ITEMS = 2
-    const PARTICIPATION_REDITRIBUTABLE_RATIO = 7
+    const PARTICIPATION_REDITRIBUTABLE_RATIO = 9
+
+    const COLOR_COMPONENTS = [0, 84, 138, 192, 255]
+    const randomColorComponent = randomFunction => COLOR_COMPONENTS[randomFunction(COLOR_COMPONENTS.length)]
+    const randomColor = (randomFunction) => {
+        return `rgb(${randomColorComponent(randomFunction)},${randomColorComponent(randomFunction)},${randomColorComponent(randomFunction)})`
+    }
 
     const addParticipations = (data, artWork, participations) => {
         if (!artWork.validated)
@@ -201,15 +207,11 @@
                 return result % modulo
             }
 
-            let randomColor = () => {
-                return `${(2 * random(8)).toString(16)}0${(2 * random(8)).toString(16)}0${(2 * random(8)).toString(16)}0`
-            }
-
             let items = {}
 
             // give pixels
             for (let i = 0; i < ACCOUNT_CREATION_NB_PIXELS_PACKETS; i++) {
-                let item = `pixel-#${randomColor()}`
+                let item = `pixel-${randomColor(random)}`
                 if (item in items)
                     items[item] += ACCOUNT_CREATION_NB_PIXEL_PER_PACKET
                 else
@@ -290,10 +292,6 @@
                 return result % modulo
             }
 
-            let randomColor = () => {
-                return `${(2 * random(8)).toString(16)}0${(2 * random(8)).toString(16)}0${(2 * random(8)).toString(16)}0`
-            }
-
             for (let userId in participations) {
                 let count = participations[userId]
                 while (count--) {
@@ -301,7 +299,7 @@
                     if (count % PARTICIPATION_REDITRIBUTABLE_RATIO == 0)
                         winnedItemId = 'emoji-' + this.data.redistributableItems[random(this.data.redistributableItems.length)]
                     else
-                        winnedItemId = `pixel-#${randomColor()}`
+                        winnedItemId = `pixel-${randomColor(random)}`
 
                     let inventory = this.data.accounts[userId].inventory
                     if (!inventory[winnedItemId])
