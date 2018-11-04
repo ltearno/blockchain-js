@@ -16,6 +16,8 @@
  * mais on peut vendre un ensemble (itemId devient celui du ask validé)
  */
 ((() => {
+    const MAX_GRID_SIZE = 100
+
     const ACCOUNT_CREATION_NB_PIXELS_PACKETS = 4
     const ACCOUNT_CREATION_NB_PIXEL_PER_PACKET = 20
     const ACCOUNT_CREATION_NB_REDISTRIBUTABLE_ITEMS = 2
@@ -265,12 +267,12 @@
 
             if (artWork.size.height <= 0)
                 artWork.size.height = 1
-            if (artWork.size.height > 10)
-                artWork.size.height = 10
+            if (artWork.size.height > MAX_GRID_SIZE)
+                artWork.size.height = MAX_GRID_SIZE
             if (artWork.size.width <= 0)
                 artWork.size.width = 1
-            if (artWork.size.width > 10)
-                artWork.size.width = 10
+            if (artWork.size.width > MAX_GRID_SIZE)
+                artWork.size.width = MAX_GRID_SIZE
 
             artWork.grid = []
             let count = artWork.size.width * artWork.size.height
@@ -462,12 +464,12 @@
 
             if (width <= 0)
                 width = 1
-            if (width > 10)
-                width = 10
+            if (width > MAX_GRID_SIZE)
+                width = MAX_GRID_SIZE
             if (height <= 0)
                 height = 1
-            if (height > 10)
-                height = 10
+            if (height > MAX_GRID_SIZE)
+                height = MAX_GRID_SIZE
 
             const artWork = this.data.artWorks[artWorkId]
             if (!artWork)

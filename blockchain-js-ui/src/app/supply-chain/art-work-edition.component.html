@@ -9,9 +9,9 @@
     <label class="label">Size</label>
     <div class="control">
         Width
-        <input #width class="input" type="number" max="10" min="1" (change)='changeArtWorkSize(width.value, height.value)' [value]='artWork.size.width'>
+        <input #width class="input" type="number" max="100" min="1" (change)='changeArtWorkSize(width.value, height.value)' [value]='artWork.size.width'>
         Height
-        <input #height class="input" type="number" max="10" min="1" (change)='changeArtWorkSize(width.value, height.value)' [value]='artWork.size.height'>
+        <input #height class="input" type="number" max="100" min="1" (change)='changeArtWorkSize(width.value, height.value)' [value]='artWork.size.height'>
     </div>
     <p class="help">Size of the grid</p>
 </div>
