@@ -104,15 +104,6 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
         return
     }
 
-    if (!artWork.validated) {
-        ctx.lineWidth = CW / 7
-        ctx.strokeStyle = 'rgba(235,201,67,.8)'
-        ctx.strokeRect(0, 0, width, height)
-
-        ctx.fillStyle = 'rgba(255,221,87,.1)'
-        ctx.fillRect(0, 0, width, height)
-    }
-
     for (let i = 0; i < artWork.size.width; i++) {
         for (let j = 0; j < artWork.size.height; j++) {
             let value = artWork.grid[j * artWork.size.width + i]
@@ -124,6 +115,15 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
                 ctx.restore()
             }
         }
+    }
+
+    if (!artWork.validated) {
+        ctx.lineWidth = CW / 7
+        ctx.strokeStyle = 'rgba(235,201,67,.8)'
+        ctx.strokeRect(0, 0, width, height)
+
+        ctx.fillStyle = 'rgba(255,221,87,.1)'
+        ctx.fillRect(0, 0, width, height)
     }
 }
 

@@ -281,6 +281,22 @@
             if (!artWork)
                 return false
 
+            let canValidate = () => {
+                if (!artWork.grid)
+                    return true
+
+                return !artWork.grid
+                    .filter(cell => cell != null)
+                    .filter(cell => cell.workItemId.startsWith('artwork-'))
+                    .map(cell => cell.workItemId.substr('artwork-'.length))
+                    .some(artWorkId => !this.data.artWorks[artWorkId].validated)
+            }
+
+            if (!canValidate()) {
+                console.log(`cannot validate artwork because not all artworks are validated`)
+                return false
+            }
+
             artWork.validated = true
 
             let participations = {}

@@ -55,6 +55,8 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
         this.inventory.forEach(item => this.inventoryNbItems += item.count)
 
         this.othersInventory = Object.keys(this.state.programState.artWorks).filter(artWorkId => artWorkId != this.artWorkId).sort().map(artWorkId => `artwork-${artWorkId}`)
+
+        this.canValidate = Model.canValidateArtWork(this.state.programState, this.artWorkId)
     }
 
     @ViewChild("canvas")
@@ -73,6 +75,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     inventoryNbItems = 0
     inventory = []
     othersInventory = []
+    canValidate = false
 
     private context: CanvasRenderingContext2D
     artWork: Model.ArtWork = null

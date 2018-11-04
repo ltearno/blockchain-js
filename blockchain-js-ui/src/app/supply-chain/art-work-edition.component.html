@@ -36,5 +36,6 @@
 
 <div>
     <button class="button" (click)='cancel.emit()'>Back</button><br />
-    <button class="button is-primary" (click)='validate.emit()'>Validate</button><br />
+    <button *ngIf="canValidate" class="button is-primary" (click)='validate.emit()'>Validate</button><br />
+    <span *ngIf='!canValidate'>Cannot validate because not all sub artworks are validated.</span>
 </div>

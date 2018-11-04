@@ -53,9 +53,11 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
 
     private updateArtWorkFromId() {
         this.artWork = this.state.programState.artWorks[this._artWorkId]
+        this.canValidate = Model.canValidateArtWork(this.state.programState, this._artWorkId)
     }
 
     artWork: Model.ArtWork = null
+    canValidate: boolean = false
 
     @Output()
     select = new EventEmitter<Model.ArtWork>()

@@ -28,3 +28,18 @@ export interface ArtWork {
     }[] // by line
     messages: ChatMessage[]
 }
+
+export function canValidateArtWork(state: ProgramState, artWorkId: string) {
+    if (!artWorkId || !state)
+        return false
+
+    const artWork = state.artWorks[artWorkId]
+    if (!artWork)
+        return false
+
+    return !artWork.validated && artWork.grid && !artWork.grid
+        .filter(cell => cell != null)
+        .filter(cell => cell.workItemId.startsWith('artwork-'))
+        .map(cell => cell.workItemId.substr('artwork-'.length))
+        .some(artWorkId => !state.artWorks[artWorkId].validated)
+}
