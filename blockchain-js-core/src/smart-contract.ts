@@ -128,30 +128,22 @@ export class SmartContract {
     private statesCache: { blockId: string; serializedState: string; state?: MachineState }[] = []
     private cacheState(blockId: string, state: MachineState) {
         if (this.statesCache.some(cache => cache.blockId == blockId)) {
-            console.log(`cache skip`)
             return
         }
 
         if (this.statesCache.length >= this.statesCacheSize) {
-            console.log(`cache trim`)
             this.statesCache.shift()
         }
-
-        console.log(`cache push`)
 
         this.statesCache.push({ blockId, serializedState: JSON.stringify(state) })
     }
     private getStateCache(blockId: string) {
         let cache = this.statesCache.find(c => c.blockId == blockId)
         if (!cache) {
-            console.log(`cache miss`)
             return null
         }
 
-        console.log(`cache hit`)
-
         if (!cache.state) {
-            console.log(`cache deserialize`)
             cache.state = JSON.parse(cache.serializedState)
         }
 
