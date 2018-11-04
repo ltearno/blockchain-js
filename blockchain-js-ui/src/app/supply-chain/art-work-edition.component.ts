@@ -48,13 +48,13 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
         // inventory
         let inv = this.state.programState.accounts[this.state.user.pseudo].inventory
         let claims = this.claimsByOthers()
-        this.inventory = Object.keys(inv).sort().map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(i => i.count > 0)
+        this.inventory = Object.keys(inv).sort().map(itemId => ({ id: itemId, count: inv[itemId], claimsBy: claims[itemId] })).filter(i => i.count > 0 && i.id != 'artwork-' + this.artWorkId)
 
         // other's inventories
         let res = {}
         Object.keys(this.state.programState.accounts).filter(userId => userId != this.state.user.pseudo).forEach(userId => {
             let inv = this.state.programState.accounts[userId].inventory
-            Object.keys(inv).forEach(itemId => {
+            Object.keys(inv).filter(itemId => itemId.startsWith('artwork-')).forEach(itemId => {
                 if (!res[itemId])
                     res[itemId] = 0
                 res[itemId] += inv[itemId]

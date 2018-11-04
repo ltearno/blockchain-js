@@ -288,6 +288,7 @@
             return true
         },
 
+        
 
         validateArtWork: function (args) {
             if (!lib.checkArgs(args, ['artWorkId'])) {
