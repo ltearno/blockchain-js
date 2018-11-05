@@ -35,17 +35,14 @@
     const processArtWorkParticipations = (data, artWork) => {
         const participations = {}
 
-        artWork.grid.forEach(cell => {
-            if (!cell)
-                return
-
-            if (cell.workItemId.startsWith('pixel-') || cell.workItemId.startsWith('emoji-')) {
+        Object.values(artWork.grid).forEach(workItemId => {
+            if (workItemId.startsWith('pixel-') || workItemId.startsWith('emoji-')) {
                 if (!participations[artWork.author])
                     participations[artWork.author] = 0
                 participations[artWork.author]++
             }
-            else if (cell.workItemId.startsWith('artwork-')) {
-                const participedArtWork = data.artWorks[cell.workItemId.substr('artwork-'.length)]
+            else if (workItemId.startsWith('artwork-')) {
+                const participedArtWork = data.artWorks[workItemId.substr('artwork-'.length)]
                 for (let author in participedArtWork.participations) {
                     if (!participations[author])
                         participations[author] = 0
@@ -68,6 +65,7 @@
             return false
 
         let artWorkId = workItemId.substr('artwork-'.length)
+
         if (artWorkId == searchedArtWorkId)
             return true
 
@@ -76,26 +74,9 @@
             return false
 
         if (artWork.grid)
-            return artWork.grid.some(cell => cell && containsArtWorkId(data, searchedArtWorkId, cell.workItemId))
+            return Object.values(artWork.grid).some(workItemId => containsArtWorkId(data, searchedArtWorkId, workItemId))
 
         return false
-    }
-
-    const updateArtWorkGrid = (artWork) => {
-        let normalLength = artWork.size.width * artWork.size.height
-
-        if (!artWork.grid) {
-            artWork.grid = []
-            for (let i = 0; i < normalLength; i++)
-                artWork.grid = artWork.grid.concat([null])
-        }
-        else if (artWork.grid.length < normalLength) {
-            while (artWork.grid.length < normalLength)
-                artWork.grid = artWork.grid.concat([null])
-        }
-        else if (artWork.grid.length > normalLength) {
-            artWork.grid.slice(0, normalLength)
-        }
     }
 
     return {
@@ -274,10 +255,7 @@
             if (artWork.size.width > MAX_GRID_SIZE)
                 artWork.size.width = MAX_GRID_SIZE
 
-            artWork.grid = []
-            let count = artWork.size.width * artWork.size.height
-            while (count--)
-                artWork.grid.push(null)
+            artWork.grid = {}
 
             // TODO sanity check
 
@@ -302,12 +280,11 @@
 
             let canValidate = () => {
                 if (!artWork.grid)
-                    return true
+                    return false
 
-                return !artWork.grid
-                    .filter(cell => cell != null)
-                    .filter(cell => cell.workItemId.startsWith('artwork-'))
-                    .map(cell => cell.workItemId.substr('artwork-'.length))
+                return !Object.values(artWork.grid)
+                    .filter(workItemId => workItemId.startsWith('artwork-'))
+                    .map(workItemId => workItemId.substr('artwork-'.length))
                     .some(artWorkId => !this.data.artWorks[artWorkId].validated)
             }
 
@@ -331,9 +308,7 @@
 
                 // special case for the artwork author : we only count current artwork pixels and emojis
                 if (userId == artWork.author) {
-                    count = artWork.grid
-                        .filter(cell => cell != null)
-                        .map(cell => cell.workItemId)
+                    count = Object.values(artWork.grid)
                         .filter(workItemId => workItemId.startsWith('pixel-') || workItemId.startsWith('emoji-'))
                         .length
                 }
@@ -367,13 +342,13 @@
             if (!artWork)
                 return false
 
-            let coordIndex = x + artWork.size.width * y
+            let coordIndex = `${x + artWork.size.width * y}`
             if (!artWork.grid[coordIndex])
                 return true
 
-            let itemId = artWork.grid[coordIndex].workItemId
+            let itemId = artWork.grid[coordIndex]
 
-            artWork.grid[coordIndex] = null
+            delete artWork.grid[coordIndex]
 
             if (itemId != null && (itemId.startsWith('pixel-') || itemId.startsWith('emoji-'))) {
                 if (!this.data.accounts[artWork.author].inventory[itemId])
@@ -413,10 +388,8 @@
                 }
             }
 
-            let coordIndex = x + artWork.size.width * y
-            artWork.grid[coordIndex] = {
-                workItemId: itemId
-            }
+            let coordIndex = `${x + artWork.size.width * y}`
+            artWork.grid[coordIndex] = itemId
 
             return true
         },
@@ -477,8 +450,6 @@
 
             artWork.size.width = width
             artWork.size.height = height
-
-            updateArtWorkGrid(artWork)
 
             return true
         }

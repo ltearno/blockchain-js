@@ -124,7 +124,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
 
     async mouseClick(event: MouseEvent) {
         let coords = this.pointToCoordinates(event.clientX, event.clientY)
-        let coordIndex = coords.x + this.artWork.size.width * coords.y
+        let coordIndex = `${coords.x + this.artWork.size.width * coords.y}`
 
         if (this.artWork.grid[coordIndex]) {
             await this.state.suppyChain.removeCellFromArtWork(this.artWork.id, coords.x, coords.y)

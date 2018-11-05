@@ -24,8 +24,8 @@ export interface ArtWork {
     validated: boolean // if the ArtWork is finished (no further modifications allowed)
     size: { width: number; height: number }
     grid: {
-        workItemId: string // id de l'item `artwork-XXX`, `pixel-XXX`, `emoji-XXX`
-    }[] // by line
+        [cellPosition: string]: string // id de l'item `artwork-XXX`, `pixel-XXX`, `emoji-XXX`
+    }
     messages: ChatMessage[]
 }
 
@@ -37,9 +37,11 @@ export function canValidateArtWork(state: ProgramState, artWorkId: string) {
     if (!artWork)
         return false
 
-    return !artWork.validated && artWork.grid && !artWork.grid
-        .filter(cell => cell != null)
-        .filter(cell => cell.workItemId.startsWith('artwork-'))
-        .map(cell => cell.workItemId.substr('artwork-'.length))
+    if (artWork.validated || !artWork.grid)
+        return false
+
+    return !Object.values(artWork.grid)
+        .filter(workItemId => workItemId.startsWith('artwork-'))
+        .map(workItemId => workItemId.substr('artwork-'.length))
         .some(artWorkId => !state.artWorks[artWorkId].validated)
 }

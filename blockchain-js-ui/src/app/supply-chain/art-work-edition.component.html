@@ -27,7 +27,7 @@
 </div>
 
 <h2>Available artworks</h2>
-<div class="inventory">
+<div class="inventory artworks-inventory">
     <div *ngFor='let itemId of othersInventory' [class.selected]='itemId == selectedInOthersInventory' (click)='selectOthersInventory(itemId)'>
         <art-work-icon [artWorkId]='itemId' (selected)='selectOthersInventory(itemId)'></art-work-icon>
     </div>

@@ -19,5 +19,14 @@
 
 .inventory > * {
     padding: .3em;
-    box-sizing: border-box;
+}
+
+.art-work-icon {
+    width: 1.5em;
+    height: 1.5em;
+}
+
+.artworks-inventory .art-work-icon {
+    width: 5em;
+    height: 5em;
 }

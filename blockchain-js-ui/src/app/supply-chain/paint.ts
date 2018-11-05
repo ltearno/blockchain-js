@@ -104,18 +104,32 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
         return
     }
 
-    for (let i = 0; i < artWork.size.width; i++) {
-        for (let j = 0; j < artWork.size.height; j++) {
-            let value = artWork.grid[j * artWork.size.width + i]
+    Object.entries(artWork.grid).forEach(([cellId, workItemId]) => {
+        if (!workItemId)
+            return
 
-            if (value) {
+        let i = parseInt(cellId)
+        let j = Math.floor(i / artWork.size.width)
+        i %= artWork.size.width
+
+        ctx.save()
+        ctx.translate(i * CW, j * CH)
+        drawWorkItemInternal(state, workItemId, CW, CH, ctx)
+        ctx.restore()
+    })
+
+    /*for (let i = 0; i < artWork.size.width; i++) {
+        for (let j = 0; j < artWork.size.height; j++) {
+            let workItemId = artWork.grid[`${j * artWork.size.width + i}`]
+
+            if (workItemId) {
                 ctx.save()
                 ctx.translate(i * CW, j * CH)
-                drawWorkItemInternal(state, value.workItemId, CW, CH, ctx)
+                drawWorkItemInternal(state, workItemId, CW, CH, ctx)
                 ctx.restore()
             }
         }
-    }
+    }*/
 
     if (!artWork.validated) {
         ctx.lineWidth = CW / 7

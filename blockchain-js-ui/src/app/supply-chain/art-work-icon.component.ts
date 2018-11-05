@@ -16,7 +16,8 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
     private _artWorkId: string = null
 
     private smartContractChangeListener = () => {
-        this.paint()
+        if (this._artWorkId && this._artWorkId.startsWith('artwork-'))
+            this.paint()
     }
 
     constructor(

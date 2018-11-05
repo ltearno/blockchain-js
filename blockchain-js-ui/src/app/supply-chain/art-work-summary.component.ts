@@ -14,6 +14,11 @@ import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants';
         margin: .5em;
     }
 
+    .artWork-card .card-image .artWork-icon {
+        display: flex;
+        justify-content: center;
+    }
+
     .card-image {
         box-shadow: 0px 8px 15px 4px rgba(169, 169, 169, 0.13);
     }
