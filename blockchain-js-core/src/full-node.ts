@@ -2,8 +2,8 @@ import * as NodeApi from './node-api'
 import * as NodeImpl from './node-impl'
 import * as NodeTransfer from './node-transfer'
 import * as MinerImpl from './miner-impl'
+import * as MinerApi from './miner-api'
 import * as ListOnChain from './list-on-chain'
-import * as NetworkApi from './network-api'
 
 export interface Peer {
     address: string
@@ -27,7 +27,7 @@ export interface PeerInfo {
 export class FullNode {
     public node: NodeImpl.NodeImpl
     public transfer: NodeTransfer.NodeTransfer
-    public miner: MinerImpl.MinerImpl
+    public miner: MinerApi.MinerApi
     public lists: Map<string, ListOnChain.ListOnChain>
 
     public peerInfos: PeerInfo[] = []

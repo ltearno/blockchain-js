@@ -1,6 +1,6 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
-import * as MinerImpl from './miner-impl'
+import * as MinerApi from './miner-api'
 
 interface KeyValueStorageDataItem {
     tag: string
@@ -26,7 +26,7 @@ export class KeyValueStorage {
         private node: NodeApi.NodeApi,
         private branch: string,
         private storageId: string,
-        private miner: MinerImpl.MinerImpl) { }
+        private miner: MinerApi.MinerApi) { }
 
     private nodeListener = () => this.updateFromNode()
 
@@ -47,7 +47,7 @@ export class KeyValueStorage {
         return { tag: `kvs-${this.storageId}`, items }
     }
 
-    put(key: string, value: any, miner: MinerImpl.MinerImpl = this.miner) {
+    put(key: string, value: any, miner: MinerApi.MinerApi = this.miner) {
         let dataToAdd = this.dataForPut(key, value)
         miner.addData(this.branch, dataToAdd)
     }

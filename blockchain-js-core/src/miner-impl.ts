@@ -1,7 +1,8 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
+import * as MinerApi from './miner-api'
 
-export class MinerImpl {
+export class MinerImpl implements MinerApi.MinerApi {
     private dataToMineByBranch = new Map<string, any[]>()
     private scheduled = false
     private reschedule = false

@@ -1,6 +1,6 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
-import * as MinerImpl from './miner-impl'
+import * as MinerApi from './miner-api'
 
 // TODO improve : add signing and RW rights (root rights assigned to list creator ?)
 interface ListItem {
@@ -52,7 +52,7 @@ export class ListOnChain {
     constructor(private node: NodeApi.NodeApi,
         private branch: string,
         private listName: string,
-        private miner: MinerImpl.MinerImpl) { }
+        private miner: MinerApi.MinerApi) { }
 
     private blocks = new Map<string, Block.Block>()
 

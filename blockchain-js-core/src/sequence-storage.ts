@@ -1,7 +1,7 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as NodeBrowser from './node-browser'
-import * as MinerImpl from './miner-impl'
+import * as MinerApi from './miner-api'
 
 export const SEQUENCE_TAG = 'seq-storage'
 
@@ -34,7 +34,7 @@ export class SequenceStorage {
         private node: NodeApi.NodeApi,
         private branch: string,
         private sequenceId: string,
-        private miner: MinerImpl.MinerImpl,
+        private miner: MinerApi.MinerApi,
         private browser: NodeBrowser.NodeBrowser = null) {
         this.ownBrowser = this.browser == null
     }

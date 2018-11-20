@@ -1,5 +1,5 @@
 import * as NodeApi from './node-api'
-import * as MinerImpl from './miner-impl'
+import * as MinerApi from './miner-api'
 import * as HashTools from './hash-tools'
 import * as SequenceStorage from './sequence-storage'
 
@@ -82,7 +82,7 @@ export class SmartContract {
         private node: NodeApi.NodeApi,
         private branch: string,
         private namespace: string,
-        private miner: MinerImpl.MinerImpl) { }
+        private miner: MinerApi.MinerApi) { }
 
     initialise() {
         this.contractItemList = new SequenceStorage.SequenceStorage(this.node, this.branch, `${this.namespace}-smart-contract-v1`, this.miner)
