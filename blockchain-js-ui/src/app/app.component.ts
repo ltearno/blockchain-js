@@ -96,7 +96,11 @@ export class AppComponent {
 
     setSmartProgram(this.state.smartContract)
 
-    setInterval(() => this.connectToRemoteMiner(), 5000)
+    this.connectToNaturalRemoteNode()
+    setInterval(() => {
+      this.connectToNaturalRemoteNode()
+      this.connectToRemoteMiner()
+    }, 5000)
   }
 
   async setPseudo(pseudo: string, comment: string) {
@@ -251,6 +255,20 @@ export class AppComponent {
       this.state.remoteMining = null
       this.remoteMinerWebSocket = null
     })
+  }
+
+  private naturalRemoteWebSocket: NetworkApi.WebSocket
+
+  private connectToNaturalRemoteNode() {
+    if (this.naturalRemoteWebSocket)
+      return
+
+    let protocol = location.protocol.startsWith('https') ? 'wss' : 'ws'
+    let host = location.hostname
+    let port = protocol == 'wss' ? 443 : 9091
+
+    this.naturalRemoteWebSocket = NETWORK_CLIENT_IMPL.createClientWebSocket(`${protocol}://${host}:${port}/events`)
+    this.addPeerBySocket(this.naturalRemoteWebSocket, `natural-remote`, true, `natural direct peer ${host}:${port}`)
   }
 
   async addPeer(peerHost, peerPort, peerSecure) {
