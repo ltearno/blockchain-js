@@ -9,6 +9,7 @@ import * as express from 'express'
 import * as bodyParser from 'body-parser'
 import * as WebSocket from 'ws'
 import * as Request from 'request'
+import { MinerApi, MinerImpl } from '.';
 
 declare function ws(this: express.Server, url: string, callback: any)
 
@@ -19,10 +20,14 @@ declare module "express" {
 }
 
 export class NodeServer {
+    private miner: MinerApi.MinerApi
+
     constructor(
         private node: NodeApi.NodeApi,
         private newPeersReceiver: (peer: NodeApi.NodeApi) => void,
-        private closedPeersReceiver: (peer: NodeApi.NodeApi) => void) { }
+        private closedPeersReceiver: (peer: NodeApi.NodeApi) => void) {
+        this.miner = new MinerImpl.MinerImpl(node)
+    }
 
     // TODO check all input's validity !
 
@@ -40,6 +45,27 @@ export class NodeServer {
                 console.log(`closed ws`)
                 connector.terminate()
                 this.closedPeersReceiver(connector)
+            })
+        })
+
+        app.ws('/mining', (ws, req) => {
+            ws.on('message', async rawMessage => {
+                try {
+                    let { branch, data } = JSON.parse(rawMessage)
+                    this.miner.addData(branch, data)
+                }
+                catch (error) {
+                    console.warn(`recived shit through mining websocket : ${rawMessage}`)
+                }
+            })
+
+            ws.on('error', err => {
+                console.log(`error on mining ws ${err}`)
+                ws.close()
+            })
+
+            ws.on('close', () => {
+                console.log(`closed mining ws`)
             })
         })
 

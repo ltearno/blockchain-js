@@ -62,8 +62,6 @@ export class State {
         this.messageSequence.setBranch(branch)
     }
 
-    localMining = true
-
     state: {
         [key: string]: {
             branch: string
@@ -123,21 +121,32 @@ export class State {
 
     supplyChainCall = async (method, account, data) => this.callContract(SUPPLY_CHAIN_CONTRACT_ID, 0, method, account, data)
 
-    minerHook: Blockchain.MinerApi.MinerApi = {
-        addData: (branch: string, data: any) => {
-            this.log(`intercepted mining on branch ${branch}, use local ? ${this.localMining}`)
-            if (this.localMining)
-                this.localMiner.addData(branch, data)
-            else {
-                console.log(`NOBODY TO MINE THIS !!! SHOULD RPC TO THE SERVER !!!`, data)
+    remoteMining: (branch: string, data: any) => Promise<boolean> = null
+
+    miningRouter: Blockchain.MinerApi.MinerApi = {
+        addData: async (branch: string, data: any) => {
+            this.log(`routing mining on branch ${branch}`)
+            if (this.remoteMining) {
+                try {
+                    let ok = await this.remoteMining(branch, data)
+                    if (ok) {
+                        console.log(`remotely mined`)
+                        return
+                    }
+                }
+                catch (error) {
+                    console.warn(`exception while remotely mining`, error)
+                }
             }
+
+            this.localMiner.addData(branch, data)
         }
     }
 
-    private localMiner: Blockchain.MinerImpl.MinerImpl = null
+    private localMiner: Blockchain.MinerImpl.MinerImpl
 
     private initFullNode() {
-        this.fullNode = new Blockchain.FullNode.FullNode()
+        this.fullNode = new Blockchain.FullNode.FullNode(this.miningRouter)
         this.localMiner = new Blockchain.MinerImpl.MinerImpl(this.fullNode.node)
 
         setInterval(() => {

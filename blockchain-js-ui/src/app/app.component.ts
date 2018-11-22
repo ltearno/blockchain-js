@@ -95,6 +95,8 @@ export class AppComponent {
     //this.tryLoadBlocksFromLocalStorage()
 
     setSmartProgram(this.state.smartContract)
+
+    setInterval(() => this.connectToRemoteMiner(), 5000)
   }
 
   async setPseudo(pseudo: string, comment: string) {
@@ -206,6 +208,49 @@ export class AppComponent {
       }
       action()
     }
+  }
+
+  private remoteMinerWebSocket: NetworkApi.WebSocket
+
+  private connectToRemoteMiner() {
+    if (this.remoteMinerWebSocket)
+      return
+
+    let protocol = location.protocol.startsWith('https') ? 'wss' : 'ws'
+    let host = location.hostname
+    let port = protocol == 'wss' ? 443 : 9091
+
+    this.remoteMinerWebSocket = NETWORK_CLIENT_IMPL.createClientWebSocket(`${protocol}://${host}:${port}/mining`)
+
+    let addData = async (branch: string, data: any): Promise<boolean> => {
+      if (!this.remoteMinerWebSocket)
+        return false
+
+      try {
+        this.remoteMinerWebSocket.send(JSON.stringify({ branch, data }))
+        return true
+      }
+      catch (error) {
+        return false
+      }
+    }
+
+    this.remoteMinerWebSocket.on('open', () => {
+      console.log(`remote miner connected`)
+      this.state.remoteMining = addData
+    })
+
+    this.remoteMinerWebSocket.on('error', (err) => {
+      console.log(`error with remote miner : ${err}`)
+      this.state.remoteMining = null
+      this.remoteMinerWebSocket.close()
+    })
+
+    this.remoteMinerWebSocket.on('close', () => {
+      console.log('remote miner disconnected')
+      this.state.remoteMining = null
+      this.remoteMinerWebSocket = null
+    })
   }
 
   async addPeer(peerHost, peerPort, peerSecure) {

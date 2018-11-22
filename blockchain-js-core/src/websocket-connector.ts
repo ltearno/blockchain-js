@@ -37,36 +37,40 @@ export class WebSocketConnector implements NodeApi.NodeApi {
     }
 
     private messageListener = async rawMessage => {
-        //console.log(`ws rcv: ${rawMessage}`)
-        let message = JSON.parse(rawMessage) as Message
-        switch (message.type) {
-            case 'hello':
-                break
+        try {
+            let message = JSON.parse(rawMessage) as Message
+            switch (message.type) {
+                case 'hello':
+                    break
 
-            case 'event': {
-                let { listenerId, event } = message.data
-                if (this.remoteEventListeners.has(listenerId))
-                    this.remoteEventListeners.get(listenerId)(event)
-                break
-            }
-
-            case 'message':
-                if (this.localNode) {
-                    try {
-                        let result = await this.messageToNode(message, this.localNode)
-                        let payload = JSON.stringify({ id: message.id, type: 'reply', data: result })
-                        //console.log(`ws reply: ${payload}`)
-                        this.ws.send(payload)
-                    }
-                    catch (error) {
-                        console.log(`ERROR processing an incoming message : ${error}`)
-                    }
+                case 'event': {
+                    let { listenerId, event } = message.data
+                    if (this.remoteEventListeners.has(listenerId))
+                        this.remoteEventListeners.get(listenerId)(event)
+                    break
                 }
-                break
 
-            case 'reply':
-                this.onReplyMessage(message)
-                break
+                case 'message':
+                    if (this.localNode) {
+                        try {
+                            let result = await this.messageToNode(message, this.localNode)
+                            let payload = JSON.stringify({ id: message.id, type: 'reply', data: result })
+                            //console.log(`ws reply: ${payload}`)
+                            this.ws.send(payload)
+                        }
+                        catch (error) {
+                            console.log(`ERROR processing an incoming message : ${error}`)
+                        }
+                    }
+                    break
+
+                case 'reply':
+                    this.onReplyMessage(message)
+                    break
+            }
+        }
+        catch (error) {
+            console.warn(`recived shit through events websocket : ${rawMessage}`)
         }
     }
 
