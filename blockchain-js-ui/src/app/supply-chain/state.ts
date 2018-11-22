@@ -134,7 +134,7 @@ export class State {
         }
     }
 
-    private localMiner = new Blockchain.MinerImpl.MinerImpl(this.fullNode.node)
+    private localMiner: Blockchain.MinerImpl.MinerImpl = null
 
     private initFullNode() {
         this.fullNode = new Blockchain.FullNode.FullNode()
