@@ -34,7 +34,7 @@ export class FullNode {
 
     private nextPeerId = 1
 
-    constructor() {
+    constructor(miner: MinerApi.MinerApi = undefined) {
         // node creation
         this.node = new NodeImpl.NodeImpl()
 
@@ -43,7 +43,7 @@ export class FullNode {
         this.transfer.initialize([])
 
         // miner
-        this.miner = new MinerImpl.MinerImpl(this.node)
+        this.miner = miner || new MinerImpl.MinerImpl(this.node)
 
         // list on chain
         this.lists = new Map<string, ListOnChain.ListOnChain>()

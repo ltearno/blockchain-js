@@ -62,6 +62,8 @@ export class State {
         this.messageSequence.setBranch(branch)
     }
 
+    localMining = true
+
     state: {
         [key: string]: {
             branch: string
@@ -121,8 +123,22 @@ export class State {
 
     supplyChainCall = async (method, account, data) => this.callContract(SUPPLY_CHAIN_CONTRACT_ID, 0, method, account, data)
 
+    minerHook: Blockchain.MinerApi.MinerApi = {
+        addData: (branch: string, data: any) => {
+            this.log(`intercepted mining on branch ${branch}, use local ? ${this.localMining}`)
+            if (this.localMining)
+                this.localMiner.addData(branch, data)
+            else {
+                console.log(`NOBODY TO MINE THIS !!! SHOULD RPC TO THE SERVER !!!`, data)
+            }
+        }
+    }
+
+    private localMiner = new Blockchain.MinerImpl.MinerImpl(this.fullNode.node)
+
     private initFullNode() {
         this.fullNode = new Blockchain.FullNode.FullNode()
+        this.localMiner = new Blockchain.MinerImpl.MinerImpl(this.fullNode.node)
 
         setInterval(() => {
             if (this.lastLoaded.blockId != this.nextLoad.blockId || this.lastLoaded.branch != this.nextLoad.branch) {

@@ -1,6 +1,7 @@
 import * as Block from './block'
 import * as FullNode from './full-node'
 import * as NetworkClientBrowserImpl from './network-client-browser-impl'
+import { wait } from './test-tools';
 
 console.log(`WELCOME TO BLOCKCHAIN-JS ON THE BROWSER !`)
 
@@ -12,8 +13,8 @@ async function run() {
 
     console.log(`mine a hello world data`)
     fullNode.miner.addData(Block.MASTER_BRANCH, "Hello my friend !")
-    let mineResult = await fullNode.miner.mineData()
-    console.log(`mining result : ${JSON.stringify(mineResult)}`)
+
+    await wait(5000)
 
     console.log(`current head: ${await fullNode.node.blockChainHead(Block.MASTER_BRANCH)}`)
 
