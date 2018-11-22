@@ -26,7 +26,7 @@ export class NodeServer {
         private node: NodeApi.NodeApi,
         private newPeersReceiver: (peer: NodeApi.NodeApi) => void,
         private closedPeersReceiver: (peer: NodeApi.NodeApi) => void) {
-        this.miner = new MinerImpl.MinerImpl(node)
+        this.miner = new MinerImpl.MinerImpl(node, 200)
     }
 
     // TODO check all input's validity !

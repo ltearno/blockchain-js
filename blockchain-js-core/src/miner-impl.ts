@@ -7,7 +7,7 @@ export class MinerImpl implements MinerApi.MinerApi {
     private scheduled = false
     private reschedule = false
 
-    constructor(private node: NodeApi.NodeApi) { }
+    constructor(private node: NodeApi.NodeApi, private miningDelay = 10) { }
 
     private getToMineList(branch: string) {
         if (!this.dataToMineByBranch.has(branch))
@@ -38,7 +38,7 @@ export class MinerImpl implements MinerApi.MinerApi {
                     this.schedule()
                 }
             })
-        }, 10)
+        }, this.miningDelay)
     }
 
     /**
