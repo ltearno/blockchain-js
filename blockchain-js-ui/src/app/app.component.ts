@@ -268,6 +268,17 @@ export class AppComponent {
     let port = protocol == 'wss' ? 443 : 9091
 
     this.naturalRemoteWebSocket = NETWORK_CLIENT_IMPL.createClientWebSocket(`${protocol}://${host}:${port}/events`)
+
+    this.naturalRemoteWebSocket.on('error', (err) => {
+      console.log(`error with natural peer : ${err}`)
+      this.naturalRemoteWebSocket.close()
+    })
+
+    this.naturalRemoteWebSocket.on('close', () => {
+      console.log('natural peer disconnected')
+      this.naturalRemoteWebSocket = null
+    })
+
     this.addPeerBySocket(this.naturalRemoteWebSocket, `natural-remote`, true, `natural direct peer ${host}:${port}`)
   }
 
