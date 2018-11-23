@@ -297,9 +297,11 @@
 
             processArtWorkParticipations(this.data, artWork)
 
+            let seed = callContract('random-generator-v1', 0, 'generate', args)
+
             let random = (modulo) => {
-                let randomString = callContract('random-generator-v1', 0, 'generate', args)
-                let result = parseInt(randomString.substr(0, 8), 16)
+                let result = parseInt(seed.substr(0, 8), 16)
+                seed = lib.hash(seed)
                 return result % modulo
             }
 
@@ -311,6 +313,10 @@
                     count = Object.values(artWork.grid)
                         .filter(workItemId => workItemId.startsWith('pixel-') || workItemId.startsWith('emoji-'))
                         .length
+                } else if (count > 100) {
+                    // HARDCODED retribution limit
+                    // TODO : reditribute that to the ecology tax
+                    count = 100
                 }
 
                 while (count--) {
