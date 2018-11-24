@@ -57,7 +57,7 @@
         artWork.participations = participations
     }
 
-    const containsArtWorkId = (data, searchedArtWorkId, workItemId) => {
+    const containsArtWorkId = (data, searchedArtWorkId, workItemId, acceptedArtworks) => {
         if (!workItemId)
             return false
 
@@ -69,13 +69,22 @@
         if (artWorkId == searchedArtWorkId)
             return true
 
+        if (artWorkId in acceptedArtworks)
+            return false
+
         artWork = data.artWorks[artWorkId]
         if (!artWork)
             return false
 
-        if (artWork.grid)
-            return Object.values(artWork.grid).some(workItemId => containsArtWorkId(data, searchedArtWorkId, workItemId))
+        if (!artWork.grid)
+            return false
 
+        let subIds = {}
+        Object.values(artWork.grid).forEach(workItemId => subIds[workItemId] = true)
+        if (Object.keys(subIds).some(workItemId => containsArtWorkId(data, searchedArtWorkId, workItemId, acceptedArtworks)))
+            return true
+
+        acceptedArtworks[artWorkId] = true
         return false
     }
 
@@ -388,7 +397,7 @@
                 }
             }
             else {
-                if (containsArtWorkId(this.data, artWorkId, itemId)) {
+                if (containsArtWorkId(this.data, artWorkId, itemId, {})) {
                     console.log(`cannot add this artwork has it would produce a cycle !`)
                     return false
                 }
