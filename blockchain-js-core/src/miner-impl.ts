@@ -4,10 +4,9 @@ import * as MinerApi from './miner-api'
 
 export class MinerImpl implements MinerApi.MinerApi {
     private dataToMineByBranch = new Map<string, any[]>()
-    private scheduled = false
-    private reschedule = false
+    private executing = false
 
-    constructor(private node: NodeApi.NodeApi, private miningDelay = 10) { }
+    constructor(private node: NodeApi.NodeApi) { }
 
     private getToMineList(branch: string) {
         if (!this.dataToMineByBranch.has(branch))
@@ -23,22 +22,17 @@ export class MinerImpl implements MinerApi.MinerApi {
 
     // if already executing, mark as to redo when finish
     // otherwise, schedule next operation
-    private schedule() {
-        if (this.scheduled) {
-            this.reschedule = true
+    private async schedule() {
+        if (this.executing || !this.dataToMineByBranch || !this.dataToMineByBranch.size)
             return
-        }
 
-        this.scheduled = true
-        setTimeout(() => {
-            this.mineData().then(() => {
-                this.scheduled = false
-                if (this.reschedule) {
-                    this.reschedule = false
-                    this.schedule()
-                }
-            })
-        }, this.miningDelay)
+        this.executing = true
+
+        await this.mineData()
+
+        this.executing = false
+
+        this.schedule()
     }
 
     /**
@@ -61,10 +55,7 @@ export class MinerImpl implements MinerApi.MinerApi {
         let startTime = Date.now()
         //console.log("START MINING")
 
-        for (let entry of dataToMineByBranch.entries()) {
-            let branch = entry[0]
-            let dataToMine = entry[1]
-
+        for (let [branch, dataToMine] of dataToMineByBranch.entries()) {
             if (!dataToMine.length)
                 continue
 
