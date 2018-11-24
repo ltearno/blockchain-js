@@ -185,9 +185,12 @@ export class WebSocketConnector implements NodeApi.NodeApi {
                     }
                     catch (error) {
                         console.log(`ERROR sending on web socket : ${error}`)
+
+                        node.removeEventListener(listener)
+                        this.localEventListeners.delete(listenerId)
                     }
                 }
-                this.localEventListeners.set(listenerId, listenerId)
+                this.localEventListeners.set(listenerId, listener)
                 node.addEventListener(type, listener)
                 return
             }
