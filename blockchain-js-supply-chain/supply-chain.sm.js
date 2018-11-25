@@ -1,19 +1,16 @@
 /**
  * This is a Supply Chain smart contract implementation
  * 
- * Askers ask and Biders bid.
- * 
- * All of them must be registered.
+ * Users are registered.
  * 
  * Identity is provided by the 'identity-registry-1' contract
  * 
- * TODO
+ * TODO:
  * 
- * from time to time give randomly choosen user a randomly choosen item (to incentive to use the chain)
- * 
- * grouper par lot :
- * on ne peut revendre les parties
- * mais on peut vendre un ensemble (itemId devient celui du ask validé)
+ * give pixels by pack of 5
+ * numéro d'ordre des artworks
+ * stats by user : # consumed pixels/emojis, # earned pixels/emojis, # consumed own artworks, # consumed other's artworks, # validated artworks, # used artwork by others
+ * stats by artwork : # of reuse (by same and other author), # total instances
  */
 ((() => {
     const MAX_GRID_SIZE = 100

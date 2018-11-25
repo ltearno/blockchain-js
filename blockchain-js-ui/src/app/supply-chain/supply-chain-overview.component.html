@@ -1,4 +1,4 @@
-<h2>There are {{ countUsers }} registered users</h2>
+<h2>There are {{ users.length }} registered users</h2>
 <h2>Your have ({{ inventoryNbPixels }} pixels and {{ inventoryNbEmojis }} emojis)</h2>
 
 <h2>Artworks</h2>
@@ -6,5 +6,12 @@
     <button class='button is-primary' (click)='initArtWorkCreation.emit()'>Create a new Artwork</button>
 </div>
 <div class="artWorks">
-    <art-work-summary *ngFor='let artWorkId of artWorksToDisplay' [artWorkId]='artWorkId' (edit)='editArtWork.emit($event.id)' (select)='selectArtWork.emit($event.id)'></art-work-summary>
+    <art-work-summary *ngFor='let artWorkId of artWorksToDisplay' [artWorkId]='artWorkId' (edit)='editArtWork.emit($event.id)'
+        (select)='selectArtWork.emit($event.id)'></art-work-summary>
+</div>
+
+<h2>Users</h2>
+
+<div *ngFor='let user of users'>
+    {{ user | json }}
 </div>

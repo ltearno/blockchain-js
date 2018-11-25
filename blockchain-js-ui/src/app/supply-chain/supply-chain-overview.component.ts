@@ -38,7 +38,7 @@ export class SupplyChainOverviewComponent implements OnDestroy, OnInit {
     selectArtWork = new EventEmitter<string>()
 
     artWorksToDisplay = []
-    countUsers = 0
+    users = []
     inventoryNbPixels = 0
     inventoryNbEmojis = 0
 
@@ -50,7 +50,6 @@ export class SupplyChainOverviewComponent implements OnDestroy, OnInit {
             return
 
         let inv = this.state.programState.accounts[this.state.user.id].inventory
-
         Object.keys(inv)
             .forEach(itemId => {
                 if (itemId.startsWith('pix'))
@@ -59,7 +58,15 @@ export class SupplyChainOverviewComponent implements OnDestroy, OnInit {
                     this.inventoryNbEmojis += inv[itemId]
             })
 
-        this.countUsers = Object.keys(this.state.programState.accounts).length
+        this.users = []
+        Object.keys(this.state.programState.accounts)
+            .forEach(id => {
+                this.users.push({
+                    id,
+                    pseudo: this.state.identities[id].pseudo,
+                    publicKey: this.state.identities[id].publicKey
+                })
+            })
 
         this.artWorksToDisplay = Object.keys(this.state.programState.artWorks).sort()
     }
