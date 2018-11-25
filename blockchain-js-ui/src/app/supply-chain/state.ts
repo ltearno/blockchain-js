@@ -119,7 +119,6 @@ export class State {
 
     miningRouter: Blockchain.MinerApi.MinerApi = {
         addData: async (branch: string, data: any) => {
-            this.log(`routing mining on branch ${branch}`)
             if (this.remoteMining) {
                 try {
                     let ok = await this.remoteMining(branch, data)

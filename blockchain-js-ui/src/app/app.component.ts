@@ -35,7 +35,6 @@ export class AppComponent {
   desiredNbOutgoingPeers = 3
   autoSave = true
   miningDifficulty = 100
-  maxNumberDisplayedMessages = 100
 
   selectedTab = 5
 
