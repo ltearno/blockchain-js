@@ -7,10 +7,13 @@
 </div>
 <div *ngIf='state.hasSupplyChainAccount'>
     <div *ngIf='!editingArtworkId' class="container is-fluid">
-        <supply-chain-overview (initArtWorkCreation)='initArtWorkCreation()' (editArtWork)='editArtWork($event)'></supply-chain-overview>
+        <supply-chain-overview (initArtWorkCreation)='initArtWorkCreation()' (editArtWork)='editArtWork($event)'
+            (selectArtWork)='selectArtWork($event)'></supply-chain-overview>
     </div>
 
     <div *ngIf='editingArtworkId' class='container'>
-        <art-work-edition [artWorkId]='editingArtworkId' (validate)='validateArtWork()' (cancel)='cancelArtwork()'></art-work-edition>
+        <art-work-edition *ngIf='isEditableArtWork()' [artWorkId]='editingArtworkId' (validate)='validateArtWork()'
+            (cancel)='cancelArtwork()'></art-work-edition>
+        <art-work-detail *ngIf='!isEditableArtWork()' [artWorkId]='editingArtworkId' (cancel)='cancelArtwork()'></art-work-detail>
     </div>
 </div>

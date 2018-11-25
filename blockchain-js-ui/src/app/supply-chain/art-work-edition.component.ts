@@ -15,7 +15,6 @@ import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants';
 })
 export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     private smartContractChangeListener = () => {
-        console.log(`edititon receives change listener`)
         this.updateFromContract()
         this.changeDetectorRef.detectChanges()
         this.paint()
@@ -88,10 +87,6 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
         this.context = canvas.getContext("2d")
 
         this.paint()
-    }
-
-    pseudoOrId(id: string) {
-        return (this.state.identities[id] && this.state.identities[id].pseudo) || id
     }
 
     private pointToCoordinates(x: number, y: number) {

@@ -36,6 +36,9 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
     }
 
     @Input()
+    disablePaintCache: boolean = false
+
+    @Input()
     set artWorkId(artWorkId) {
         this._artWorkId = artWorkId
 
@@ -55,14 +58,14 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
 
     ngAfterViewInit() {
         let canvas = this.canvas.nativeElement
-        canvas.width = 100
-        canvas.height = 100
+        canvas.width = this.disablePaintCache ? 1000 : 100
+        canvas.height = this.disablePaintCache ? 1000 : 100
         this.context = canvas.getContext("2d")
 
         this.paint()
     }
 
     private paint() {
-        this._artWorkId && this.context && Paint.drawWorkItem(this.state.programState, this._artWorkId, 100, 100, this.context)
+        this._artWorkId && this.context && Paint.drawWorkItem(this.state.programState, this._artWorkId, this.disablePaintCache ? 1000 : 100, this.disablePaintCache ? 1000 : 100, this.context, this.disablePaintCache)
     }
 }

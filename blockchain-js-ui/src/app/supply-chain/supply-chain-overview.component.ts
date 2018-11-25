@@ -34,6 +34,9 @@ export class SupplyChainOverviewComponent implements OnDestroy, OnInit {
     @Output()
     editArtWork = new EventEmitter<string>()
 
+    @Output()
+    selectArtWork = new EventEmitter<string>()
+
     artWorksToDisplay = []
     countUsers = 0
     inventoryNbPixels = 0
@@ -42,6 +45,9 @@ export class SupplyChainOverviewComponent implements OnDestroy, OnInit {
     private updateModel() {
         this.inventoryNbPixels = 0
         this.inventoryNbEmojis = 0
+
+        if (!this.state.user || !this.state.programState.accounts[this.state.user.id])
+            return
 
         let inv = this.state.programState.accounts[this.state.user.id].inventory
 

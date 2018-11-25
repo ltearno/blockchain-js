@@ -29,6 +29,10 @@ export class SupplyChainComponent {
 
     editingArtworkId: string = null
 
+    isEditableArtWork() {
+        return !this.state.programState.artWorks[this.editingArtworkId].validated && this.state.programState.artWorks[this.editingArtworkId].author == this.state.user.id
+    }
+
     async initArtWorkCreation() {
         const SIZE = 7
 
@@ -48,6 +52,10 @@ export class SupplyChainComponent {
     }
 
     editArtWork(artWorkId: string) {
+        this.editingArtworkId = artWorkId
+    }
+
+    selectArtWork(artWorkId: string) {
         this.editingArtworkId = artWorkId
     }
 

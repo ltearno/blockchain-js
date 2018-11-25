@@ -1,7 +1,6 @@
 import * as Model from './model'
 import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants'
 
-const DEFERRED_PAINT = false
 const USE_BACK_CACHE = true
 
 interface BackBuffer {
@@ -10,8 +9,6 @@ interface BackBuffer {
 }
 
 let backCanvasMap = new Map<string, BackBuffer>()
-
-//window['backCanvas'] = () => document.body.appendChild(backCanvas)
 
 export function setSmartProgram(smartContract) {
     smartContract.addChangeListener(() => resetCache())
@@ -38,20 +35,11 @@ function resetCache() {
     backCanvasMap.clear()
 }
 
-let paintBuffer = []
-
-export function drawWorkItem(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
-    if (DEFERRED_PAINT) {
-        paintBuffer = paintBuffer.filter(item => item.ctx != ctx)
-        paintBuffer.push({ state, id, width, height, ctx })
-        requestAnimationFrame(scheduledPaint)
-    }
-    else {
-        drawWorkItemInternal(state, id, width, height, ctx)
-    }
+export function drawWorkItem(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, disablePaintCache: boolean = false) {
+    drawWorkItemInternal(state, id, width, height, ctx, disablePaintCache)
 }
 
-function drawWorkItemInternal(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
+function drawWorkItemInternal(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, disablePaintCache: boolean) {
     if (id.startsWith('pixel-')) {
         drawPixel(id.substr('pixel-'.length), width, height, ctx)
     }
@@ -59,12 +47,12 @@ function drawWorkItemInternal(state: Model.ProgramState, id: string, width: numb
         drawEmoji(id.substr('emoji-'.length), width, height, ctx)
     }
     else if (id.startsWith('artwork-')) {
-        drawArtWork(state, id.substr('artwork-'.length), width, height, ctx)
+        drawArtWork(state, id.substr('artwork-'.length), width, height, ctx, disablePaintCache)
     }
 }
 
-export function drawArtWork(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
-    if (USE_BACK_CACHE) {
+export function drawArtWork(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, disablePaintCache: boolean) {
+    if (USE_BACK_CACHE && !disablePaintCache) {
         if (backCanvasMap.has(artWorkId)) {
             ctx.drawImage(backCanvasMap.get(artWorkId).canvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
         }
@@ -81,18 +69,18 @@ export function drawArtWork(state: Model.ProgramState, artWorkId: string, width:
 
             // draw in the cache
             clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx)
-            drawArtWorkInternal(state, artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx)
+            drawArtWorkInternal(state, artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx, disablePaintCache)
 
             // draw from cache
             ctx.drawImage(backCanvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
         }
     }
     else {
-        drawArtWorkInternal(state, artWorkId, width, height, ctx)
+        drawArtWorkInternal(state, artWorkId, width, height, ctx, disablePaintCache)
     }
 }
 
-function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
+function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, disablePaintCache: boolean) {
     const artWork = state.artWorks[artWorkId]
     if (!artWork || !artWork.grid)
         return
@@ -114,7 +102,7 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
 
         ctx.save()
         ctx.translate(i * CW, j * CH)
-        drawWorkItemInternal(state, workItemId, CW, CH, ctx)
+        drawWorkItemInternal(state, workItemId, CW, CH, ctx, disablePaintCache)
         ctx.restore()
     })
 
@@ -139,17 +127,6 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
         ctx.fillStyle = 'rgba(255,221,87,.1)'
         ctx.fillRect(0, 0, width, height)
     }
-}
-
-function scheduledPaint() {
-    if (paintBuffer.length == 0)
-        return
-
-    let { state, id, width, height, ctx } = paintBuffer.shift()
-
-    drawWorkItemInternal(state, id, width, height, ctx)
-
-    requestAnimationFrame(scheduledPaint)
 }
 
 function drawPixel(color: string, width: number, height: number, ctx: CanvasRenderingContext2D) {

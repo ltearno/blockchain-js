@@ -6,5 +6,5 @@
     <button class='button is-primary' (click)='initArtWorkCreation.emit()'>Create a new Artwork</button>
 </div>
 <div class="artWorks">
-    <art-work-summary *ngFor='let artWorkId of artWorksToDisplay' [artWorkId]='artWorkId' (edit)='editArtWork.emit($event.id)'></art-work-summary>
+    <art-work-summary *ngFor='let artWorkId of artWorksToDisplay' [artWorkId]='artWorkId' (edit)='editArtWork.emit($event.id)' (select)='selectArtWork.emit($event.id)'></art-work-summary>
 </div>

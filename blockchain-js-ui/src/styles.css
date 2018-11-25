@@ -29,3 +29,8 @@
     width: 5em;
     height: 5em;
 }
+
+art-work-detail .art-work-icon {
+    width: 80%;
+    height: initial;
+}

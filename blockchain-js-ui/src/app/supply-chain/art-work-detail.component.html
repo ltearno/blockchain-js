@@ -1,0 +1,19 @@
+<div>
+    <p class="title is-4">{{ artWork.title }}</p>
+    <p class="subtitle is-6">{{ pseudoOrId(artWork.author) }}</p>
+    <p>{{ artWork.id }}</p>
+</div>
+
+<art-work-icon [artWorkId]='"artwork-"+artWork.id' [disablePaintCache]='true'></art-work-icon>
+
+<div>
+    <button class='button is-primary' (click)='cancel.emit()'>Back</button>
+</div>
+
+<div *ngIf='artWork.messages'>
+    <div *ngFor='let message of artWork.messages'>
+        <i>{{ pseudoOrId(message.author) }} :</i> {{ message.text }}
+    </div>
+</div>
+<input *ngIf='!artWork.validated' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)'
+    style='font-size: 80%;'>

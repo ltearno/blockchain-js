@@ -1,8 +1,4 @@
-<div *ngIf='state.user.id!=artWork.author'>
-    <p class="title is-4">{{ artWork.title }}</p>
-    <p class="subtitle is-6">{{ pseudoOrId(artWork.author) }}</p>
-</div>
-<div *ngIf='state.user.id==artWork.author'>
+<div>
     <div class="field">
         <label class="label">Title</label>
         <div class="control">
