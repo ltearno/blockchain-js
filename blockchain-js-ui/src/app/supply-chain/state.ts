@@ -30,6 +30,8 @@ export class State {
         keys: RsaKeyPair
     } = null
 
+    registeredPseudo: string = null
+
     currentHead = ''
 
     hasSupplyChainAccount = false
@@ -92,8 +94,6 @@ export class State {
     }
 
     programState: ProgramState = null
-
-
 
     private nextLoad: { branch, blockId } = { branch: null, blockId: null }
     private lastLoaded = { branch: null, blockId: null }
@@ -163,7 +163,16 @@ export class State {
         this.messageSequence.addEventListener('change', (sequenceItemsByBlock) => this.updateStatusFromSequence(sequenceItemsByBlock))
 
         this.smartContract = new Blockchain.SmartContract.SmartContract(this.fullNode.node, Blockchain.Block.MASTER_BRANCH, 'people', this.fullNode.miner)
-        this.smartContract.addChangeListener(() => this.programState = JSON.parse(JSON.stringify(this.suppyChain.getSuppyChainState())))
+        this.smartContract.addChangeListener(() => {
+            this.programState = JSON.parse(JSON.stringify(this.suppyChain.getSuppyChainState()))
+
+            if (this.hasIdentityContract) {
+                let identityContractState = this.smartContract.getContractState(IDENTITY_REGISTRY_CONTRACT_ID)
+                if (identityContractState && identityContractState.identities && identityContractState.identities[this.user.id]) {
+                    this.registeredPseudo = identityContractState.identities[this.user.id].pseudo
+                }
+            }
+        })
         this.smartContract.initialise()
 
         this.suppyChain.setSmartContract(this.smartContract)
@@ -240,7 +249,7 @@ export class State {
         }
         else if (!this.hasSupplyChainAccount) {
             console.log(`registerIdentity : wait supply chain account`)
-            await this.registerAccount()
+            await this.registerSupplyChainAccount()
         }
         else {
             this.log(`all done for identity registration`)
@@ -249,21 +258,6 @@ export class State {
 
         if (callLater)
             setTimeout(() => this.registerIdentity(), 1000)
-    }
-
-    private async registerAccount() {
-        this.log(`registering account on supply chain...`)
-        let account = {
-            id: this.user.id,
-            keys: this.user.keys
-        }
-
-        if (!await this.suppyChain.hasAccount(account.id))
-            await this.suppyChain.createAccount(account)
-        else
-            this.log(`already registered on supplychain`)
-
-        this.hasSupplyChainAccount = true
     }
 
     private checkIdentityContract() {
@@ -304,6 +298,21 @@ export class State {
 
         console.log(`identity registered with id ${account.id}`)
         this.registeredOnIdentityContract = true
+    }
+
+    private async registerSupplyChainAccount() {
+        this.log(`registering account on supply chain...`)
+        let account = {
+            id: this.user.id,
+            keys: this.user.keys
+        }
+
+        if (!await this.suppyChain.hasAccount(account.id))
+            await this.suppyChain.createAccount(account)
+        else
+            this.log(`already registered on supplychain`)
+
+        this.hasSupplyChainAccount = true
     }
 }
 
