@@ -1,12 +1,7 @@
-<h2>Your items ({{ inventoryNbItems }} items in {{ inventory.length }} categories)</h2>
-<div class="inventory">
-    <div *ngFor='let item of inventory'>
-        <art-work-icon [artWorkId]='item.id'></art-work-icon>
-        <b>{{ item.count }}</b>
-    </div>
-</div>
+<h2>There are {{ countUsers }} registered users</h2>
+<h2>Your have ({{ inventoryNbPixels }} pixels and {{ inventoryNbEmojis }} emojis)</h2>
 
-<h2>Artworks</h2> ({{ countUsers }} registered users)
+<h2>Artworks</h2>
 <div>
     <button class='button is-primary' (click)='initArtWorkCreation.emit()'>Create a new Artwork</button>
 </div>

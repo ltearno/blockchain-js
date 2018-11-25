@@ -6,13 +6,11 @@
     <div>Registered Identity : {{ state.registeredOnIdentityContract ? '✔️' : '❌' }}</div>
 </div>
 <div *ngIf='state.hasSupplyChainAccount'>
-    <div *ngIf='!editingArtworkId' class="container">
+    <div *ngIf='!editingArtworkId' class="container is-fluid">
         <supply-chain-overview (initArtWorkCreation)='initArtWorkCreation()' (editArtWork)='editArtWork($event)'></supply-chain-overview>
     </div>
 
     <div *ngIf='editingArtworkId' class='container'>
         <art-work-edition [artWorkId]='editingArtworkId' (validate)='validateArtWork()' (cancel)='cancelArtwork()'></art-work-edition>
     </div>
-
-    <!--{{ state.programState | json }}-->
 </div>

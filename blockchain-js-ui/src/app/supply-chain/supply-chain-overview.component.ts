@@ -36,18 +36,22 @@ export class SupplyChainOverviewComponent implements OnDestroy, OnInit {
 
     artWorksToDisplay = []
     countUsers = 0
-    inventoryNbItems = 0
-    inventory = []
+    inventoryNbPixels = 0
+    inventoryNbEmojis = 0
 
     private updateModel() {
-        let inv = this.state.programState.accounts[this.state.user.id].inventory
-        this.inventory = Object.keys(inv)
-            .sort()
-            .map(itemId => ({ id: itemId, count: inv[itemId] }))
-            .filter(item => item.count > 0)
+        this.inventoryNbPixels = 0
+        this.inventoryNbEmojis = 0
 
-        this.inventoryNbItems = 0
-        this.inventory.forEach(item => this.inventoryNbItems += item.count)
+        let inv = this.state.programState.accounts[this.state.user.id].inventory
+
+        Object.keys(inv)
+            .forEach(itemId => {
+                if (itemId.startsWith('pix'))
+                    this.inventoryNbPixels += inv[itemId]
+                else
+                    this.inventoryNbEmojis += inv[itemId]
+            })
 
         this.countUsers = Object.keys(this.state.programState.accounts).length
 
