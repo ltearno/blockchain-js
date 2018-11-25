@@ -35,7 +35,7 @@ export class State {
 
     hasSupplyChainAccount = false
 
-    async setPseudo(pseudo: string, comment: string) {
+    setPseudo(pseudo: string, comment: string) {
         if (!pseudo) // TODO better check
             return
 

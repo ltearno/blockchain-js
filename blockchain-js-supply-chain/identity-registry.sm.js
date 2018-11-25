@@ -33,7 +33,10 @@
         } = signedData
 
         if (email in this.data.identities) {
-            console.warn(`already registered identity ${email}`)
+            if (this.data.identities[email].publicKey == publicKey)
+                return true
+
+            console.warn(`already registered identity ${email}, with a different public key`)
             return null
         }
 
