@@ -89,6 +89,15 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
         this.paint()
     }
 
+    pseudoOrId(id: string) {
+        return (this.state.identities[id] && this.state.identities[id].pseudo) || id
+    }
+
+    sendMessage(artWorkId: string, textInput: HTMLInputElement) {
+        this.state.suppyChain.sendMessageOnArtWork(this.state.user.id, artWorkId, textInput.value)
+        textInput.value = ''
+    }
+
     private pointToCoordinates(x: number, y: number) {
         let rect = this.canvasElement.getBoundingClientRect()
 

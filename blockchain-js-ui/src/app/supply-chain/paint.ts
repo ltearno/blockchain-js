@@ -51,7 +51,7 @@ function drawWorkItemInternal(state: Model.ProgramState, id: string, width: numb
     }
 }
 
-export function drawArtWork(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, disablePaintCache: boolean) {
+export function drawArtWork(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, disablePaintCache: boolean = false) {
     if (USE_BACK_CACHE && !disablePaintCache) {
         if (backCanvasMap.has(artWorkId)) {
             ctx.drawImage(backCanvasMap.get(artWorkId).canvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)

@@ -84,11 +84,6 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
         this._artWorkId && this.context && Paint.drawArtWork(this.state.programState, this._artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
     }
 
-    sendMessage(artWorkId: string, textInput: HTMLInputElement) {
-        this.state.suppyChain.sendMessageOnArtWork(this.state.user.id, artWorkId, textInput.value)
-        textInput.value = ''
-    }
-
     validate() {
         this.state.suppyChain.validateArtWork(this._artWorkId)
     }
