@@ -28,8 +28,8 @@ export class SupplyChainAdapter {
         return await this.callContract('createAccount', {}, account)
     }
 
-    async hasAccount(email) {
-        return await this.simulateContract('hasAccount', { email })
+    async hasAccount(id) {
+        return await this.simulateContract('hasAccount', { id })
     }
 
     async registerArtWork(artWork: Model.ArtWork) {
@@ -62,7 +62,7 @@ export class SupplyChainAdapter {
 
     private async callContract(method, data, account = null) {
         if (account)
-            data.email = account.email
+            data.id = account.id
         if (this.smartContract.hasContract(SUPPLY_CHAIN_CONTRACT_ID)) {
             let callId = await this.smartContract.callContract(SUPPLY_CHAIN_CONTRACT_ID, 0, method, account ? HashTools.signAndPackData(data, account.keys.privateKey) : data)
             return await waitReturn(this.smartContract, callId)
@@ -73,7 +73,7 @@ export class SupplyChainAdapter {
 
     private async simulateContract(method, data, account = null) {
         if (account)
-            data.email = account.email
+            data.id = account.id
         if (this.smartContract.hasContract(SUPPLY_CHAIN_CONTRACT_ID)) {
             return await this.smartContract.simulateCallContract(SUPPLY_CHAIN_CONTRACT_ID, 0, method, account ? HashTools.signAndPackData(data, account.keys.privateKey) : data)
         }

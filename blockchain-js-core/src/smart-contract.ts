@@ -4,6 +4,8 @@ import * as HashTools from './hash-tools'
 import * as SequenceStorage from './sequence-storage'
 import * as TestTools from './test-tools'
 
+const unifiedNow = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now()
+
 /**
  * TODO :
  * - possibility for an application to wait on smart contract state change
@@ -192,7 +194,7 @@ export class SmartContract {
             startIdx = 0
         }
 
-        let startTime = performance.now()
+        let startTime = unifiedNow()
 
         for (let idx = startIdx; idx < sequenceItemsByBlock.length; idx++) {
             let { blockId, items } = sequenceItemsByBlock[idx]
@@ -203,9 +205,9 @@ export class SmartContract {
 
             for (let contractItem of items) {
                 // be friendly with other people on the thread
-                if (performance.now() - startTime > 10) {
+                if (unifiedNow() - startTime > 10) {
                     await TestTools.wait(1)
-                    startTime = performance.now()
+                    startTime = unifiedNow()
                 }
 
                 switch (contractItem['type']) {

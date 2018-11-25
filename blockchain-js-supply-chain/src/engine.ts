@@ -5,8 +5,8 @@ export interface Observable<T> {
 }
 
 export interface UserSpecification {
-    email: string
-    comment: string
+    id: string
+    pseudo?: string
     publicKey: string
 }
 
@@ -49,7 +49,7 @@ export interface State {
  * 
  * methods
  * - register a user + public key
- * - signIn(signed email): returns true if the user identity proof is valid
+ * - signIn(signed id): returns true if the user identity proof is valid
  * 
  * state
  * - registered users
@@ -89,22 +89,17 @@ export interface SupplyChainEngine {
      * register the current user, engine state will evolve to registered user if successful
      * 
      * we are :
-     * - signed on when the identity contract has a user with the same email and secret revealing the same
-     * - not signed if the identity contract has the same user email but not the same publicKey
+     * - signed on when the identity contract has a user with the same id and secret revealing the same
+     * - not signed if the identity contract has the same user id but not the same publicKey
      * - unknown elsewhere
      */
-    signInUser(email: string, packedAndSignedEmail: string)
+    signInUser(id: string, packedAndSignedId: string)
 
     /**
      * User registration
      * 
      * calls the IdentitySmartContract to register the user
      * (only if it does not already exist)
-     * 
-     * should maybe return a promise which successes with a 'userUuid' ?
-     * NO => email is the userUuid, prove it with RSA signature !
-     * 
-     * TODO
      */
     registerUser(specification: UserSpecification)
 
@@ -113,7 +108,7 @@ export interface SupplyChainEngine {
     * the smart contract will affect initial items and coins if
     * the account does not already exist
      */
-    createAccount(creatorEmail: PackedAndSigned<string>)
+    createAccount(creatorId: PackedAndSigned<string>)
 
     /**
      * Ask :

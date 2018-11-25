@@ -5,7 +5,7 @@ export interface ProgramState {
 }
 
 export interface Account {
-    email: string
+    id: string
 
     inventory: {
         [workItemId: string]: number

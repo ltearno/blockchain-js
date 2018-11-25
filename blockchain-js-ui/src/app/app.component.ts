@@ -6,9 +6,10 @@ import {
   NetworkClientBrowserImpl
 } from 'blockchain-js-core'
 import * as CryptoJS from 'crypto-js'
-import { WebSocketConnector } from 'blockchain-js-core/dist/websocket-connector';
-import { State } from './supply-chain/state';
-import * as Paint from './supply-chain/paint';
+import { WebSocketConnector } from 'blockchain-js-core/dist/websocket-connector'
+import { State } from './supply-chain/state'
+import * as Paint from './supply-chain/paint'
+import * as Blockchain from 'blockchain-js-core'
 
 const NETWORK_CLIENT_IMPL = new NetworkClientBrowserImpl.NetworkClientBrowserImpl()
 
@@ -26,8 +27,6 @@ function sleep(time: number) {
   providers: [State]
 })
 export class AppComponent {
-  proposedPseudo = this.guid()
-
   // To save
   encryptMessages = false
   encryptionKey = this.guid()
@@ -35,7 +34,6 @@ export class AppComponent {
   desiredNbIncomingPeers = 3
   desiredNbOutgoingPeers = 3
   autoSave = true
-  autoStart = true
   miningDifficulty = 100
   maxNumberDisplayedMessages = 100
 
@@ -82,11 +80,13 @@ export class AppComponent {
       }
     })
 
-    this.state.init(() => this.savePreferencesToLocalStorage())
+    this.state.init()
+    Paint.setSmartProgram(this.state.smartContract)
+
     this.loadPreferencesFromLocalStorage()
     //this.tryLoadBlocksFromLocalStorage()
 
-    Paint.setSmartProgram(this.state.smartContract)
+    this.ensureUser()
 
     this.connectToNaturalRemoteNode()
     this.connectToRemoteMiner()
@@ -96,12 +96,13 @@ export class AppComponent {
     }, 5000)
   }
 
-  setPseudo(pseudo: string, comment: string) {
-    if (!pseudo || pseudo == '')
+  private async ensureUser() {
+    if (this.state.user)
       return
 
-    this.state.setPseudo(pseudo, comment)
-
+    const id = this.guid()
+    const keys = await Blockchain.HashTools.generateRsaKeyPair()
+    this.state.setUserInformations(id, keys)
     this.savePreferencesToLocalStorage()
   }
 
@@ -164,7 +165,7 @@ export class AppComponent {
     try {
       let dataItem = {
         id: this.guid(),
-        author: this.state.user.pseudo,
+        author: this.state.user.id,
         message,
         encrypted: false
       }
@@ -348,8 +349,7 @@ export class AppComponent {
 
   savePreferencesToLocalStorage() {
     let settings = {
-      pseudo: this.state.user && this.state.user.pseudo,
-      userComment: this.state.user && this.state.user.comment,
+      id: this.state.user && this.state.user.id,
       keys: this.state.user && this.state.user.keys,
       encryptMessages: this.encryptMessages,
       encryptionKey: this.encryptionKey,
@@ -357,8 +357,7 @@ export class AppComponent {
       desiredNbIncomingPeers: this.desiredNbIncomingPeers,
       desiredNbOutgoingPeers: this.desiredNbOutgoingPeers,
       miningDifficulty: this.miningDifficulty,
-      autoSave: this.autoSave,
-      autoStart: this.autoStart
+      autoSave: this.autoSave
     }
 
     localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings))
@@ -375,8 +374,9 @@ export class AppComponent {
       if (!settings)
         return
 
-      if (settings.pseudo)
-        this.proposedPseudo = settings.pseudo || this.guid()
+      if (settings.keys && settings.id) {
+        this.state.setUserInformations(settings.id, settings.keys)
+      }
 
       if (settings.encryptMessages)
         this.encryptMessages = settings.encryptMessages || false
@@ -397,17 +397,8 @@ export class AppComponent {
         this.miningDifficulty = settings.miningDifficulty
 
       this.autoSave = !!settings.autoSave
-      this.autoStart = !!settings.autoStart
 
       this.log(`preferences loaded`)
-
-      if (this.autoStart) {
-        if (settings.pseudo)
-          this.state.setPseudo(settings.pseudo, settings.userComment)
-      }
-
-      if (settings.keys && this.state.user)
-        this.state.user.keys = settings.keys
     }
     catch (e) {
       this.log(`error loading preferences ${e}`)

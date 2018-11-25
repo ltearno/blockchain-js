@@ -36,8 +36,8 @@ export class SupplyChainComponent {
 
         await this.state.suppyChain.registerArtWork({
             id: id,
-            author: this.state.user.pseudo,
-            title: 'New ArtWork',
+            author: this.state.user.id,
+            title: 'Artwork',
             validated: false,
             size: { width: SIZE, height: SIZE },
             grid: null,

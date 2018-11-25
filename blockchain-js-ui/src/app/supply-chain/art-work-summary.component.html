@@ -18,7 +18,7 @@
                 </div>
                 <input *ngIf='!artWork.validated' #newMessage placeholder="type any message here" type="text"
                     (keyup.enter)='sendMessage(artWork.id, newMessage)' style='font-size: 80%;'>
-                <div *ngIf='artWork.author==state.user.pseudo'>
+                <div *ngIf='artWork.author==state.user.id'>
                     <button *ngIf='!artWork.validated' class='button' (click)='edit.emit(artWork)'>Edit</button>
                     <button *ngIf='!artWork.validated && canValidate' class='button is-primary' (click)='validate()'>Validate</button>
                 </div>

@@ -45,7 +45,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     private updateFromContract() {
         this.artWork = this.state.programState.artWorks[this.artWorkId]
 
-        let inv = this.state.programState.accounts[this.state.user.pseudo].inventory
+        let inv = this.state.programState.accounts[this.state.user.id].inventory
         this.inventory = Object.keys(inv)
             .sort()
             .map(itemId => ({ id: itemId, count: inv[itemId] }))

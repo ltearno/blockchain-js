@@ -42,14 +42,14 @@ async function main() {
     smartContract.initialise()
 
     let callContract = async (contractUuid, iterationId, method, account, data) => {
-        data.email = account.email
+        data.id = account.id
         let callId = await smartContract.callContract(contractUuid, iterationId, method, account ? HashTools.signAndPackData(data, account.keys.privateKey) : data)
         return await waitReturn(smartContract, callId)
     }
 
     let contractCreatorAccount = {
         keys: await HashTools.generateRsaKeyPair(),
-        email: 'god@blockchain-js.com'
+        id: 'god@blockchain-js.com'
     }
 
     const identityRegistryContractUuid = "identity-registry-1"
@@ -86,13 +86,13 @@ async function main() {
 
     async function registerIdentity(account) {
         if (! await callContract(identityRegistryContractUuid, 0, 'registerIdentity', account, {
-            comment: `I am a randomly generated identity at time ${new Date().toISOString()}`
+            pseudo: `I am a randomly generated identity at time ${new Date().toISOString()}`
         })) {
             console.log(`failed to register identity`)
             return null
         }
 
-        console.log(`identity registered with email ${account.email}`)
+        console.log(`identity registered with id ${account.id}`)
 
         let identity = await supplyChainCall('createAccount', account, {})
         if (!identity) {
@@ -100,7 +100,7 @@ async function main() {
             return null
         }
 
-        console.log(`created account : ${account.email}`)
+        console.log(`created account : ${account.id}`)
 
         return identity
     }
@@ -109,13 +109,13 @@ async function main() {
 
     let account1 = {
         keys: await HashTools.generateRsaKeyPair(),
-        email: 'ltearno@blockchain-js.com'
+        id: 'ltearno@blockchain-js.com'
     }
     await registerIdentity(account1)
 
     let account2 = {
         keys: await HashTools.generateRsaKeyPair(),
-        email: 'isaia@blockchain-js.com'
+        id: 'isaia@blockchain-js.com'
     }
     await registerIdentity(account2)
 
@@ -162,7 +162,7 @@ async function main() {
     async function bot() {
         let botAccount = {
             keys: await HashTools.generateRsaKeyPair(),
-            email: `bot-${(await HashTools.hashString('' + Math.random())).substr(0, 5)}@blockchain-js.com`
+            id: `bot-${(await HashTools.hashString('' + Math.random())).substr(0, 5)}@blockchain-js.com`
         }
 
         if (!await registerIdentity(botAccount)) {
@@ -217,8 +217,8 @@ async function main() {
 
             // what can we offer ?
             let maybe = []
-            for (let itemId in supplyChainState.users[botAccount.email].items) {
-                if (supplyChainState.users[botAccount.email].items[itemId] > 0) {
+            for (let itemId in supplyChainState.users[botAccount.id].items) {
+                if (supplyChainState.users[botAccount.id].items[itemId] > 0) {
                     maybe.push(itemId)
                 }
             }
@@ -229,7 +229,7 @@ async function main() {
 
                 // to whom ?
                 for (let [askId, ask] of shuffle(flow(supplyChainState.asks))) {
-                    if (ask.email == botAccount.email)
+                    if (ask.id == botAccount.id)
                         continue
 
                     let askIndex = ask.asks.findIndex(askItem => !askItem.bidId)
@@ -263,7 +263,7 @@ async function main() {
             // valider les propositions reçues
             for (let [bidId, bid] of flow(supplyChainState.bids)) {
                 let ask = supplyChainState.asks[bid.askId]
-                if (ask.email !== botAccount.email)
+                if (ask.id !== botAccount.id)
                     continue
 
                 if (ask.asks[bid.askIndex].bidId)

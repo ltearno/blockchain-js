@@ -178,21 +178,21 @@
         },
 
         /** 
-        * @param data { email }, signed by the email's public key on identity smart contract
+        * @param data { id }, signed by the id's public key on identity smart contract
          */
         createAccount: function (args) {
             console.log(`creating account...`)
 
             let signInData = callContract('identity-registry-1', 0, 'signIn', args)
-            if (!signInData || !signInData.email) {
+            if (!signInData || !signInData.id) {
                 console.log(`signIn failed`)
                 return null
             }
 
-            let email = signInData.email
+            let id = signInData.id
 
-            if (this.data.accounts[email]) {
-                console.log(`already exists account for ${email}`)
+            if (this.data.accounts[id]) {
+                console.log(`already exists account for ${id}`)
                 return null
             }
 
@@ -222,21 +222,21 @@
                     items[item] = 1
             }
 
-            this.data.accounts[email] = {
-                email,
+            this.data.accounts[id] = {
+                id,
                 inventory: items
             }
 
-            console.log(`account registered!`, this.data.accounts[email])
+            console.log(`account ${this.data.accounts[id]} registered!`)
 
-            return this.data.accounts[email]
+            return this.data.accounts[id]
         },
 
         hasAccount: function (args) {
-            if (!lib.checkStringArgs(args, ['email']))
+            if (!lib.checkStringArgs(args, ['id']))
                 return false
 
-            return args.email in this.data.accounts
+            return args.id in this.data.accounts
         },
 
 

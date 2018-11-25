@@ -5,8 +5,7 @@
         <h1 class='title'>Blockchain JS</h1>
       </div>
       <div class='level-item' style='width:2em;'></div>
-      <div class='level-item' *ngIf='state.userStarted()'>
-        <span class='is-italic'>pseudo: </span>
+      <div class='level-item'>
         <h2 class='subtitle'> {{state?.user?.pseudo}}</h2>
       </div>
     </div>
@@ -14,34 +13,7 @@
 </nav>
 
 <section id='blockchain-main' class='section'>
-  <div *ngIf='!state.userStarted()' class="container">
-    <h1 class='subtitle'>You are not yet connected to the blockchain.</h1>
-    <p>First,
-      <b>choose a pseudo</b> to connect to the blockchain network.</p>
-    <p>Be careful, try to be the only one with this pseudo.</p>
-    <p>Choose something random,
-      <span class='is-italic'>like 'arnaud-b8bd9'</span>.</p>
-    <br>
-    <div class="">
-      <div class="field">
-        <label class="label">Pseudo</label>
-        <div class="control">
-          <input #pseudo class='input' (keyup.enter)='setPseudo(pseudo.value, userComment.value)' type="text" [value]='proposedPseudo'
-            size="30" placeholder="Your pseudo">
-        </div>
-      </div>
-      <div class="field">
-        <label class="label">Comment</label>
-        <div class="control">
-          <input #userComment class='input' (keyup.enter)='setPseudo(pseudo.value, userComment.value)' type="text" size="30"
-            placeholder="Your comment / description">
-        </div>
-      </div>
-      <button class='button is-link' (click)='setPseudo(pseudo.value, userComment.value)'>Connect to the blockchain</button>
-    </div>
-  </div>
-
-  <div *ngIf='state.userStarted()' class="tabs">
+  <div class="tabs">
     <ul>
       <li [class.is-active]='selectedTab==5' (click)='selectTab(5)'>
         <a>Production</a>
@@ -61,7 +33,7 @@
     </ul>
   </div>
 
-  <div *ngIf='state.userStarted() && selectedTab==1'>
+  <div *ngIf='selectedTab==1'>
     <div class="container is-fluid">
       <div class="field has-addons">
         <p class="control is-expanded">
@@ -81,7 +53,7 @@
           </div>
         </div>
         <p class="control">
-          <button (click)='mine(minedData.value) && minedData.value=""' [disabled]='isMining || autoMining' class='button has-icon-left'>
+          <button (click)='mine(minedData.value) && minedData.value=""' [disabled]='isMining' class='button has-icon-left'>
             <i class='mdi mdi-cloud-upload'></i> Mine
           </button>
         </p>
@@ -109,7 +81,7 @@
     </div>
   </div>
 
-  <div *ngIf='state.userStarted() && selectedTab==2'>
+  <div *ngIf='selectedTab==2'>
     <div class="container is-fluid" *ngIf="state.fullNode.peerInfos.length">
       <div class="box">
         <h2 class='subtitle'>Connected peers</h2>
@@ -152,7 +124,7 @@
     </div>
   </div>
 
-  <div *ngIf='state.userStarted() && selectedTab==3'>
+  <div *ngIf='selectedTab==3'>
     <div class="container is-fluid">
       <div class="box">
         <h2 class='subtitle'>Privacy</h2>
@@ -232,10 +204,6 @@
       <div class="box">
         <h2 class='subtitle'>Miscellanous</h2>
         <div class="field">
-          <label for='autoStart' class="label">Auto start (skip the connection screen)</label>
-          <input id='autoStart' type="checkbox" [(ngModel)]='autoStart'>
-        </div>
-        <div class="field">
           <label for='autoSave' class="label">Auto save blocks and parameters</label>
           <input id='autoSave' type="checkbox" [(ngModel)]='autoSave'>
         </div>
@@ -250,7 +218,7 @@
     </div>
   </div>
 
-  <div *ngIf='state.userStarted() && selectedTab==4'>
+  <div *ngIf='selectedTab==4'>
     <div class="container is-fluid">
       <div class="box">
         <h2 class='subtitle'>Logs</h2>
@@ -259,7 +227,7 @@
     </div>
   </div>
 
-  <div *ngIf='state.userStarted() && selectedTab==5'>
+  <div *ngIf='selectedTab==5'>
     <div class="container is-fluid">
       <supply-chain></supply-chain>
     </div>
@@ -274,10 +242,9 @@
         <a href='https://github.com/ltearno'>Arnaud Tournier</a> at
         <a href="https://stack-labs.com">Stack Labs</a>
       </p>
-      <p *ngIf='state.userStarted()'>
-        <span>{{state.fullNode.peerInfos.length}} peers connected</span>
-        <span *ngIf='state.isLoading()' style='color:green;'> - loading</span>
-        <span> - {{state.fullNode.node.blockCount}} blocks</span>
+      <p>
+        <span *ngIf='state.isLoading()' style='color:green;'>loading - </span>
+        <span>{{state.fullNode.node.blockCount}} blocks</span>
         <span> - {{state.currentHead}}</span>
         <span *ngIf='autoMining' style='color:green;'> - auto-mining enabled</span>
       </p>

@@ -17,35 +17,35 @@
 
     registerIdentity: function (args) {
         let signedData = lib.extractPackedDataBody(args)
-        if (!lib.checkStringArgs(signedData, ['email', 'comment']))
+        if (!lib.checkStringArgs(signedData, ['id']))
             return null
 
         if (!lib.verifyPackedData(args)) {
-            console.warn(`signature invalid for registerIdentity ${signedEmail}`)
+            console.warn(`signature invalid for registerIdentity ${JSON.stringify(signedData)}`)
             return null
         }
 
         let publicKey = lib.extractPackedDataPublicKey(args)
 
         let {
-            email,
-            comment
+            id,
+            pseudo // optional
         } = signedData
 
-        if (email in this.data.identities) {
-            if (this.data.identities[email].publicKey == publicKey)
+        if (id in this.data.identities) {
+            if (this.data.identities[id].publicKey == publicKey)
                 return true
 
-            console.warn(`already registered identity ${email}, with a different public key`)
+            console.warn(`already registered identity ${id}, with a different public key`)
             return null
         }
 
-        this.data.identities[email] = {
+        this.data.identities[id] = {
             publicKey,
-            comment
+            pseudo
         }
 
-        console.log(`registered identity ${email}`)
+        console.log(`registered identity ${id}`)
         return true
     },
 
@@ -55,16 +55,16 @@
     signIn: function (args) {
         let signedData = lib.extractPackedDataBody(args)
 
-        if (!lib.checkStringArgs(signedData, ['email']))
+        if (!lib.checkStringArgs(signedData, ['id']))
             return null
 
-        let signedEmail = signedData.email
-        if (!(signedEmail in this.data.identities)) {
-            console.warn(`user not registered for signIn`)
+        let signedId = signedData.id
+        if (!(signedId in this.data.identities)) {
+            console.warn(`user ${signedId} not registered for signIn`)
             return null
         }
 
-        let knownIdentity = this.data.identities[signedEmail]
+        let knownIdentity = this.data.identities[signedId]
         let publicKey = lib.extractPackedDataPublicKey(args)
         if (publicKey !== knownIdentity.publicKey) {
             debugger;
@@ -73,11 +73,9 @@
         }
 
         if (!lib.verifyPackedData(args)) {
-            console.warn(`signature invalid for signIn ${signedEmail}`)
+            console.warn(`signature invalid for signIn ${signedId}`)
             return null
         }
-
-        //console.log(`signIn successful for ${signedEmail}`)
 
         return signedData
     }

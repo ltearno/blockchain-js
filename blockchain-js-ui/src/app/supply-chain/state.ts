@@ -7,6 +7,11 @@ const IDENTITY_REGISTRY_CONTRACT_ID = "identity-registry-1"
 const SUPPLY_CHAIN_CONTRACT_ID = "supply-chain-v1"
 //const RANDOM_GENERATOR_CONTRACT_ID = "random-generator-v1"
 
+export type RsaKeyPair = {
+    privateKey: string;
+    publicKey: string;
+}
+
 /**
  * Application state
  */
@@ -20,32 +25,25 @@ export class State {
             this.logs.pop()
     }
 
-    userStarted() { return this.user != null }
-
     user: {
-        pseudo: string
-        comment: string
-        keys: {
-            privateKey: string;
-            publicKey: string;
-        }
+        id: string
+        keys: RsaKeyPair
     } = null
 
     currentHead = ''
 
     hasSupplyChainAccount = false
 
-    setPseudo(pseudo: string, comment: string) {
-        if (!pseudo) // TODO better check
+    setUserInformations(userId: string, keys: RsaKeyPair) {
+        if (!userId || !keys) // TODO better check
             return
 
         if (this.user)
             throw `error user already set`
 
         this.user = {
-            pseudo: pseudo.indexOf('@') >= 0 ? pseudo : `${pseudo}@blockchain-js.com`,
-            comment,
-            keys: null
+            id: userId,
+            keys
         }
     }
 
@@ -81,11 +79,7 @@ export class State {
         return this.loaders > 0 || this.fullNode.transfer.isLoading()
     }
 
-    private userKeyUpdateListener
-
-    init(userKeyUpdateListener: () => any) {
-        this.userKeyUpdateListener = userKeyUpdateListener
-
+    init() {
         this.initFullNode()
 
         setTimeout(() => {
@@ -111,7 +105,7 @@ export class State {
 
     callContract = async (contractUuid, iterationId, method, account, data) => {
         if (this.smartContract.hasContract(contractUuid)) {
-            data.email = account.email
+            data.id = account.id
             let callId = await this.smartContract.callContract(contractUuid, iterationId, method, account ? Blockchain.HashTools.signAndPackData(data, account.keys.privateKey) : data)
             return await waitReturn(this.smartContract, callId)
         }
@@ -129,10 +123,8 @@ export class State {
             if (this.remoteMining) {
                 try {
                     let ok = await this.remoteMining(branch, data)
-                    if (ok) {
-                        console.log(`remotely mined`)
+                    if (ok)
                         return
-                    }
                 }
                 catch (error) {
                     console.warn(`exception while remotely mining`, error)
@@ -263,11 +255,11 @@ export class State {
     private async registerAccount() {
         this.log(`registering account on supply chain...`)
         let account = {
-            keys: this.user.keys,
-            email: this.user.pseudo
+            id: this.user.id,
+            keys: this.user.keys
         }
 
-        if (!await this.suppyChain.hasAccount(account.email))
+        if (!await this.suppyChain.hasAccount(account.id))
             await this.suppyChain.createAccount(account)
         else
             this.log(`already registered on supplychain`)
@@ -280,15 +272,10 @@ export class State {
     }
 
     private async registerIdentityImpl(): Promise<boolean> {
-        if (!this.user)
+        if (!this.user || !this.user.id || !this.user.keys)
             return
 
         console.log(`registering identity`)
-
-        if (!this.user.keys) {
-            this.user.keys = await Blockchain.HashTools.generateRsaKeyPair()
-            this.userKeyUpdateListener()
-        }
 
         if (!this.hasIdentityContract) {
             this.log(`no identity registry contract installed (${IDENTITY_REGISTRY_CONTRACT_ID})`)
@@ -301,24 +288,22 @@ export class State {
             return
         }
 
-        if (identityContractState.identities[this.user.pseudo]) {
-            this.log(`already registered identity ${this.user.pseudo}`)
+        if (identityContractState.identities[this.user.id]) {
+            this.log(`already registered identity ${this.user.id}`)
             this.registeredOnIdentityContract = true
             return
         }
 
         let account = {
             keys: this.user.keys,
-            email: this.user.pseudo
+            id: this.user.id
         }
-        if (! await this.callContract(IDENTITY_REGISTRY_CONTRACT_ID, 0, 'registerIdentity', account, {
-            comment: `${this.user.comment}`
-        })) {
+        if (! await this.callContract(IDENTITY_REGISTRY_CONTRACT_ID, 0, 'registerIdentity', account, {})) {
             this.log(`failed to register identity`)
             return
         }
 
-        console.log(`identity registered with email ${account.email}`)
+        console.log(`identity registered with id ${account.id}`)
         this.registeredOnIdentityContract = true
     }
 }

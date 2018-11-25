@@ -85,7 +85,7 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
     }
 
     sendMessage(artWorkId: string, textInput: HTMLInputElement) {
-        this.state.suppyChain.sendMessageOnArtWork(this.state.user.pseudo, artWorkId, textInput.value)
+        this.state.suppyChain.sendMessageOnArtWork(this.state.user.id, artWorkId, textInput.value)
         textInput.value = ''
     }
 
