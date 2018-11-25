@@ -1,19 +1,27 @@
-<div class="field">
-    <label class="label">Title</label>
-    <div class="control">
-        <input #title class="input" type="text" (change)='updateArtWorkTitle(title.value)' [value]='artWork.title'>
-    </div>
-    <p class="help">Title of the ArtWork</p>
+<div *ngIf='state.user.id!=artWork.author'>
+    <p class="title is-4">{{ artWork.title }}</p>
+    <p class="subtitle is-6">{{ pseudoOrId(artWork.author) }}</p>
 </div>
-<div class="field">
-    <label class="label">Size</label>
-    <div class="control">
-        Width
-        <input #width class="input" type="number" max="100" min="1" (change)='changeArtWorkSize(width.value, height.value)' [value]='artWork.size.width'>
-        Height
-        <input #height class="input" type="number" max="100" min="1" (change)='changeArtWorkSize(width.value, height.value)' [value]='artWork.size.height'>
+<div *ngIf='state.user.id==artWork.author'>
+    <div class="field">
+        <label class="label">Title</label>
+        <div class="control">
+            <input #title class="input" type="text" (change)='updateArtWorkTitle(title.value)' [value]='artWork.title'>
+        </div>
+        <p class="help">Title of the ArtWork</p>
     </div>
-    <p class="help">Size of the grid</p>
+    <div class="field">
+        <label class="label">Size</label>
+        <div class="control">
+            Width
+            <input #width class="input" type="number" max="100" min="1" (change)='changeArtWorkSize(width.value, height.value)'
+                [value]='artWork.size.width'>
+            Height
+            <input #height class="input" type="number" max="100" min="1" (change)='changeArtWorkSize(width.value, height.value)'
+                [value]='artWork.size.height'>
+        </div>
+        <p class="help">Size of the grid</p>
+    </div>
 </div>
 
 <canvas #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()' (click)='mouseClick($event)' style="border:1px solid black; width:15em; height: 15em;"></canvas>
@@ -38,3 +46,11 @@
     <button *ngIf="canValidate" class="button is-primary" (click)='validate.emit()'>Validate</button><br />
     <span *ngIf='!canValidate'>Cannot validate because not all sub artworks are validated.</span>
 </div>
+
+<div *ngIf='artWork.messages'>
+    <div *ngFor='let message of artWork.messages'>
+        <i>{{ pseudoOrId(message.author) }} :</i> {{ message.text }}
+    </div>
+</div>
+<input *ngIf='!artWork.validated' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)'
+    style='font-size: 80%;'>

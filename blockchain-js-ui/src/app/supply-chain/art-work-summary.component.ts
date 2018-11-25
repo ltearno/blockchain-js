@@ -31,10 +31,6 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
     private context: CanvasRenderingContext2D
     private _artWorkId: string = null
 
-    pseudoOrId(id: string) {
-        return (this.state.identities[id] && this.state.identities[id].pseudo) || id
-    }
-
     private smartContractChangeListener = () => {
         this.updateArtWorkFromId()
         this.changeDetectorRef.detectChanges()

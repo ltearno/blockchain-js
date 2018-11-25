@@ -90,6 +90,10 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
         this.paint()
     }
 
+    pseudoOrId(id: string) {
+        return (this.state.identities[id] && this.state.identities[id].pseudo) || id
+    }
+
     private pointToCoordinates(x: number, y: number) {
         let rect = this.canvasElement.getBoundingClientRect()
 
