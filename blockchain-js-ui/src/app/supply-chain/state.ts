@@ -3,10 +3,6 @@ import { Injectable } from '@angular/core'
 import * as SupplyChainAdapter from '../supply-chain-adapter'
 import * as Blockchain from 'blockchain-js-core'
 
-const IDENTITY_REGISTRY_CONTRACT_ID = "identity-registry-1"
-const SUPPLY_CHAIN_CONTRACT_ID = "supply-chain-v1"
-//const RANDOM_GENERATOR_CONTRACT_ID = "random-generator-v1"
-
 export type RsaKeyPair = {
     privateKey: string;
     publicKey: string;
@@ -17,6 +13,10 @@ export type RsaKeyPair = {
  */
 @Injectable()
 export class State {
+    IDENTITY_REGISTRY_CONTRACT_ID = "identity-registry-1"
+    SUPPLY_CHAIN_CONTRACT_ID = "supply-chain-v1"
+    //const RANDOM_GENERATOR_CONTRACT_ID = "random-generator-v1"
+
     logs: string[] = []
 
     log(message) {
@@ -30,7 +30,9 @@ export class State {
         keys: RsaKeyPair
     } = null
 
-    registeredPseudo: string = null
+    get registeredPseudo() {
+        return this.identities && this.identities[this.user.id] && this.identities[this.user.id].pseudo
+    }
 
     currentHead = ''
 
@@ -95,6 +97,8 @@ export class State {
 
     programState: ProgramState = null
 
+    identities: { [id: string]: { pseudo: string; publicKey: string } } = {}
+
     private nextLoad: { branch, blockId } = { branch: null, blockId: null }
     private lastLoaded = { branch: null, blockId: null }
 
@@ -113,7 +117,7 @@ export class State {
         return false
     }
 
-    supplyChainCall = async (method, account, data) => this.callContract(SUPPLY_CHAIN_CONTRACT_ID, 0, method, account, data)
+    supplyChainCall = async (method, account, data) => this.callContract(this.SUPPLY_CHAIN_CONTRACT_ID, 0, method, account, data)
 
     remoteMining: (branch: string, data: any) => Promise<boolean> = null
 
@@ -166,10 +170,10 @@ export class State {
         this.smartContract.addChangeListener(() => {
             this.programState = JSON.parse(JSON.stringify(this.suppyChain.getSuppyChainState()))
 
-            if (this.hasIdentityContract) {
-                let identityContractState = this.smartContract.getContractState(IDENTITY_REGISTRY_CONTRACT_ID)
-                if (identityContractState && identityContractState.identities && identityContractState.identities[this.user.id]) {
-                    this.registeredPseudo = identityContractState.identities[this.user.id].pseudo
+            if (this.smartContract.hasContract(this.IDENTITY_REGISTRY_CONTRACT_ID)) {
+                let identityContractState = this.smartContract.getContractState(this.IDENTITY_REGISTRY_CONTRACT_ID)
+                if (identityContractState && identityContractState.identities) {
+                    this.identities = identityContractState.identities
                 }
             }
         })
@@ -261,37 +265,38 @@ export class State {
     }
 
     private checkIdentityContract() {
-        this.hasIdentityContract = this.smartContract.hasContract(IDENTITY_REGISTRY_CONTRACT_ID)
+        this.hasIdentityContract = this.smartContract.hasContract(this.IDENTITY_REGISTRY_CONTRACT_ID)
     }
 
     private async registerIdentityImpl(): Promise<boolean> {
         if (!this.user || !this.user.id || !this.user.keys)
             return
 
-        console.log(`registering identity`)
-
         if (!this.hasIdentityContract) {
-            this.log(`no identity registry contract installed (${IDENTITY_REGISTRY_CONTRACT_ID})`)
+            this.log(`no identity registry contract installed (${this.IDENTITY_REGISTRY_CONTRACT_ID})`)
             return
         }
 
-        let identityContractState = this.smartContract.getContractState(IDENTITY_REGISTRY_CONTRACT_ID)
+        let identityContractState = this.smartContract.getContractState(this.IDENTITY_REGISTRY_CONTRACT_ID)
         if (!identityContractState) {
             this.log(`no identity contract state`)
             return
         }
 
         if (identityContractState.identities[this.user.id]) {
-            this.log(`already registered identity ${this.user.id}`)
+            this.log(`identity already registered (${this.user.id})`)
             this.registeredOnIdentityContract = true
             return
         }
+
+        console.log(`registering identity...`)
 
         let account = {
             keys: this.user.keys,
             id: this.user.id
         }
-        if (! await this.callContract(IDENTITY_REGISTRY_CONTRACT_ID, 0, 'registerIdentity', account, {})) {
+
+        if (! await this.callContract(this.IDENTITY_REGISTRY_CONTRACT_ID, 0, 'registerIdentity', account, {})) {
             this.log(`failed to register identity`)
             return
         }
@@ -301,16 +306,18 @@ export class State {
     }
 
     private async registerSupplyChainAccount() {
-        this.log(`registering account on supply chain...`)
         let account = {
             id: this.user.id,
             keys: this.user.keys
         }
 
-        if (!await this.suppyChain.hasAccount(account.id))
+        if (!await this.suppyChain.hasAccount(account.id)) {
+            this.log(`registering account on supply chain...`)
             await this.suppyChain.createAccount(account)
-        else
+        }
+        else {
             this.log(`already registered on supplychain`)
+        }
 
         this.hasSupplyChainAccount = true
     }

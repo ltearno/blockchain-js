@@ -95,6 +95,10 @@ export class AppComponent {
     }, 5000)
   }
 
+  setPseudo(pseudo: string) {
+    this.state.callContract(this.state.IDENTITY_REGISTRY_CONTRACT_ID, 0, 'setPseudo', this.state.user, { pseudo })
+  }
+
   private async ensureUser() {
     if (this.state.user)
       return
@@ -138,8 +142,6 @@ export class AppComponent {
       let decyphered = CryptoJS.AES.decrypt(message, key).toString(CryptoJS.enc.Utf8)
       if (!decyphered || decyphered.length < 6)
         continue
-
-      console.log(`decy ${decyphered}`)
 
       let check = decyphered.substr(-3)
       decyphered = decyphered.substr(0, decyphered.length - 3)

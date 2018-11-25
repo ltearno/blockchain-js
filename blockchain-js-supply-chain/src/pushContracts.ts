@@ -50,14 +50,14 @@ async function run() {
         smartContract.initialise()
 
         let callContract = async (contractUuid, iterationId, method, account, data) => {
-            data.email = account.email
+            data.id = account.id
             let callId = await smartContract.callContract(contractUuid, iterationId, method, account ? HashTools.signAndPackData(data, account.keys.privateKey) : data)
             return await waitReturn(smartContract, callId)
         }
 
         let contractCreatorAccount = {
             keys: await HashTools.generateRsaKeyPair(),
-            email: 'god@blockchain-js.com'
+            id: 'god@blockchain-js.com'
         }
 
         const identityRegistryContractUuid = "identity-registry-1"

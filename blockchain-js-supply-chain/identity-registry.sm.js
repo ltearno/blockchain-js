@@ -49,6 +49,21 @@
         return true
     },
 
+    setPseudo: function (args) {
+        let signedData = callContract('identity-registry-1', 0, 'signIn', args)
+        if (!signedData)
+            return
+
+        if (!lib.checkStringArgs(signedData, ['id', 'pseudo']))
+            return null
+
+        let id = signedData.id
+
+        console.log(`pseudo changed from '${this.data.identities[id].pseudo}' to '${signedData.pseudo}' for identity ${id}`)
+
+        this.data.identities[id].pseudo = signedData.pseudo
+    },
+
     /**
      * check identity
      */
@@ -67,7 +82,6 @@
         let knownIdentity = this.data.identities[signedId]
         let publicKey = lib.extractPackedDataPublicKey(args)
         if (publicKey !== knownIdentity.publicKey) {
-            debugger;
             console.warn(`key invalid for signIn`)
             return null
         }

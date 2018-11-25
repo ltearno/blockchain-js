@@ -6,7 +6,7 @@
       </div>
       <div class='level-item' style='width:2em;'></div>
       <div class='level-item'>
-        <h2 class='subtitle'> {{state?.registeredPseudo}}</h2>
+        <h2 class='subtitle'> {{state.registeredPseudo}}</h2>
       </div>
     </div>
   </div>
@@ -31,6 +31,21 @@
         <a>Logs</a>
       </li>
     </ul>
+  </div>
+
+  <div *ngIf='state.user && !state.registeredPseudo'>
+    <div class="container is-fluid">
+      <div class="field has-addons">
+        <p class="control is-expanded">
+          <input #pseudo class='input' type="text" placeholder='Choose a pseudo' (keyup.enter)='setPseudo(pseudo.value)'>
+        </p>
+        <p class="control">
+          <button (click)='setPseudo(pseudo.value)' class='button has-icon-left'>
+            <i class='mdi mdi-cloud-upload'></i> Enter pseudo
+          </button>
+        </p>
+      </div>
+    </div>
   </div>
 
   <div *ngIf='selectedTab==1'>
