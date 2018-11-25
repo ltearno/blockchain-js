@@ -31,7 +31,7 @@ export class State {
     } = null
 
     get registeredPseudo() {
-        return this.identities && this.identities[this.user.id] && this.identities[this.user.id].pseudo
+        return this.user && this.identities && this.identities[this.user.id] && this.identities[this.user.id].pseudo
     }
 
     currentHead = ''
