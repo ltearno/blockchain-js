@@ -8,7 +8,7 @@ import {
 import * as CryptoJS from 'crypto-js'
 import { WebSocketConnector } from 'blockchain-js-core/dist/websocket-connector';
 import { State } from './supply-chain/state';
-import { setSmartProgram } from './supply-chain/paint';
+import * as Paint from './supply-chain/paint';
 
 const NETWORK_CLIENT_IMPL = new NetworkClientBrowserImpl.NetworkClientBrowserImpl()
 
@@ -52,8 +52,6 @@ export class AppComponent {
 
   private decypherCache = new Map<string, string>()
 
-  private onUnloadListener
-
   selectTab(i) {
     this.selectedTab = i
   }
@@ -77,34 +75,29 @@ export class AppComponent {
   }
 
   constructor(public state: State) {
-    this.onUnloadListener = _ => {
+    window.addEventListener('beforeunload', _ => {
       if (this.autoSave) {
-        //this.saveBlocks()
-
         this.savePreferencesToLocalStorage()
+        this.saveBlocks()
       }
-      else {
-        this.resetStorage()
-      }
-    }
-
-    window.addEventListener('beforeunload', this.onUnloadListener)
+    })
 
     this.state.init(() => this.savePreferencesToLocalStorage())
     this.loadPreferencesFromLocalStorage()
     //this.tryLoadBlocksFromLocalStorage()
 
-    setSmartProgram(this.state.smartContract)
+    Paint.setSmartProgram(this.state.smartContract)
 
     this.connectToNaturalRemoteNode()
+    this.connectToRemoteMiner()
     setInterval(() => {
       this.connectToNaturalRemoteNode()
       this.connectToRemoteMiner()
     }, 5000)
   }
 
-  async setPseudo(pseudo: string, comment: string) {
-    if (pseudo == '')
+  setPseudo(pseudo: string, comment: string) {
+    if (!pseudo || pseudo == '')
       return
 
     this.state.setPseudo(pseudo, comment)
@@ -282,10 +275,9 @@ export class AppComponent {
     this.addPeerBySocket(this.naturalRemoteWebSocket, `natural-remote`, true, `natural direct peer ${host}:${port}`)
   }
 
-  async addPeer(peerHost, peerPort, peerSecure) {
+  addPeer(peerHost, peerPort, peerSecure) {
     console.log(`add peer ${peerHost}:${peerPort}`)
 
-    //let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`${window.location.protocol.startsWith('https') ? 'wss' : 'ws'}://${peerHost}:${peerPort}/events`)
     let ws = NETWORK_CLIENT_IMPL.createClientWebSocket(`${peerSecure ? 'wss' : 'ws'}://${peerHost}:${peerPort}/events`)
 
     this.addPeerBySocket(ws, `${peerHost}:${peerPort}`, true, `direct peer ${peerHost}:${peerPort}`)
@@ -338,9 +330,9 @@ export class AppComponent {
     })
   }
 
-  clearStorage() {
+  clearStorageAndReload() {
+    this.autoSave = false
     localStorage.clear()
-    window.removeEventListener('beforeunload', this.onUnloadListener)
     window.location.reload(true)
   }
 
