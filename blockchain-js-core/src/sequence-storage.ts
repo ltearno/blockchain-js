@@ -2,6 +2,7 @@ import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as NodeBrowser from './node-browser'
 import * as MinerApi from './miner-api'
+import * as TestTools from './test-tools'
 
 export const SEQUENCE_TAG = 'seq-storage'
 
@@ -82,7 +83,13 @@ export class SequenceStorage {
         this.changeListeners = this.changeListeners.filter(l => l != handler)
     }
 
-    private async updateFromNode() {
+    private updateSequencer = new TestTools.CallSerializer(async () => this.realUpdateFromNode())
+
+    private updateFromNode() {
+        this.updateSequencer.pushData()
+    }
+
+    private async realUpdateFromNode() {
         let head = await this.node.blockChainHead(this.branch)
 
         if (head == this.lastKnownHead)

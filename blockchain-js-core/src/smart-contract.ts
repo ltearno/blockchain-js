@@ -2,8 +2,7 @@ import * as NodeApi from './node-api'
 import * as MinerApi from './miner-api'
 import * as HashTools from './hash-tools'
 import * as SequenceStorage from './sequence-storage'
-import { timingSafeEqual } from 'crypto';
-import { wait } from './test-tools';
+import * as TestTools from './test-tools'
 
 /**
  * TODO :
@@ -152,29 +151,10 @@ export class SmartContract {
         return cache.state
     }
 
-    private _isUpdatingFromSequence = false
-    private _nextToUpdateFrom: { blockId: string; items: SequenceStorage.SequenceItem[] }[] = null
-    private async updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
-        if (this._isUpdatingFromSequence) {
-            this._nextToUpdateFrom = sequenceItemsByBlock
-            return
-        }
+    private updateSequencer = new TestTools.CallSerializer(async (sequenceItemsByBlock) => { await this.realUpdateStatusFromSequence(sequenceItemsByBlock) })
 
-        this._isUpdatingFromSequence = true
-
-        try {
-            await this.realUpdateStatusFromSequence(sequenceItemsByBlock)
-        }
-        catch (error) {
-        }
-
-        this._isUpdatingFromSequence = false
-
-        if (this._nextToUpdateFrom) {
-            let tmp = this._nextToUpdateFrom
-            this._nextToUpdateFrom = null
-            this.updateStatusFromSequence(tmp)
-        }
+    private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
+        this.updateSequencer.pushData(sequenceItemsByBlock)
     }
 
     private async realUpdateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
@@ -212,6 +192,8 @@ export class SmartContract {
             startIdx = 0
         }
 
+        let startTime = performance.now()
+
         for (let idx = startIdx; idx < sequenceItemsByBlock.length; idx++) {
             let { blockId, items } = sequenceItemsByBlock[idx]
 
@@ -220,6 +202,12 @@ export class SmartContract {
             }
 
             for (let contractItem of items) {
+                // be friendly with other people on the thread
+                if (performance.now() - startTime > 10) {
+                    await TestTools.wait(1)
+                    startTime = performance.now()
+                }
+
                 switch (contractItem['type']) {
                     case 'contract': {
                         let packedDescription = contractItem['data']
@@ -348,7 +336,6 @@ export class SmartContract {
                     default:
                         console.log(`ignored contract item ${JSON.stringify(contractItem)}`)
                 }
-
             }
 
             if (idx == sequenceItemsByBlock.length - 1) {
@@ -581,7 +568,7 @@ export class SmartContract {
     }
 
     getContractState(contractUuid: string) {
-        return this.stateCache && this.stateCache.contracts && this.stateCache.contracts[contractUuid].instanceData
+        return this.stateCache && this.stateCache.contracts && this.stateCache.contracts[contractUuid] && this.stateCache.contracts[contractUuid].instanceData
     }
 
     getState() {

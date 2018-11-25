@@ -18,3 +18,41 @@ export function wait(duration: number) {
         setTimeout(() => resolve(), duration)
     })
 }
+
+export class CallSerializer {
+    constructor(private callback: (data) => Promise<any>) { }
+
+    private _processing = false
+    private _hasNext = false
+    private _nextData = null
+
+    pushData(data: any = null) {
+        this._hasNext = true
+        this._nextData = data
+
+        this.trigger()
+    }
+
+    private trigger() {
+        if (!this._hasNext)
+            return
+
+        if (!this._processing)
+            this.processCall()
+    }
+
+    private async processCall() {
+        let data = this._nextData
+        this._nextData = null
+        this._hasNext = false
+
+        this._processing = true
+
+        await this.callback(data)
+        await wait(1)
+
+        this._processing = false
+
+        this.trigger()
+    }
+}
