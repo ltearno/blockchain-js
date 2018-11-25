@@ -312,8 +312,10 @@ export class AppComponent {
     ws.on('close', () => {
       connector && connector.terminate()
       connector = null
-      this.state.fullNode.removePeer(peerInfo.id)
-      this.peersSockets.delete(peerInfo)
+      if (peerInfo) {
+        this.state.fullNode.removePeer(peerInfo.id)
+        this.peersSockets.delete(peerInfo)
+      }
 
       console.log('peer disconnected')
     })

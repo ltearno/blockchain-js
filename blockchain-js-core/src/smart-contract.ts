@@ -2,6 +2,8 @@ import * as NodeApi from './node-api'
 import * as MinerApi from './miner-api'
 import * as HashTools from './hash-tools'
 import * as SequenceStorage from './sequence-storage'
+import { timingSafeEqual } from 'crypto';
+import { wait } from './test-tools';
 
 /**
  * TODO :
@@ -150,7 +152,32 @@ export class SmartContract {
         return cache.state
     }
 
-    private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
+    private _isUpdatingFromSequence = false
+    private _nextToUpdateFrom: { blockId: string; items: SequenceStorage.SequenceItem[] }[] = null
+    private async updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
+        if (this._isUpdatingFromSequence) {
+            this._nextToUpdateFrom = sequenceItemsByBlock
+            return
+        }
+
+        this._isUpdatingFromSequence = true
+
+        try {
+            await this.realUpdateStatusFromSequence(sequenceItemsByBlock)
+        }
+        catch (error) {
+        }
+
+        this._isUpdatingFromSequence = false
+
+        if (this._nextToUpdateFrom) {
+            let tmp = this._nextToUpdateFrom
+            this._nextToUpdateFrom = null
+            this.updateStatusFromSequence(tmp)
+        }
+    }
+
+    private async realUpdateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
         let state: MachineState
 
         // start from : 'go reverse from the end until finding something in the cache'
