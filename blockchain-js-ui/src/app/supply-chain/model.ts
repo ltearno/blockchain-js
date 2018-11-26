@@ -28,6 +28,7 @@ export interface ArtWork {
     }
     messages: ChatMessage[]
     participations?: { [author: string]: number }
+    serialNumber: number
 }
 
 export function canValidateArtWork(state: ProgramState, artWorkId: string) {

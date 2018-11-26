@@ -267,6 +267,7 @@
             // TODO sanity check
 
             this.data.artWorks[artWork.id] = artWork
+            this.data.artWorks[artWork.id].serialNumber = Object.keys(this.data.artWorks).length
 
             return true
         },
