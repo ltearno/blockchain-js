@@ -7,8 +7,8 @@
  * 
  * TODO:
  * 
- * give pixels by pack of 5
  * numéro d'ordre des artworks
+ * in participations, add also the count of artworks
  * stats by user : # consumed pixels/emojis, # earned pixels/emojis, # consumed own artworks, # consumed other's artworks, # validated artworks, # used artwork by others
  * stats by artwork : # of reuse (by same and other author), # total instances
  */
@@ -19,6 +19,7 @@
     const ACCOUNT_CREATION_NB_PIXEL_PER_PACKET = 20
     const ACCOUNT_CREATION_NB_REDISTRIBUTABLE_ITEMS = 2
     const PARTICIPATION_REDITRIBUTABLE_RATIO = 13
+    const PARTICIPATION_NB_PIXEL_PER_PACKET = 5
 
     const COLOR_COMPONENTS = [0, 84, 138, 192, 255]
     const randomColorComponent = randomFunction => COLOR_COMPONENTS[randomFunction(COLOR_COMPONENTS.length)]
@@ -325,18 +326,23 @@
                     count = 100
                 }
 
-                while (count--) {
+                while (count) {
                     let winnedItemId
-                    if (count % PARTICIPATION_REDITRIBUTABLE_RATIO == (PARTICIPATION_REDITRIBUTABLE_RATIO - 1))
+                    let winnedCount
+                    if (count % PARTICIPATION_REDITRIBUTABLE_RATIO == (PARTICIPATION_REDITRIBUTABLE_RATIO - 1)) {
                         winnedItemId = 'emoji-' + this.data.redistributableItems[random(this.data.redistributableItems.length)]
-                    else
+                        winnedCount = count >= PARTICIPATION_NB_PIXEL_PER_PACKET ? PARTICIPATION_NB_PIXEL_PER_PACKET : count
+                    }
+                    else {
                         winnedItemId = `pixel-${randomColor(random)}`
+                        winnedCount = 1
+                    }
 
                     let inventory = this.data.accounts[userId].inventory
                     if (!inventory[winnedItemId])
-                        inventory[winnedItemId] = 1
+                        inventory[winnedItemId] = winnedCount
                     else
-                        inventory[winnedItemId]++
+                        inventory[winnedItemId] += winnedCount
                 }
             }
         },

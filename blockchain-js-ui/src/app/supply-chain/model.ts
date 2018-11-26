@@ -27,6 +27,7 @@ export interface ArtWork {
         [cellPosition: string]: string // id de l'item `artwork-XXX`, `pixel-XXX`, `emoji-XXX`
     }
     messages: ChatMessage[]
+    participations?: { [author: string]: number }
 }
 
 export function canValidateArtWork(state: ProgramState, artWorkId: string) {

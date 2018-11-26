@@ -18,6 +18,11 @@ export class ArtWorkDetailComponent implements OnDestroy {
     }
 
     artWork: Model.ArtWork = null
+    participations: {
+        id: string
+        pseudo: string
+        count: number
+    }[] = []
 
     @Input()
     artWorkId: string = null
@@ -39,6 +44,16 @@ export class ArtWorkDetailComponent implements OnDestroy {
 
     private updateFromContract() {
         this.artWork = this.state.programState.artWorks[this.artWorkId]
+        if (this.artWork.participations) {
+            this.participations = Object.keys(this.artWork.participations).map(id => ({
+                id,
+                pseudo: this.pseudoOrId(id),
+                count: this.artWork.participations[id]
+            }))
+        }
+        else {
+            this.participations = []
+        }
     }
 
     pseudoOrId(id: string) {

@@ -17,3 +17,13 @@
 </div>
 <input *ngIf='!artWork.validated' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)'
     style='font-size: 80%;'>
+
+<div *ngIf='artWork.participations'>
+    <h2>Partitipations</h2>
+    <table>
+        <tr *ngFor='let participation of participations'>
+            <td>{{ participation.pseudo }}</td>
+            <td>{{ participation.count }}</td>
+        </tr>
+    </table>
+</div>
