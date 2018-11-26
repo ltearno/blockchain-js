@@ -7,7 +7,7 @@
  * 
  * TODO:
  * 
- * numéro d'ordre des artworks
+ * celui qui a gagné le plus d'emotijis
  * in participations, add also the count of artworks
  * stats by user : # consumed pixels/emojis, # earned pixels/emojis, # consumed own artworks, # consumed other's artworks, # validated artworks, # used artwork by others
  * stats by artwork : # of reuse (by same and other author), # total instances
