@@ -332,11 +332,11 @@
                     let winnedCount
                     if (count % PARTICIPATION_REDITRIBUTABLE_RATIO == (PARTICIPATION_REDITRIBUTABLE_RATIO - 1)) {
                         winnedItemId = 'emoji-' + this.data.redistributableItems[random(this.data.redistributableItems.length)]
-                        winnedCount = count >= PARTICIPATION_NB_PIXEL_PER_PACKET ? PARTICIPATION_NB_PIXEL_PER_PACKET : count
+                        winnedCount = 1
                     }
                     else {
                         winnedItemId = `pixel-${randomColor(random)}`
-                        winnedCount = 1
+                        winnedCount = count >= PARTICIPATION_NB_PIXEL_PER_PACKET ? PARTICIPATION_NB_PIXEL_PER_PACKET : count
                     }
 
                     let inventory = this.data.accounts[userId].inventory
@@ -344,6 +344,8 @@
                         inventory[winnedItemId] = winnedCount
                     else
                         inventory[winnedItemId] += winnedCount
+
+                    count -= winnedCount
                 }
             }
         },

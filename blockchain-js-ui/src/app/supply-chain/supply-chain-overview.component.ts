@@ -68,6 +68,8 @@ export class SupplyChainOverviewComponent implements OnDestroy, OnInit {
                 })
             })
 
-        this.artWorksToDisplay = Object.keys(this.state.programState.artWorks).sort()
+        this.artWorksToDisplay = Object.keys(this.state.programState.artWorks).sort((id1, id2) => {
+            return this.state.programState.artWorks[id1].serialNumber > this.state.programState.artWorks[id2].serialNumber ? -1 : 1
+        })
     }
 }
