@@ -39,6 +39,7 @@ export class SupplyChainOverviewComponent implements OnDestroy, OnInit {
 
     artWorksToDisplay = []
     users = []
+    accounts = []
     inventoryNbPixels = 0
     inventoryNbEmojis = 0
 
@@ -59,13 +60,19 @@ export class SupplyChainOverviewComponent implements OnDestroy, OnInit {
             })
 
         this.users = []
+        let accounts = this.state.smartContract.getContractState(this.state.SUPPLY_CHAIN_CONTRACT_ID).accounts
         Object.keys(this.state.programState.accounts)
             .forEach(id => {
-                this.users.push({
+                let data = {
                     id,
                     pseudo: this.state.identities[id].pseudo,
                     publicKey: this.state.identities[id].publicKey
-                })
+                }
+
+                if (accounts[id])
+                    Object.keys(accounts[id]).forEach(key => data[key] = accounts[id][key])
+
+                this.users.push(data)
             })
 
         this.artWorksToDisplay = Object.keys(this.state.programState.artWorks).sort((id1, id2) => {

@@ -33,7 +33,8 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
 
     private smartContractChangeListener = () => {
         this.updateArtWorkFromId()
-        this.changeDetectorRef.detectChanges()
+        if (!this.changeDetectorRef['destroyed'])
+            this.changeDetectorRef.detectChanges()
         this.paint()
     }
 

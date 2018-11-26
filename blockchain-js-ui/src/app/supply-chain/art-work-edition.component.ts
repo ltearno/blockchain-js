@@ -16,7 +16,8 @@ import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants';
 export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     private smartContractChangeListener = () => {
         this.updateFromContract()
-        this.changeDetectorRef.detectChanges()
+        if (!this.changeDetectorRef['destroyed'])
+            this.changeDetectorRef.detectChanges()
         this.paint()
     }
 

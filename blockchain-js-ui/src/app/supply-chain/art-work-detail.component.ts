@@ -14,7 +14,8 @@ import { State } from './state'
 export class ArtWorkDetailComponent implements OnDestroy {
     private smartContractChangeListener = () => {
         this.updateFromContract()
-        this.changeDetectorRef.detectChanges()
+        if (!this.changeDetectorRef['destroyed'])
+            this.changeDetectorRef.detectChanges()
     }
 
     artWork: Model.ArtWork = null

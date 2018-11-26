@@ -20,7 +20,8 @@ export class SupplyChainComponent {
     }
 
     private smartContractChangeListener = () => {
-        this.changeDetectorRef.detectChanges()
+        if (!this.changeDetectorRef['destroyed'])
+            this.changeDetectorRef.detectChanges()
     }
 
     /**
