@@ -226,6 +226,7 @@
                 nbCreatedArtWorks: 0,
                 nbValidatedArtWorks: 0,
                 nbConsumedPixels: 0,
+                nbConsumedArtWorks: 0
             }
 
             console.log(`account ${this.data.accounts[id]} registered!`)
