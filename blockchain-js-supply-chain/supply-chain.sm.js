@@ -9,15 +9,15 @@
  * 
  * celui qui a gagné le plus d'emotijis
  * in participations, add also the count of artworks
- * stats by user : # consumed pixels/emojis, # earned pixels/emojis, # consumed own artworks, # consumed other's artworks, # validated artworks, # used artwork by others
- * stats by artwork : # of reuse (by same and other author), # total instances
+ * stats by user : # consumed pixels/emojis, # earned pixels/emojis, # consumed other's artworks, # validated artworks, # used artwork by others
+ * stats by artwork : # of reuse (by other author), # total apparitions
  */
 ((() => {
     const MAX_GRID_SIZE = 100
 
     const LIMIT_WINNED_COUNT = 1000
     const ACCOUNT_CREATION_NB_PIXELS_PACKETS = 4
-    const ACCOUNT_CREATION_NB_PIXEL_PER_PACKET = 20
+    const ACCOUNT_CREATION_NB_PIXEL_PER_PACKET = 21
     const ACCOUNT_CREATION_NB_REDISTRIBUTABLE_ITEMS = 2
     const PARTICIPATION_REDITRIBUTABLE_RATIO = 13
     const PARTICIPATION_NB_PIXEL_PER_PACKET = 5
@@ -35,12 +35,7 @@
         const participations = {}
 
         Object.values(artWork.grid).forEach(workItemId => {
-            if (workItemId.startsWith('pixel-') || workItemId.startsWith('emoji-')) {
-                if (!participations[artWork.author])
-                    participations[artWork.author] = 0
-                participations[artWork.author]++
-            }
-            else if (workItemId.startsWith('artwork-')) {
+            if (workItemId.startsWith('artwork-')) {
                 const participedArtWork = data.artWorks[workItemId.substr('artwork-'.length)]
                 for (let author in participedArtWork.participations) {
                     if (!participations[author])
@@ -48,8 +43,10 @@
                     participations[author] += participedArtWork.participations[author]
                 }
             }
-            else {
-                console.error(`unkown item id`)
+            else { //if (workItemId.startsWith('pixel-') || workItemId.startsWith('emoji-')) {
+                if (!participations[artWork.author])
+                    participations[artWork.author] = 0
+                participations[artWork.author]++
             }
         })
 
