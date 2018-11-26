@@ -222,7 +222,10 @@
 
             this.data.accounts[id] = {
                 id,
-                inventory: items
+                inventory: items,
+                nbCreatedArtWorks: 0,
+                nbValidatedArtWorks: 0,
+                nbConsumedPixels: 0,
             }
 
             console.log(`account ${this.data.accounts[id]} registered!`)
@@ -268,6 +271,11 @@
 
             this.data.artWorks[artWork.id] = artWork
             this.data.artWorks[artWork.id].serialNumber = Object.keys(this.data.artWorks).length
+
+            if (this.data.accounts[artWork.author].nbCreatedArtWorks)
+                this.data.accounts[artWork.author].nbCreatedArtWorks++
+            else
+                this.data.accounts[artWork.author].nbCreatedArtWorks = 1
 
             return true
         },
@@ -348,6 +356,11 @@
                     count -= winnedCount
                 }
             }
+
+            if (this.data.accounts[artWork.author].nbValidatedArtWorks)
+                this.data.accounts[artWork.author].nbValidatedArtWorks++
+            else
+                this.data.accounts[artWork.author].nbValidatedArtWorks = 1
         },
 
 
