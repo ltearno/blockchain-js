@@ -15,6 +15,7 @@
 ((() => {
     const MAX_GRID_SIZE = 100
 
+    const LIMIT_WINNED_COUNT = 1000
     const ACCOUNT_CREATION_NB_PIXELS_PACKETS = 4
     const ACCOUNT_CREATION_NB_PIXEL_PER_PACKET = 20
     const ACCOUNT_CREATION_NB_REDISTRIBUTABLE_ITEMS = 2
@@ -226,7 +227,10 @@
                 nbCreatedArtWorks: 0,
                 nbValidatedArtWorks: 0,
                 nbConsumedPixels: 0,
-                nbConsumedArtWorks: 0
+                nbConsumedEmojis: 0,
+                nbConsumedArtWorks: 0,
+                nbWinnedPixels: 0,
+                nbWinnedEmojis: 0
             }
 
             console.log(`account ${this.data.accounts[id]} registered!`)
@@ -330,10 +334,10 @@
                     count = Object.values(artWork.grid)
                         .filter(workItemId => workItemId.startsWith('pixel-') || workItemId.startsWith('emoji-'))
                         .length
-                } else if (count > 100) {
+                } else if (count > LIMIT_WINNED_COUNT) {
                     // HARDCODED retribution limit
                     // TODO : reditribute that to the ecology tax
-                    count = 100
+                    count = LIMIT_WINNED_COUNT
                 }
 
                 while (count) {
@@ -342,10 +346,12 @@
                     if (count % PARTICIPATION_REDITRIBUTABLE_RATIO == (PARTICIPATION_REDITRIBUTABLE_RATIO - 1)) {
                         winnedItemId = 'emoji-' + this.data.redistributableItems[random(this.data.redistributableItems.length)]
                         winnedCount = 1
+                        this.data.accounts[userId].nbWinnedEmojis += winnedCount
                     }
                     else {
                         winnedItemId = `pixel-${randomColor(random)}`
                         winnedCount = count >= PARTICIPATION_NB_PIXEL_PER_PACKET ? PARTICIPATION_NB_PIXEL_PER_PACKET : count
+                        this.data.accounts[userId].nbWinnedPixels += winnedCount
                     }
 
                     let inventory = this.data.accounts[userId].inventory
@@ -358,10 +364,19 @@
                 }
             }
 
-            if (this.data.accounts[artWork.author].nbValidatedArtWorks)
-                this.data.accounts[artWork.author].nbValidatedArtWorks++
-            else
-                this.data.accounts[artWork.author].nbValidatedArtWorks = 1
+            Object.values(artWork.grid).forEach(workItemId => {
+                if (workItemId.startsWith('pixel-')) {
+                    this.data.accounts[artWork.author].nbConsumedPixels++
+                }
+                else if (workItemId.startsWith('emoji-')) {
+                    this.data.accounts[artWork.author].nbConsumedEmojis++
+                }
+                else if (workItemId.startsWith('artwork-')) {
+                    this.data.accounts[artWork.author].nbConsumedArtWorks++
+                }
+            })
+
+            this.data.accounts[artWork.author].nbValidatedArtWorks++
         },
 
 
