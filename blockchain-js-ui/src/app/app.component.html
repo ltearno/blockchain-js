@@ -49,7 +49,7 @@
   </div>
 
   <div *ngIf='selectedTab==1'>
-    <div class="container is-fluid">
+    <div class="container is-fluid is-widescreen">
       <div class="field has-addons">
         <p class="control is-expanded">
           <input #minedData class='input' type="text" placeholder='Message to send to blockchain' (keyup.enter)='mine(minedData.value) && minedData.value=""'>
@@ -248,7 +248,7 @@
 <footer id='blockchain-footer' class="footer">
   <div class="container">
     <div class="content has-text-centered">
-      <p>
+      <p style='margin-bottom: 0;'>
         <strong>Blockchain JS</strong> by
         <a href='https://github.com/ltearno'>Arnaud Tournier</a> at
         <a href="https://stack-labs.com">Stack Labs</a>

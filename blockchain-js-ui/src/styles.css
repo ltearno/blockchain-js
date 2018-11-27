@@ -34,3 +34,21 @@ art-work-detail .art-work-icon {
     width: 80%;
     height: initial;
 }
+
+art-work-edition canvas {
+    border:1px solid black;
+    width: 40vw;
+    height: 40vw;
+}
+
+@media screen and (max-width: 1215px) {
+    art-work-summary canvas {
+        width: 90vw;
+        height: 90vw;
+    }
+
+    art-work-edition canvas {
+        width: 90vw;
+        height: 90vw;
+    }
+}

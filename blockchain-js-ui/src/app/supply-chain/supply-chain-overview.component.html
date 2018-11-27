@@ -1,8 +1,8 @@
-<h2>There are {{ users.length }} registered users</h2>
-<h2>Your have ({{ inventoryNbPixels }} pixels and {{ inventoryNbEmojis }} emojis)</h2>
+<!--<h2>There are {{ users.length }} registered users</h2>
+<h2>Your have ({{ inventoryNbPixels }} pixels and {{ inventoryNbEmojis }} emojis)</h2>-->
 
-<h2>Artworks</h2>
-<div>
+<!--<h2>Artworks</h2>-->
+<div style='display: flex;justify-content: center;'>
     <button class='button is-primary' (click)='initArtWorkCreation.emit()'>Create a new Artwork</button>
 </div>
 <div class="artWorks">
@@ -10,8 +10,8 @@
         (select)='selectArtWork.emit($event.id)'></art-work-summary>
 </div>
 
-<h2>Users</h2>
+<!--<h2>Users</h2>
 
 <div *ngFor='let user of users'>
     {{ user | json }}
-</div>
+</div>-->
