@@ -37,8 +37,8 @@ art-work-detail .art-work-icon {
 
 art-work-edition canvas {
     border:1px solid black;
-    width: 40vw;
-    height: 40vw;
+    width: 20em;
+    height: 20em;
 }
 
 @media screen and (max-width: 1215px) {
