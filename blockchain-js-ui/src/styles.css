@@ -74,7 +74,7 @@ art-work-detail .art-work-icon {
     max-height: 80vw;
 }
 
-art-work-edition canvas {
+art-work-edition #canvas {
     border:1px solid black;
     width: 20em;
     height: 20em;
@@ -92,4 +92,8 @@ art-work-edition canvas {
         height: 90vh;
         max-height: 90vw;
     }
+}
+
+.inventory>div{
+    border: 1px solid transparent;
 }

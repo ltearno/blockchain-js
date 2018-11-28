@@ -20,7 +20,21 @@
     </div>
 </div>
 
-<canvas #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()' (click)='mouseClick($event)'></canvas>
+<canvas id='canvas' #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()' (click)='mouseClick($event)'></canvas>
+
+<div *ngIf='artWork.messages'>
+    <div *ngFor='let message of artWork.messages'>
+        <i>{{ pseudoOrId(message.author) }} :</i> {{ message.text }}
+    </div>
+</div>
+<input *ngIf='!artWork.validated' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)'
+    style='font-size: 80%;'>
+
+<div>
+    <button class="button" (click)='cancel.emit()'>Back</button><br />
+    <button *ngIf="canValidate" class="button is-primary" (click)='validate.emit()'>Validate</button><br />
+    <span *ngIf='!canValidate'>Cannot validate because not all sub artworks are validated.</span>
+</div>
 
 <h2>Your items ({{ inventoryNbItems }} items in {{ inventory.length }} categories)</h2>
 <div class="inventory">
@@ -36,17 +50,3 @@
         <art-work-icon [artWorkId]='itemId' (selected)='selectOthersInventory(itemId)'></art-work-icon>
     </div>
 </div>
-
-<div>
-    <button class="button" (click)='cancel.emit()'>Back</button><br />
-    <button *ngIf="canValidate" class="button is-primary" (click)='validate.emit()'>Validate</button><br />
-    <span *ngIf='!canValidate'>Cannot validate because not all sub artworks are validated.</span>
-</div>
-
-<div *ngIf='artWork.messages'>
-    <div *ngFor='let message of artWork.messages'>
-        <i>{{ pseudoOrId(message.author) }} :</i> {{ message.text }}
-    </div>
-</div>
-<input *ngIf='!artWork.validated' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)'
-    style='font-size: 80%;'>
