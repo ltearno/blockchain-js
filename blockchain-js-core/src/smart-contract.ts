@@ -155,6 +155,16 @@ export class SmartContract {
 
     private updateSequencer = new TestTools.CallSerializer(async (sequenceItemsByBlock) => { await this.realUpdateStatusFromSequence(sequenceItemsByBlock) })
 
+    private hasNewThingForListeners = false
+    private listenerCallbackSequencer = new TestTools.CallSerializer(async (_) => {
+        this.hasNewThingForListeners = false
+        for (let listener of this.listeners) {
+            if (this.hasNewThingForListeners)
+                return
+            listener()
+        }
+    })
+
     private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
         this.updateSequencer.pushData(sequenceItemsByBlock)
     }
@@ -348,16 +358,8 @@ export class SmartContract {
             }
         }
 
-        /*if (false) {
-            for (let [contractUuid, contractState] of state.contracts.entries()) {
-                console.log(``)
-                console.log(`Smart contract ${contractUuid}, current iteration : ${contractState.currentContractIterationId}`)
-                console.log(`pubKey : ${contractState.contractPublicKey.substr(0, 20)}`)
-                console.log(`instance resolved state: ${JSON.stringify(contractState.instanceData, null, 2)}`)
-            }
-        }*/
-
-        this.listeners.forEach(listener => listener())
+        this.hasNewThingForListeners = true
+        setTimeout(() => this.listenerCallbackSequencer.pushData(), 0)
     }
 
     /**
@@ -378,7 +380,7 @@ export class SmartContract {
             throw `method ${method} does not exist on contract, cannot apply`
 
         // make a copy of the current state
-        let backup = null//JSON.stringify(contractState.instanceData)
+        let backup = JSON.stringify(contractState.instanceData)
 
         try {
             args = args != null ? JSON.parse(JSON.stringify(args)) : args
