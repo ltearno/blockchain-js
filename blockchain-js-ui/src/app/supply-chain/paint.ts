@@ -165,12 +165,10 @@ function resetCache() {
 
 function drawWorkItemInternal(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, currentAuthor: string, options: Options) {
     if (id.startsWith('pixel-')) {
-        if (!options || !options.filterAuthor || options.filterAuthor == currentAuthor)
-            drawPixel(id.substr('pixel-'.length), width, height, ctx)
+        drawPixel(id.substr('pixel-'.length), width, height, ctx, options && options.filterAuthor && options.filterAuthor != currentAuthor)
     }
     else if (id.startsWith('emoji-')) {
-        if (!options || !options.filterAuthor || options.filterAuthor == currentAuthor)
-            drawEmoji(id.substr('emoji-'.length), width, height, ctx)
+        drawEmoji(id.substr('emoji-'.length), width, height, ctx, options && options.filterAuthor && options.filterAuthor != currentAuthor)
     }
     else if (id.startsWith('artwork-')) {
         drawArtWorkSync(state, id.substr('artwork-'.length), width, height, ctx, options)
@@ -189,6 +187,13 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
         return
     }
 
+    if (options && options.filterAuthor && options.filterAuthor != artWork.author) {
+        ctx.fillStyle = 'rgba(0,0,0,.1)'
+        ctx.strokeStyle = 'rgba(0,0,0,.1)'
+        ctx.lineJoin = "round"
+        ctx.strokeRect(0, 0, width, height)
+    }
+
     Object.entries(artWork.grid).forEach(([cellId, workItemId]) => {
         if (!workItemId)
             return
@@ -203,12 +208,6 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
         ctx.restore()
     })
 
-    if (options && options.filterAuthor && options.filterAuthor == artWork.author) {
-        ctx.lineWidth = CW / 10
-        ctx.strokeStyle = 'rgba(0,0,0,.8)'
-        ctx.strokeRect(0, 0, width, height)
-    }
-
     if (!artWork.validated) {
         ctx.lineWidth = CW / 7
         ctx.strokeStyle = 'rgba(235,201,67,.8)'
@@ -219,11 +218,17 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
     }
 }
 
-function drawPixel(color: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
+function drawPixel(color: string, width: number, height: number, ctx: CanvasRenderingContext2D, fade: boolean) {
     const MARGIN = width / 15
 
-    ctx.fillStyle = color
-    ctx.strokeStyle = color
+    if (fade) {
+        ctx.fillStyle = 'rgba(0,0,0,.1)'
+        ctx.strokeStyle = 'rgba(0,0,0,.1)'
+    }
+    else {
+        ctx.fillStyle = color
+        ctx.strokeStyle = color
+    }
     ctx.lineJoin = "round"
     ctx.lineWidth = width / 8
 
@@ -239,7 +244,7 @@ function drawPixel(color: string, width: number, height: number, ctx: CanvasRend
     ctx.fill()
 }
 
-function drawEmoji(text: string, width: number, height: number, ctx: CanvasRenderingContext2D) {
+function drawEmoji(text: string, width: number, height: number, ctx: CanvasRenderingContext2D, fade: boolean) {
     ctx.fillStyle = 'black'
     ctx.font = `${Math.min(width, height) * .64}px Verdana`
 
