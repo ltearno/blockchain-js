@@ -124,6 +124,7 @@ art-work-edition #canvas {
     }
 
     .card-image canvas {
-        border: 1px solid black;
+        border: 1px dashed grey;
+        padding: .2em;
     }
 }
