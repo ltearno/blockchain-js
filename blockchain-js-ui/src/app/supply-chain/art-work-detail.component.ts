@@ -18,6 +18,8 @@ export class ArtWorkDetailComponent implements OnDestroy {
             this.changeDetectorRef.detectChanges()
     }
 
+    filterAuthor = null
+
     artWork: Model.ArtWork = null
     participations: {
         id: string
