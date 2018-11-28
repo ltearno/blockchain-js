@@ -37,7 +37,7 @@ export class NodeServer {
         app.ws('/events', (ws, req) => {
             this.nbEventsWebSockets++
 
-            console.log(`closed ws (${this.nbEventsWebSockets})`)
+            console.log(`opened ws (${this.nbEventsWebSockets})`)
 
             let connector = new WebSocketConnector.WebSocketConnector(this.node, ws)
             this.newPeersReceiver(connector)
