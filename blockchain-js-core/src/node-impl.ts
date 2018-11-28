@@ -308,6 +308,7 @@ export class NodeImpl implements NodeApi.NodeApi {
                     headBlockId: this.blockChainHeadSync(branch)
                 }))
             })
+            this.lastHeadEvents.clear()
             this.notifyTimeout = null
         }, 0)
     }
