@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, ViewChild, AfterViewInit } from '@angular/core'
 import {
   Block,
   FullNode,
@@ -27,6 +27,9 @@ function sleep(time: number) {
   providers: [State]
 })
 export class AppComponent {
+  @ViewChild("mainElement")
+  mainElement
+
   // To save
   encryptMessages = false
   encryptionKey = this.guid()
@@ -49,6 +52,13 @@ export class AppComponent {
   private peersSockets = new Map<FullNode.PeerInfo, { ws: NetworkApi.WebSocket, isSelfInitiated: boolean, counterpartyId: string }>()
 
   private decypherCache = new Map<string, string>()
+
+  toggleFullScreen() {
+    if (this.mainElement.nativeElement.requestFullscreen)
+      this.mainElement.nativeElement.requestFullscreen()
+    else if (this.mainElement.nativeElement.webkitRequestFullScreen)
+      this.mainElement.nativeElement.webkitRequestFullScreen()
+  }
 
   toggleExpandedUi() {
     this.expandedUi = !this.expandedUi

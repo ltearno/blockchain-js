@@ -11,9 +11,18 @@
       </div>
     </div>
   </div>
+  <div class="navbar-end">
+    <div class="navbar-item">
+      <a (click)='toggleFullScreen()' class='is-small'>
+        <span class="icon is-small">
+          <i class="mdi mdi-fullscreen"></i>
+        </span>
+      </a>
+    </div>
+  </div>
 </nav>
 
-<section id='blockchain-main' class='section'>
+<section #mainElement id='blockchain-main' class='section'>
   <div class="tabs" [class.expanded]="expandedUi">
     <ul>
       <li [class.is-active]='selectedTab==5' (click)='selectTab(5)'>

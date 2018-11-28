@@ -1,3 +1,7 @@
+body {
+    background-color: white;
+}
+
 .welcome p {
     padding-top: .5em;
     padding-bottom: .5em;
