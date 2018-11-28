@@ -1,3 +1,11 @@
+#blockchain-nav {
+    background-color: burlywood;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
 body {
     background-color: white;
 }
