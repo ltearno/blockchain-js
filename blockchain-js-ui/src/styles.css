@@ -97,3 +97,29 @@ art-work-edition #canvas {
 .inventory>div{
     border: 1px solid transparent;
 }
+
+@media print {
+    body, figure.artWork-icon, div.artWorks, supply-chain-overview, supply-chain {
+        display: block !important;
+    }
+
+    #blockchain-nav, nav, button, .button, footer, .tabs {
+        display: none !important;
+    }
+
+    art-work-summary canvas {
+        width: 26vw !important;
+        height: 26vw !important;
+    }
+
+    .artWork-card {
+        display: inline-block;
+    }
+
+    .card-image, canvas, art-work-summary {
+        position: relative !important;
+        -webkit-column-break-inside: avoid !important;
+          page-break-inside: avoid !important;
+               break-inside: avoid !important;
+    }
+}

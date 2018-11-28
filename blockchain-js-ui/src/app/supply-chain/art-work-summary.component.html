@@ -4,9 +4,10 @@
             <canvas #canvas></canvas>
         </figure>
     </div>
-    <div *ngIf='!artWork.validated'>🚧 👷 In progress 👷 🚧</div>
 
-    <div *ngIf='artWork.author==state.user.id'>
+    <div *ngIf='artWork && !artWork.validated'>🚧 👷 In progress 👷 🚧</div>
+
+    <div *ngIf='artWork && artWork.author==state.user.id'>
         <button *ngIf='!artWork.validated' class='button' (click)='edit.emit(artWork)'>Edit</button>
         <button *ngIf='!artWork.validated && canValidate' class='button is-primary' (click)='validate()'>Validate</button>
     </div>
