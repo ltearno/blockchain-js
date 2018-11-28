@@ -27,8 +27,7 @@ export function clear(width: number, height: number, ctx: CanvasRenderingContext
     if (!ctx)
         return
 
-    ctx.fillStyle = 'white'
-    ctx.fillRect(0, 0, width, height)
+    ctx.clearRect(0,0,width,height)
 }
 
 function resetCache() {
@@ -106,19 +105,6 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
         ctx.restore()
     })
 
-    /*for (let i = 0; i < artWork.size.width; i++) {
-        for (let j = 0; j < artWork.size.height; j++) {
-            let workItemId = artWork.grid[`${j * artWork.size.width + i}`]
-
-            if (workItemId) {
-                ctx.save()
-                ctx.translate(i * CW, j * CH)
-                drawWorkItemInternal(state, workItemId, CW, CH, ctx)
-                ctx.restore()
-            }
-        }
-    }*/
-
     if (!artWork.validated) {
         ctx.lineWidth = CW / 7
         ctx.strokeStyle = 'rgba(235,201,67,.8)'
@@ -136,6 +122,7 @@ function drawPixel(color: string, width: number, height: number, ctx: CanvasRend
     ctx.strokeStyle = color
     ctx.lineJoin = "round"
     ctx.lineWidth = width / 8
+    
     ctx.beginPath()
     ctx.moveTo(MARGIN, MARGIN)
     ctx.lineTo(width - MARGIN - 1, MARGIN)
@@ -143,6 +130,7 @@ function drawPixel(color: string, width: number, height: number, ctx: CanvasRend
     ctx.lineTo(MARGIN, height - MARGIN - 1)
     ctx.lineTo(MARGIN, MARGIN)
     ctx.closePath()
+
     ctx.stroke()
     ctx.fill()
 }

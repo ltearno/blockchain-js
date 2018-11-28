@@ -36,6 +36,7 @@ export class AppComponent {
   desiredNbIncomingPeers = 3
   desiredNbOutgoingPeers = 3
   autoSave = true
+  autoConnectNaturalPeer = true
   miningDifficulty = 100
 
   expandedUi = false
@@ -101,11 +102,15 @@ export class AppComponent {
 
     this.ensureUser()
 
-    this.connectToNaturalRemoteNode()
-    this.connectToRemoteMiner()
-    setInterval(() => {
+    if (this.autoConnectNaturalPeer) {
       this.connectToNaturalRemoteNode()
       this.connectToRemoteMiner()
+    }
+    setInterval(() => {
+      if (this.autoConnectNaturalPeer) {
+        this.connectToNaturalRemoteNode()
+        this.connectToRemoteMiner()
+      }
     }, 5000)
   }
 
@@ -348,6 +353,7 @@ export class AppComponent {
 
   clearStorageAndReload() {
     this.autoSave = false
+    this.autoConnectNaturalPeer = false
     localStorage.clear()
     window.location.reload(true)
   }
@@ -372,7 +378,8 @@ export class AppComponent {
       desiredNbIncomingPeers: this.desiredNbIncomingPeers,
       desiredNbOutgoingPeers: this.desiredNbOutgoingPeers,
       miningDifficulty: this.miningDifficulty,
-      autoSave: this.autoSave
+      autoSave: this.autoSave,
+      autoConnectNaturalPeer: this.autoConnectNaturalPeer
     }
 
     localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings))
@@ -410,6 +417,9 @@ export class AppComponent {
 
       if (settings.miningDifficulty)
         this.miningDifficulty = settings.miningDifficulty
+
+      if (settings.autoConnectNaturalPeer !== undefined)
+        this.autoConnectNaturalPeer = settings.autoConnectNaturalPeer
 
       this.autoSave = !!settings.autoSave
 
