@@ -39,6 +39,14 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
     disablePaintCache: boolean = false
 
     @Input()
+    set filterAuthor(value: string) {
+        this._filterAuthor = value
+        this.paint()
+    }
+
+    private _filterAuthor: string = null
+
+    @Input()
     set artWorkId(artWorkId) {
         this._artWorkId = artWorkId
 
@@ -72,6 +80,9 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
             this.disablePaintCache ? 1000 : 100,
             this.disablePaintCache ? 1000 : 100,
             this.context,
-            { disablePaintCache: this.disablePaintCache })
+            {
+                cacheSize: this.disablePaintCache ? 1000 : null,
+                filterAuthor: this._filterAuthor
+            })
     }
 }

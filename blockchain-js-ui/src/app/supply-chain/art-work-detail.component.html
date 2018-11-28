@@ -6,7 +6,7 @@
     </div>
 </div>
 
-<art-work-icon [artWorkId]='"artwork-"+artWork.id' [disablePaintCache]='true'></art-work-icon>
+<art-work-icon [artWorkId]='"artwork-"+artWork.id' [disablePaintCache]='true' [filterAuthor]='filterAuthor'></art-work-icon>
 
 <div>
     <button class='button is-primary' (click)='cancel.emit()'>Back</button>
@@ -23,7 +23,7 @@
 <div *ngIf='artWork.participations'>
     <h2>Partitipations</h2>
     <table>
-        <tr *ngFor='let participation of participations'>
+        <tr *ngFor='let participation of participations' (mouseenter)='filterAuthor=participation.id' (mouseleave)='filterAuthor=null'>
             <td>{{ participation.pseudo }} : </td>
             <td> {{ participation.count }}</td>
         </tr>

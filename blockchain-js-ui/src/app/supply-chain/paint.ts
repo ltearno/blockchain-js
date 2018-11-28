@@ -8,7 +8,7 @@ interface BackBuffer {
     ctx: CanvasRenderingContext2D
 }
 
-let backCanvasMap = new Map<string, BackBuffer>()
+let backCanvasMap = new Map<any, Map<string, BackBuffer>>()
 
 let orders = []
 let waitBeforeClear = false
@@ -105,31 +105,47 @@ export function clearSync(width: number, height: number, ctx: CanvasRenderingCon
 
 export function drawWorkItemSync(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, options: Options = null) {
     clearSync(width, height, ctx)
-    drawWorkItemInternal(state, id, width, height, ctx, options)
+    drawWorkItemInternal(state, id, width, height, ctx, null, options)
 }
 
 export function drawArtWorkSync(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, options: Options = null) {
     if (USE_BACK_CACHE && !(options && options.disablePaintCache)) {
-        if (backCanvasMap.has(artWorkId)) {
-            ctx.drawImage(backCanvasMap.get(artWorkId).canvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
+        let cacheSize
+        if (options && options.cacheSize)
+            cacheSize = options.cacheSize
+        else
+            cacheSize = CANVAS_BASE_WIDTH
+
+        let cacheKey = cacheSize
+        if (options && options.filterAuthor)
+            cacheKey = options.filterAuthor + '-' + cacheKey
+
+        let cache = backCanvasMap.get(cacheKey)
+        if (!cache) {
+            cache = new Map()
+            backCanvasMap.set(cacheKey, cache)
+        }
+
+        if (cache.has(artWorkId)) {
+            ctx.drawImage(cache.get(artWorkId).canvas, 0, 0, cacheSize, cacheSize, 0, 0, width, height)
         }
         else {
             // create back canvas
             let backCanvas = document.createElement('canvas')
-            backCanvas.width = CANVAS_BASE_WIDTH
-            backCanvas.height = CANVAS_BASE_HEIGHT
+            backCanvas.width = cacheSize
+            backCanvas.height = cacheSize
             let backCtx = backCanvas.getContext('2d')
-            backCanvasMap.set(artWorkId, {
+            cache.set(artWorkId, {
                 canvas: backCanvas,
                 ctx: backCtx
             })
 
             // draw in the cache
-            clearSync(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx)
-            drawArtWorkInternal(state, artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx, options)
+            //clearSync(cacheSize, cacheSize, backCtx)
+            drawArtWorkInternal(state, artWorkId, cacheSize, cacheSize, backCtx, options)
 
             // draw from cache
-            ctx.drawImage(backCanvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
+            ctx.drawImage(backCanvas, 0, 0, cacheSize, cacheSize, 0, 0, width, height)
         }
     }
     else {
@@ -139,18 +155,22 @@ export function drawArtWorkSync(state: Model.ProgramState, artWorkId: string, wi
 
 export interface Options {
     disablePaintCache?: boolean
+    cacheSize?: number
+    filterAuthor?: string
 }
 
 function resetCache() {
     backCanvasMap.clear()
 }
 
-function drawWorkItemInternal(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, options: Options) {
+function drawWorkItemInternal(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, currentAuthor: string, options: Options) {
     if (id.startsWith('pixel-')) {
-        drawPixel(id.substr('pixel-'.length), width, height, ctx)
+        if (!options || options.filterAuthor == currentAuthor)
+            drawPixel(id.substr('pixel-'.length), width, height, ctx)
     }
     else if (id.startsWith('emoji-')) {
-        drawEmoji(id.substr('emoji-'.length), width, height, ctx)
+        if (!options || options.filterAuthor == currentAuthor)
+            drawEmoji(id.substr('emoji-'.length), width, height, ctx)
     }
     else if (id.startsWith('artwork-')) {
         drawArtWorkSync(state, id.substr('artwork-'.length), width, height, ctx, options)
@@ -179,9 +199,15 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
 
         ctx.save()
         ctx.translate(i * CW, j * CH)
-        drawWorkItemInternal(state, workItemId, CW, CH, ctx, options)
+        drawWorkItemInternal(state, workItemId, CW, CH, ctx, artWork.author, options)
         ctx.restore()
     })
+
+    if (options && options.filterAuthor == artWork.author) {
+        ctx.lineWidth = CW / 10
+        ctx.strokeStyle = 'rgba(0,0,0,.8)'
+        ctx.strokeRect(0, 0, width, height)
+    }
 
     if (!artWork.validated) {
         ctx.lineWidth = CW / 7
