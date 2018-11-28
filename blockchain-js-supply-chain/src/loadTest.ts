@@ -37,14 +37,14 @@ async function run() {
 
         peerInfo.fullNodePeerInfo = fullNode.addPeer(peerNode.remoteFacade(), `peer added through REST: ${peer.address}:${peer.port}`)
 
-        console.log(`finished`)
+        console.log(`node connected and linked`)
     }
     catch (error) {
         console.log(`error connecting to peer ${JSON.stringify(peer)}`)
     }
 }
 
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 5; i++) {
     run()
 }
 

@@ -64,6 +64,8 @@ export class NodeTransfer {
         this.knownNodes.push(nodeInfo)
 
         remoteNode.addEventListener('head', nodeInfo.listener)
+
+        console.log(`added remote node for transfer`)
     }
 
     private async triggerLoadFromRemoteNode(nodeInfo: NodeInfo) {
