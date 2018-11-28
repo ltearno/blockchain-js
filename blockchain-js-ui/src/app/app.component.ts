@@ -36,6 +36,7 @@ export class AppComponent {
   autoSave = true
   miningDifficulty = 100
 
+  expandedUi = false
   selectedTab = 5
 
   isMining = false
@@ -48,6 +49,10 @@ export class AppComponent {
   private peersSockets = new Map<FullNode.PeerInfo, { ws: NetworkApi.WebSocket, isSelfInitiated: boolean, counterpartyId: string }>()
 
   private decypherCache = new Map<string, string>()
+
+  toggleExpandedUi() {
+    this.expandedUi = !this.expandedUi
+  }
 
   selectTab(i) {
     this.selectedTab = i

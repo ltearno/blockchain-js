@@ -1,4 +1,4 @@
-<nav id='blockchain-nav' class="navbar" role="navigation" aria-label="main navigation">
+<nav id='blockchain-nav' class="navbar" role="navigation" aria-label="main navigation" (click)="toggleExpandedUi()">
   <div class="navbar-brand has-text-grey">
     <div class="navbar-item level">
       <div class="level-item">
@@ -13,7 +13,7 @@
 </nav>
 
 <section id='blockchain-main' class='section'>
-  <div class="tabs">
+  <div class="tabs" [class.expanded]="expandedUi">
     <ul>
       <li [class.is-active]='selectedTab==5' (click)='selectTab(5)'>
         <a>Production</a>
@@ -34,17 +34,56 @@
   </div>
 
   <div *ngIf='state.user && state.hasIdentityContract && !state.registeredPseudo'>
-    <div class="container is-fluid">
-      <div class="field has-addons">
-        <p class="control is-expanded">
-          <input #pseudo class='input' type="text" placeholder='Choose a pseudo' (keyup.enter)='setPseudo(pseudo.value)'>
-        </p>
-        <p class="control">
-          <button (click)='setPseudo(pseudo.value)' class='button has-icon-left'>
-            <i class='mdi mdi-cloud-upload'></i> Enter pseudo
-          </button>
-        </p>
-      </div>
+    <div class="container welcome">
+      <h2>
+        Hi and welcome !
+      </h2>
+      <p>
+        This software is a metaphore of the supply chain through the use of blockchain technology.
+      </p>
+      <p>
+        Your internet browser is becoming a blockchain node with smart contract and cryptography technologies.
+        This means that :
+        <ul>
+          <li>There is <b>no central server</b>, your browser is in possession of the same data as all other nodes (and
+            connected to others by peer-to-peer technology),</li>
+          <li>Data is secured by the group and not a central third party : <b>everything is transparent and verifiable</b>
+            by everybody.</li>
+          <li>The rules of the game are applied and controlled by you and every connected actor, <b>no one can cheat or
+              hide</b> <i>(as long as there are no exploitable bugs in the software)</i>.
+            Especially, retributions are applied <b>automatically and securely</b>.</li>
+        </ul>
+        <p>
+          The metaphore of the supply chain is this :
+          <ul>
+            <li>When set up, you will get some pixels and emojis in your inventory.</li>
+            <li>You will draw artworks from pixels, emojis and other people's artworks.</li>
+            <li>People can start to use your artwork in theirs.</li>
+            <li>You can change your artwork until you <i>validate</i> it.</li>
+            <li>But you cannot validate it if your artwork uses another artwork that is not validated.</li>
+            <li>When you validate your artwork, you and others get retributions :
+              <ul>
+                <li>Each pixel or emoji you use will be given back in the form of other pixels and emojis (notice that
+                  you don't loose any items, because your <i>creativity</i> has got no limit).</li>
+                <li>Each pixel or emoji coming from other's artworks give the author a random pixel or emoji back. This
+                  is the metaphor of the <i>copyright</i>.</li>
+              </ul>
+              Notice that retributions are applied and controlled by the blockchain algorithm, there can be <b>no cheat
+                here</b> !
+            </li>
+          </ul>
+          This means that you never loose creating something or using someone else's creation, and you gain revenues
+          when others use your work !
+          <div class="field has-addons">
+            <p class="control is-expanded">
+              <input #pseudo class='input' type="text" placeholder='Choose a pseudo' (keyup.enter)='setPseudo(pseudo.value)'>
+            </p>
+            <p class="control">
+              <button (click)='setPseudo(pseudo.value)' class='button has-icon-left'>
+                Set your pseudo
+              </button>
+            </p>
+          </div>
     </div>
   </div>
 
@@ -250,13 +289,15 @@
     <div class="content has-text-centered">
       <p style='margin-bottom: 0;'>
         <strong>Blockchain JS</strong> by
-        <a href='https://github.com/ltearno'>Arnaud Tournier</a> at
+        <a href='https://github.com/ltearno'>Arnaud</a> <a href="https://fr.linkedin.com/in/lteconsulting">Tournier</a>
+        at
         <a href="https://stack-labs.com">Stack Labs</a>
       </p>
       <p>
-        <span *ngIf='state.isLoading()' style='color:green;'>loading - </span>
-        <span>{{state.fullNode.node.blockCount}} blocks</span>
-        <span> - {{state.currentHead}}</span>
+        <span *ngIf='state.isLoading()' style='color:green;'>Loading - </span>
+        <span *ngIf='!state.fullNode.node.blockCount'>Empty blockchain</span>
+        <span *ngIf='state.fullNode.node.blockCount'>{{state.fullNode.node.blockCount}} blocks</span>
+        <span *ngIf='state.currentHead'> - {{state.currentHead}}</span>
         <span *ngIf='autoMining' style='color:green;'> - auto-mining enabled</span>
       </p>
     </div>

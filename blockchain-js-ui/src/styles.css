@@ -1,3 +1,21 @@
+.welcome p {
+    padding-top: .5em;
+    padding-bottom: .5em;
+}
+
+.welcome ul {
+    list-style: circle;
+    padding-left: 1.5em;
+}
+
+.tabs {
+    display: none;   
+}
+
+.tabs.expanded {
+    display: initial;
+}
+
 .artWorks {
     display: flex;
     flex-wrap: wrap;

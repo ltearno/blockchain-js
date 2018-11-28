@@ -1,4 +1,4 @@
-<div *ngIf='!state.hasSupplyChainAccount'>
+<div *ngIf='!state.hasSupplyChainAccount' class="container">
     <h2>Loading blocks and initializing the Supply Chain, please wait...</h2>
     <div>User : {{ state.user != null ? '✔️' : '❌' }}</div>
     <div>RSA keys : {{ state.user?.keys != null ? '✔️' : '❌' }}</div>
