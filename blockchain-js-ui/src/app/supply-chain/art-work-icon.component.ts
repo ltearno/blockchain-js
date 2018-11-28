@@ -66,6 +66,12 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
     }
 
     private paint() {
-        this._artWorkId && this.context && Paint.drawWorkItem(this.state.programState, this._artWorkId, this.disablePaintCache ? 1000 : 100, this.disablePaintCache ? 1000 : 100, this.context, this.disablePaintCache)
+        this._artWorkId && this.context && Paint.drawWorkItem(
+            this.state.programState,
+            this._artWorkId,
+            this.disablePaintCache ? 1000 : 100,
+            this.disablePaintCache ? 1000 : 100,
+            this.context,
+            { disablePaintCache: this.disablePaintCache })
     }
 }

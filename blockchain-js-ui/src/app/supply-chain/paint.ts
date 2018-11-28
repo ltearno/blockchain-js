@@ -59,7 +59,7 @@ export function clear(width: number, height: number, ctx: CanvasRenderingContext
     })
 }
 
-export function drawWorkItem(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, disablePaintCache: boolean = false) {
+export function drawWorkItem(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, options: Options = null) {
     addFrame({
         f: drawWorkItemSync,
         args: [
@@ -68,12 +68,12 @@ export function drawWorkItem(state: Model.ProgramState, id: string, width: numbe
             width,
             height,
             ctx,
-            disablePaintCache
+            options
         ]
     })
 }
 
-export function drawArtWork(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, disablePaintCache: boolean = false) {
+export function drawArtWork(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, options: Options = null) {
     addFrame({
         f: drawArtWorkSync,
         args: [
@@ -82,12 +82,10 @@ export function drawArtWork(state: Model.ProgramState, artWorkId: string, width:
             width,
             height,
             ctx,
-            disablePaintCache
+            options
         ]
     })
 }
-
-
 
 export function drawCellSync(artWork: Model.ArtWork, i: number, j: number, width: number, height: number, ctx: CanvasRenderingContext2D) {
     const CW = width / artWork.size.width
@@ -105,13 +103,13 @@ export function clearSync(width: number, height: number, ctx: CanvasRenderingCon
     ctx.clearRect(0, 0, width, height)
 }
 
-export function drawWorkItemSync(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, disablePaintCache: boolean = false) {
+export function drawWorkItemSync(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, options: Options = null) {
     clearSync(width, height, ctx)
-    drawWorkItemInternal(state, id, width, height, ctx, disablePaintCache)
+    drawWorkItemInternal(state, id, width, height, ctx, options)
 }
 
-export function drawArtWorkSync(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, disablePaintCache: boolean = false) {
-    if (USE_BACK_CACHE && !disablePaintCache) {
+export function drawArtWorkSync(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, options: Options = null) {
+    if (USE_BACK_CACHE && !(options && options.disablePaintCache)) {
         if (backCanvasMap.has(artWorkId)) {
             ctx.drawImage(backCanvasMap.get(artWorkId).canvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
         }
@@ -128,22 +126,26 @@ export function drawArtWorkSync(state: Model.ProgramState, artWorkId: string, wi
 
             // draw in the cache
             clearSync(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx)
-            drawArtWorkInternal(state, artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx, disablePaintCache)
+            drawArtWorkInternal(state, artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, backCtx, options)
 
             // draw from cache
             ctx.drawImage(backCanvas, 0, 0, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, 0, 0, width, height)
         }
     }
     else {
-        drawArtWorkInternal(state, artWorkId, width, height, ctx, disablePaintCache)
+        drawArtWorkInternal(state, artWorkId, width, height, ctx, options)
     }
+}
+
+export interface Options {
+    disablePaintCache?: boolean
 }
 
 function resetCache() {
     backCanvasMap.clear()
 }
 
-function drawWorkItemInternal(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, disablePaintCache: boolean) {
+function drawWorkItemInternal(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, options: Options) {
     if (id.startsWith('pixel-')) {
         drawPixel(id.substr('pixel-'.length), width, height, ctx)
     }
@@ -151,11 +153,11 @@ function drawWorkItemInternal(state: Model.ProgramState, id: string, width: numb
         drawEmoji(id.substr('emoji-'.length), width, height, ctx)
     }
     else if (id.startsWith('artwork-')) {
-        drawArtWorkSync(state, id.substr('artwork-'.length), width, height, ctx, disablePaintCache)
+        drawArtWorkSync(state, id.substr('artwork-'.length), width, height, ctx, options)
     }
 }
 
-function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, disablePaintCache: boolean) {
+function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, options: Options) {
     const artWork = state.artWorks[artWorkId]
     if (!artWork || !artWork.grid)
         return
@@ -177,7 +179,7 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
 
         ctx.save()
         ctx.translate(i * CW, j * CH)
-        drawWorkItemInternal(state, workItemId, CW, CH, ctx, disablePaintCache)
+        drawWorkItemInternal(state, workItemId, CW, CH, ctx, options)
         ctx.restore()
     })
 
