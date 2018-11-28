@@ -121,5 +121,6 @@ art-work-edition #canvas {
         -webkit-column-break-inside: avoid !important;
           page-break-inside: avoid !important;
                break-inside: avoid !important;
+        border: 1px solid black;
     }
 }
