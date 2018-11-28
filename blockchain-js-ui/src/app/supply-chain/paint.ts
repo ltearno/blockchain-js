@@ -12,10 +12,14 @@ let backCanvasMap = new Map<string, BackBuffer>()
 
 let orders = []
 let waitBeforeClear = false
+let requested = false
 
 const onFrame = () => {
+    requested = false
+
+    let poolSize = 20
     while (orders.length) {
-        if (!waitBeforeClear && orders[0].f == clearSync) {
+        if (!waitBeforeClear && orders[0].f == clearSync && (poolSize-- <= 0)) {
             waitBeforeClear = true
             break
         }
@@ -25,15 +29,19 @@ const onFrame = () => {
         f.call(null, ...args)
     }
 
-    if (orders.length)
+    if (orders.length && !requested) {
+        requested = true
         requestAnimationFrame(onFrame)
+    }
 }
 
 const addFrame = (obj) => {
     orders.push(obj)
-    
-    if (orders.length == 1)
+
+    if (!requested) {
+        requested = true
         requestAnimationFrame(onFrame)
+    }
 }
 
 export function setSmartProgram(smartContract) {
