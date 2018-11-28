@@ -54,7 +54,9 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
         this.inventoryNbItems = 0
         this.inventory.forEach(item => this.inventoryNbItems += item.count)
 
-        this.othersInventory = Object.keys(this.state.programState.artWorks).filter(artWorkId => artWorkId != this.artWorkId).sort().map(artWorkId => `artwork-${artWorkId}`)
+        this.othersInventory = Object.keys(this.state.programState.artWorks).filter(artWorkId => artWorkId != this.artWorkId).sort((id1, id2) => {
+            return this.state.programState.artWorks[id1].serialNumber > this.state.programState.artWorks[id2].serialNumber ? -1 : 1
+        }).map(artWorkId => `artwork-${artWorkId}`)
 
         this.canValidate = Model.canValidateArtWork(this.state.programState, this.artWorkId)
     }

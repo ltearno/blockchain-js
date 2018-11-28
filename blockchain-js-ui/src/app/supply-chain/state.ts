@@ -235,58 +235,58 @@ export class State {
     }
 
     private async registerIdentity() {
-        let callLater = true
+        let callLater = 1
 
         if (this.isLoading()) {
-            console.log(`registerIdentity : wait loading finished`)
+            //console.log(`registerIdentity : wait loading finished`)
         }
         else if (!this.user) {
-            console.log(`registerIdentity : wait user presence`)
+            //console.log(`registerIdentity : wait user presence`)
         }
         else if (!this.hasIdentityContract) {
-            console.log(`registerIdentity : wait identity contract`)
+            //console.log(`registerIdentity : wait identity contract`)
             this.checkIdentityContract()
         }
         else if (!this.registeredOnIdentityContract) {
-            console.log(`registerIdentity : wait identity contract registration`)
-            await this.registerIdentityImpl()
+            //console.log(`registerIdentity : wait identity contract registration`)
+            callLater = await this.registerIdentityImpl()
         }
         else if (!this.hasSupplyChainAccount) {
-            console.log(`registerIdentity : wait supply chain account`)
-            await this.registerSupplyChainAccount()
+            //console.log(`registerIdentity : wait supply chain account`)
+            callLater = await this.registerSupplyChainAccount()
         }
         else {
             this.log(`all done for identity registration`)
-            callLater = false
+            callLater = -1
         }
 
-        if (callLater)
-            setTimeout(() => this.registerIdentity(), 1000)
+        if (callLater >= 0)
+            setTimeout(() => this.registerIdentity(), 1000 * callLater)
     }
 
     private checkIdentityContract() {
         this.hasIdentityContract = this.smartContract.hasContract(this.IDENTITY_REGISTRY_CONTRACT_ID)
     }
 
-    private async registerIdentityImpl(): Promise<boolean> {
+    private async registerIdentityImpl(): Promise<number> {
         if (!this.user || !this.user.id || !this.user.keys)
-            return
+            return 1
 
         if (!this.hasIdentityContract) {
             this.log(`no identity registry contract installed (${this.IDENTITY_REGISTRY_CONTRACT_ID})`)
-            return
+            return 1
         }
 
         let identityContractState = this.smartContract.getContractState(this.IDENTITY_REGISTRY_CONTRACT_ID)
         if (!identityContractState) {
             this.log(`no identity contract state`)
-            return
+            return 1
         }
 
         if (identityContractState.identities[this.user.id]) {
             this.log(`identity already registered (${this.user.id})`)
             this.registeredOnIdentityContract = true
-            return
+            return 0
         }
 
         console.log(`registering identity...`)
@@ -298,11 +298,12 @@ export class State {
 
         if (! await this.callContract(this.IDENTITY_REGISTRY_CONTRACT_ID, 0, 'registerIdentity', account, {})) {
             this.log(`failed to register identity`)
-            return
+            return 2
         }
 
         console.log(`identity registered with id ${account.id}`)
         this.registeredOnIdentityContract = true
+        return 1
     }
 
     private async registerSupplyChainAccount() {
@@ -314,12 +315,13 @@ export class State {
         if (!await this.suppyChain.hasAccount(account.id)) {
             this.log(`registering account on supply chain...`)
             await this.suppyChain.createAccount(account)
+            return 1
         }
         else {
             this.log(`already registered on supplychain`)
+            this.hasSupplyChainAccount = true
+            return 0
         }
-
-        this.hasSupplyChainAccount = true
     }
 }
 

@@ -1,4 +1,4 @@
-<div class="card artWork-card">
+<div class="card artWork-card" [class.empty]=isArtWorkEmpty()>
     <div class="card-image" (click)='select.emit(artWork)'>
         <figure class="image square artWork-icon">
             <canvas #canvas></canvas>

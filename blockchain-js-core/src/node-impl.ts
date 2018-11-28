@@ -198,8 +198,6 @@ export class NodeImpl implements NodeApi.NodeApi {
     private maybeUpdateHead(block: Block.Block, metadata: Block.BlockMetadata) {
         let oldHead = this.blockChainHeadSync(block.branch)
         if (metadata.isValid && this.compareBlockchains(metadata.blockId, oldHead) > 0) {
-            console.log(`new block ${metadata.blockId}, depth ${metadata.blockCount} is the new head of branch ${block.branch}`)
-
             this.setHead(block.branch, metadata.blockId)
         }
     }
@@ -302,10 +300,16 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         this.notifyTimeout = setTimeout(() => {
             this.lastHeadEvents.forEach(branch => {
+                let headBlockId = this.blockChainHeadSync(branch)
+                let bm = this.knownBlocks.get(headBlockId)
+                let blockCount = bm && bm.blockCount
+
+                console.log(`new block ${headBlockId}, depth ${blockCount} is the new head of branch ${branch}`)
+
                 this.listeners.get('head').forEach(listener => listener({
                     type: 'head',
                     branch,
-                    headBlockId: this.blockChainHeadSync(branch)
+                    headBlockId
                 }))
             })
             this.lastHeadEvents.clear()

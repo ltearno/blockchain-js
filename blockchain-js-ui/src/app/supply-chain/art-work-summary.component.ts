@@ -80,6 +80,10 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
         this.paint()
     }
 
+    isArtWorkEmpty() {
+        return (!this.artWork || !this.artWork.grid || Object.keys(this.artWork.grid).length == 0) && (this.state.user && this.state.user.id != this.artWork.author)
+    }
+
     private paint() {
         Paint.clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
         this._artWorkId && this.context && Paint.drawArtWork(this.state.programState, this._artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)

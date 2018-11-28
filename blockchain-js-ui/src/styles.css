@@ -98,6 +98,10 @@ art-work-edition #canvas {
     border: 1px solid transparent;
 }
 
+.empty{
+    display:none;
+}
+
 @media print {
     body, figure.artWork-icon, div.artWorks, supply-chain-overview, supply-chain {
         display: block !important;

@@ -31,7 +31,7 @@ export class SupplyChainComponent {
     editingArtworkId: string = null
 
     isEditableArtWork() {
-        return !this.state.programState.artWorks[this.editingArtworkId].validated && this.state.programState.artWorks[this.editingArtworkId].author == this.state.user.id
+        return this.state.programState && this.state.programState.artWorks[this.editingArtworkId] && !this.state.programState.artWorks[this.editingArtworkId].validated && this.state.programState.artWorks[this.editingArtworkId].author == this.state.user.id
     }
 
     async initArtWorkCreation() {
