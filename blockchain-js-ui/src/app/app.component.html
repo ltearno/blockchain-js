@@ -33,7 +33,7 @@
     </ul>
   </div>
 
-  <div *ngIf='state.user && !state.registeredPseudo'>
+  <div *ngIf='state.user && state.hasIdentityContract && !state.registeredPseudo'>
     <div class="container is-fluid">
       <div class="field has-addons">
         <p class="control is-expanded">
