@@ -87,7 +87,7 @@ export class NodeImpl implements NodeApi.NodeApi {
         }
 
         if (this.knownBlocksData.has(blockId)) {
-            console.log(`already registered block ${blockId && blockId.substring(0, 5)}`)
+            //console.log(`already registered block ${blockId && blockId.substring(0, 5)}`)
             return this.knownBlocks.get(blockId)
         }
 
@@ -104,7 +104,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
     private async processBlockMetadata(blockId: string, block: Block.Block) {
         if (this.knownBlocks.has(blockId)) {
-            console.log(`already registered block metadata ${blockId.substring(0, 5)}`)
+            //console.log(`already registered block metadata ${blockId.substring(0, 5)}`)
             return
         }
 
