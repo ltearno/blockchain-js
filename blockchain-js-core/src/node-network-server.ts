@@ -29,10 +29,16 @@ export class NodeServer {
         this.miner = new MinerImpl.MinerImpl(node)
     }
 
+    nbEventsWebSockets = 0
+
     // TODO check all input's validity !
 
     initialize(app: express.Server) {
         app.ws('/events', (ws, req) => {
+            this.nbEventsWebSockets++
+
+            console.log(`closed ws (${this.nbEventsWebSockets})`)
+
             let connector = new WebSocketConnector.WebSocketConnector(this.node, ws)
             this.newPeersReceiver(connector)
 
@@ -42,7 +48,9 @@ export class NodeServer {
             })
 
             ws.on('close', () => {
-                console.log(`closed ws`)
+                this.nbEventsWebSockets--
+
+                console.log(`closed ws (${this.nbEventsWebSockets})`)
                 connector.terminate()
                 this.closedPeersReceiver(connector)
             })
