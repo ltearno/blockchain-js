@@ -76,6 +76,8 @@ export interface MachineState {
 type LiveInstance = any
 
 export class SmartContract {
+    processing = false
+
     private contractItemList: SequenceStorage.SequenceStorage
     private registeredChangeListener: SequenceStorage.SequenceChangeListener
     private contractsLiveInstances = new Map<string, Map<string, LiveInstance>>()
@@ -170,6 +172,8 @@ export class SmartContract {
     }
 
     private async realUpdateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
+        this.processing = true
+
         let state: MachineState
 
         // start from : 'go reverse from the end until finding something in the cache'
@@ -360,6 +364,8 @@ export class SmartContract {
 
         this.hasNewThingForListeners = true
         setTimeout(() => this.listenerCallbackSequencer.pushData(), 0)
+
+        this.processing = false
     }
 
     /**
