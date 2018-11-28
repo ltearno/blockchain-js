@@ -1,6 +1,13 @@
 <nav id='blockchain-nav' class="navbar" role="navigation" aria-label="main navigation" (click)="toggleExpandedUi()"
   style="min-height:initial;">
   <div class="navbar-brand has-text-grey" style="min-height:initial;">
+    <div class="navbar-item">
+      <a (click)='toggleFullScreen()' class='is-small'>
+        <span class="icon is-small">
+          <i class="mdi mdi-fullscreen"></i>
+        </span>
+      </a>
+    </div>
     <div class="navbar-item level" style='padding: 0;'>
       <div class="level-item">
         <h1 class='title'>Blockchain JS</h1>
@@ -9,15 +16,6 @@
       <div class='level-item'>
         <h2 class='subtitle'> {{state.registeredPseudo}}</h2>
       </div>
-    </div>
-  </div>
-  <div class="navbar-end">
-    <div class="navbar-item">
-      <a (click)='toggleFullScreen()' class='is-small'>
-        <span class="icon is-small">
-          <i class="mdi mdi-fullscreen"></i>
-        </span>
-      </a>
     </div>
   </div>
 </nav>
