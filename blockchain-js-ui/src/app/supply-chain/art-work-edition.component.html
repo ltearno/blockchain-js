@@ -2,7 +2,7 @@
     <div class="field">
         <label class="label">Title</label>
         <div class="control">
-            <input #title class="input" type="text" (change)='updateArtWorkTitle(title.value)' [value]='artWork.title'>
+            <input #title class="input" type="text" (change)='updateArtWorkTitle(title.value)' [value]='artWork.title' maxlength="100">
         </div>
         <p class="help">Title of the ArtWork</p>
     </div>

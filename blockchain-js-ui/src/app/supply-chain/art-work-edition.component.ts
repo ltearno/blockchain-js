@@ -109,7 +109,8 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     }
 
     async updateArtWorkTitle(title) {
-        console.log(`update title ${title}`)
+        if (title && title.length > 100)
+            title = title.substr(0, 100)
         await this.state.suppyChain.updateArtWorkTitle(this.artWork.id, title)
     }
 
