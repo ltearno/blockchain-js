@@ -340,9 +340,6 @@ export class NodeImpl implements NodeApi.NodeApi {
             let metadata = this.knownBlocks.get(startBlockId)
             let block = this.knownBlocksData.get(startBlockId)
 
-            if (!metadata || !block)
-                console.warn(`unknown block ${startBlockId}`)
-
             yield { metadata, block }
 
             // TODO this only browse first parent, it should browser the entire tree !
