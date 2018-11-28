@@ -1,8 +1,9 @@
 <div>
     <p class="title is-4">{{ artWork.title }}</p>
-    <p class="subtitle is-6">{{ pseudoOrId(artWork.author) }}</p>
-    <p>{{ artWork.serialNumber }}</p>
-    <p>{{ artWork.id }}</p>
+    <div class="subtitle">
+        <p class="is-6">Author: <b>{{ pseudoOrId(artWork.author) }}</b></p>
+        <p class="is-6">PartID: {{ artWork.serialNumber }}</p>
+    </div>
 </div>
 
 <art-work-icon [artWorkId]='"artwork-"+artWork.id' [disablePaintCache]='true'></art-work-icon>
