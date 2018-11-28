@@ -111,7 +111,7 @@ export class NodeImpl implements NodeApi.NodeApi {
         if (block.previousBlockIds && block.previousBlockIds.length && !block.previousBlockIds.every(parentBlockId => this.knownBlocks.has(parentBlockId))) {
             block.previousBlockIds.forEach(parentBlockId => {
                 if (!this.knownBlocks.has(parentBlockId)) {
-                    console.log(`${blockId} waits for parent ${parentBlockId}`)
+                    //console.log(`${blockId} waits for parent ${parentBlockId}`)
                     this.waitBlock(parentBlockId, blockId)
                 }
             })
@@ -195,8 +195,8 @@ export class NodeImpl implements NodeApi.NodeApi {
         return metadata
     }
 
-    private async maybeUpdateHead(block: Block.Block, metadata: Block.BlockMetadata) {
-        let oldHead = await this.blockChainHead(block.branch)
+    private maybeUpdateHead(block: Block.Block, metadata: Block.BlockMetadata) {
+        let oldHead = this.blockChainHeadSync(block.branch)
         if (metadata.isValid && this.compareBlockchains(metadata.blockId, oldHead) > 0) {
             console.log(`new block ${metadata.blockId}, depth ${metadata.blockCount} is the new head of branch ${block.branch}`)
 
@@ -286,11 +286,30 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         //console.log(`new head on branch ${branch} : ${blockId.substring(0, 5)}`)
 
-        this.notifyEvent({
-            type: 'head',
-            branch,
-            headBlockId: blockId
-        })
+        if (!this.lastHeadEvents.has(branch)) {
+            this.lastHeadEvents.add(branch)
+            this.triggerNotifyHead()
+        }
+    }
+
+    private lastHeadEvents = new Set<string>()
+
+    private notifyTimeout
+
+    private triggerNotifyHead() {
+        if (this.notifyTimeout)
+            return
+
+        this.notifyTimeout = setTimeout(() => {
+            this.lastHeadEvents.forEach(branch => {
+                this.listeners.get('head').forEach(listener => listener({
+                    type: 'head',
+                    branch,
+                    headBlockId: this.blockChainHeadSync(branch)
+                }))
+            })
+            this.notifyTimeout = null
+        }, 0)
     }
 
     private notifyEvent<K extends keyof NodeApi.BlockchainEventMap>(event: NodeApi.BlockchainEventMap[K]) {
