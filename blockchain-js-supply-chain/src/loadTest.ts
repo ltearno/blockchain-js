@@ -44,7 +44,7 @@ async function run() {
     }
 }
 
-for (let i = 0; i < 1; i++) {
+for (let i = 0; i < 30; i++) {
     run()
 }
 
