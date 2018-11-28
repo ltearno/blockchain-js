@@ -30,9 +30,17 @@
     height: 5em;
 }
 
+art-work-detail {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+}
+
 art-work-detail .art-work-icon {
-    width: 80%;
-    height: initial;
+    width: 80vw;
+    max-width: 80vh;
+    height: 80vh;
+    max-height: 80vw;
 }
 
 art-work-edition canvas {
@@ -43,12 +51,14 @@ art-work-edition canvas {
 
 @media screen and (max-width: 1215px) {
     art-work-summary canvas {
-        width: 90vw;
-        height: 90vw;
+        width: 20vw;
+        height: 20vw;
     }
 
     art-work-edition canvas {
         width: 90vw;
-        height: 90vw;
+        max-width: 90vh;
+        height: 90vh;
+        max-height: 90vw;
     }
 }
