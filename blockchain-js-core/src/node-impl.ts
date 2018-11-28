@@ -229,6 +229,10 @@ export class NodeImpl implements NodeApi.NodeApi {
         return this.knownBlocksData.has(id)
     }
 
+    async knowsBlockAsValidated(id: string): Promise<boolean> {
+        return this.knownBlocks.has(id)
+    }
+
     // TODO : with generic validation, compare the global validation value (pow, pos, other...)
     private compareBlockchains(block1Id: string, block2Id: string): number {
         if (block1Id == block2Id)

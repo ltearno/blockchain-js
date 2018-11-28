@@ -17,6 +17,14 @@ export interface NodeApi {
      */
     knowsBlock(blockId: string): Promise<boolean>
 
+    /**
+     * Asks if the node knowns the block and is validated (correct and full parent chain is known)
+     */
+    knowsBlockAsValidated(blockId: string): Promise<boolean>
+
+    /**
+     * List of branches
+     */
     branches(): Promise<string[]>
 
     /**

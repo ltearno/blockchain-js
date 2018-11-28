@@ -85,6 +85,7 @@ export class NodeTransfer {
             setTimeout(() => this.triggerLoadFromRemoteNode(nodeInfo), 1)
     }
 
+    // TODO if a block is known by the local node, it does not means that it known all the blocks down to the root block. check that!
     private async loadFromRemoteNode(nodeInfo: NodeInfo) {
         // find branch
         let branches = Object.keys(nodeInfo.lastEvents)
@@ -103,8 +104,16 @@ export class NodeTransfer {
         blockList.push(processedBlockId)
         while (blockList.length) {
             let blockId = blockList.shift()
-            if (await this.node.knowsBlock(blockId))
+
+            if (await this.node.knowsBlockAsValidated(blockId))
                 continue
+
+            if (await this.node.knowsBlock(blockId)) {
+                let blockData = (await this.node.blockChainBlockData(blockId, 1))[0]
+                if (blockData && blockData.previousBlockIds)
+                    blockData.previousBlockIds.reverse().forEach(parentBlockId => blockList.unshift(parentBlockId))
+                continue
+            }
 
             const BATCH_SIZE = 10
             let loadedBlockIds = await nodeInfo.node.blockChainBlockIds(blockId, BATCH_SIZE)

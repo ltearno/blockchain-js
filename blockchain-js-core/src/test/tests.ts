@@ -136,6 +136,9 @@ async function testNodeProxy() {
             console.log(`knowsBlock( ${blockId}`)
             return Promise.resolve(false)
         },
+        knowsBlockAsValidated: (blockId) => {
+            return Promise.resolve(false)
+        },
         branches: () => {
             console.log(`branches`)
             return Promise.resolve([])

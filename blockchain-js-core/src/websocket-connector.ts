@@ -85,6 +85,7 @@ export class WebSocketConnector implements NodeApi.NodeApi {
     }
 
     knowsBlock(blockId: string): Promise<boolean> { return this.sendCall('knowsBlock', [blockId]) }
+    knowsBlockAsValidated(blockId: string): Promise<boolean> { return this.sendCall('knowsBlockAsValidated', [blockId]) }
     branches(): Promise<string[]> { return this.sendCall('branches', []) }
     blockChainHead(branch: string): Promise<string> { return this.sendCall('blockChainHead', [branch]) }
     blockChainHeadLog(branch: string, depth: number): Promise<string[]> { return this.sendCall('blockChainHeadLog', [branch, depth]) }
@@ -256,6 +257,12 @@ export class WebSocketConnector implements NodeApi.NodeApi {
                 let [blockId] = parameters
 
                 return await node.knowsBlock(blockId)
+            }
+
+            case 'knownBlockAsValidated': {
+                let [blockId] = parameters
+
+                return await node.knowsBlockAsValidated(blockId)
             }
         }
     }
