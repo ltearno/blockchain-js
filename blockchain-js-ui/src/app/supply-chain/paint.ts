@@ -165,11 +165,11 @@ function resetCache() {
 
 function drawWorkItemInternal(state: Model.ProgramState, id: string, width: number, height: number, ctx: CanvasRenderingContext2D, currentAuthor: string, options: Options) {
     if (id.startsWith('pixel-')) {
-        if (!options || options.filterAuthor == currentAuthor)
+        if (!options || !options.filterAuthor || options.filterAuthor == currentAuthor)
             drawPixel(id.substr('pixel-'.length), width, height, ctx)
     }
     else if (id.startsWith('emoji-')) {
-        if (!options || options.filterAuthor == currentAuthor)
+        if (!options || !options.filterAuthor || options.filterAuthor == currentAuthor)
             drawEmoji(id.substr('emoji-'.length), width, height, ctx)
     }
     else if (id.startsWith('artwork-')) {
@@ -203,7 +203,7 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
         ctx.restore()
     })
 
-    if (options && options.filterAuthor == artWork.author) {
+    if (options && options.filterAuthor && options.filterAuthor == artWork.author) {
         ctx.lineWidth = CW / 10
         ctx.strokeStyle = 'rgba(0,0,0,.8)'
         ctx.strokeRect(0, 0, width, height)
