@@ -59,8 +59,8 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
 
     ngAfterViewInit() {
         let canvas = this.canvas.nativeElement
-        canvas.width = this.disablePaintCache ? 1000 : 100
-        canvas.height = this.disablePaintCache ? 1000 : 100
+        canvas.width = this._disablePaintCache ? 1000 : 100
+        canvas.height = this._disablePaintCache ? 1000 : 100
         this.context = canvas.getContext("2d")
 
         this.updatePaintPool()
@@ -71,10 +71,10 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
             return
 
         Paint.updatePool(this.context, this._artWorkId,
-            this.disablePaintCache ? 1000 : 100,
-            this.disablePaintCache ? 1000 : 100,
+            this._disablePaintCache ? 1000 : 100,
+            this._disablePaintCache ? 1000 : 100,
             {
-                cacheSize: this.disablePaintCache ? 1000 : null,
+                cacheSize: this._disablePaintCache ? 1000 : null,
                 disablePaintCache: this._disablePaintCache,
                 filterAuthor: this._filterAuthor
             })

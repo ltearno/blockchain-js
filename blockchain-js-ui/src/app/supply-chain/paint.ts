@@ -125,6 +125,9 @@ export function drawArtWorkSync(artWorkId: string, width: number, height: number
             ctx.drawImage(cache.get(artWorkId).canvas, 0, 0, cacheSize, cacheSize, 0, 0, width, height)
         }
         else {
+            if (cacheSize == 1000)
+                console.log(`danslemil`);
+
             // create back canvas
             let backCanvas = document.createElement('canvas')
             backCanvas.width = cacheSize
