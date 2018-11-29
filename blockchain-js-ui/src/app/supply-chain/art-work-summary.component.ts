@@ -35,7 +35,6 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
         this.updateArtWorkFromId()
         if (!this.changeDetectorRef['destroyed'])
             this.changeDetectorRef.detectChanges()
-        this.paint()
     }
 
     constructor(
@@ -47,6 +46,7 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
 
     ngOnDestroy() {
         this.state.smartContract.removeChangeListener(this.smartContractChangeListener)
+        Paint.removeArtworkFromPool(this.context)
     }
 
     @Input()
@@ -54,7 +54,7 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
         this._artWorkId = artWorkId
         this.updateArtWorkFromId()
 
-        this.paint()
+        this.updatePaintPool()
     }
 
     private updateArtWorkFromId() {
@@ -77,16 +77,15 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
         canvas.height = CANVAS_BASE_HEIGHT
         this.context = canvas.getContext("2d")
 
-        this.paint()
+        this.updatePaintPool()
     }
 
     isArtWorkEmpty() {
         return (!this.artWork || !this.artWork.grid || Object.keys(this.artWork.grid).length == 0) && (this.state.user && this.state.user.id != this.artWork.author)
     }
 
-    private paint() {
-        Paint.clear(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
-        this._artWorkId && this.context && Paint.drawArtWork(this._artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
+    private updatePaintPool() {
+        Paint.updatePool(this.context, 'artwork-' + this._artWorkId, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT)
     }
 
     validate() {

@@ -21,19 +21,42 @@ let orders = []
 let waitBeforeClear = false
 let requested = false
 
+let paintPool = new Map<CanvasRenderingContext2D, { itemId: string; width: number; height: number; options: Options }>()
+
+export function updatePool(context: CanvasRenderingContext2D, itemId: string, width: number, height: number, options: Options = null) {
+    if (!context || !itemId)
+        return
+
+    paintPool.set(context, { itemId, width, height, options })
+    paintOneContext(context)
+}
+
+function paintOneContext(context: CanvasRenderingContext2D) {
+    let i = paintPool.get(context)
+    if (!i)
+        return
+
+    clearSync(i.width, i.height, context)
+
+    drawWorkItemSync(
+        i.itemId,
+        i.width,
+        i.height,
+        context,
+        i.options)
+}
+
+export function removeArtworkFromPool(context: CanvasRenderingContext2D) {
+    paintPool.delete(context)
+}
+
 const onFrame = () => {
     requested = false
 
     let poolSize = 20
-    while (orders.length) {
-        if (!waitBeforeClear && orders[0].f == clearSync && (poolSize-- <= 0)) {
-            waitBeforeClear = true
-            break
-        }
-        waitBeforeClear = false
-
-        let { f, args } = orders.shift()
-        f.call(null, ...args)
+    while (contextsToRender.length && poolSize-- >= 0) {
+        let context = contextsToRender.shift()
+        paintOneContext(context)
     }
 
     if (orders.length && !requested) {
@@ -42,8 +65,11 @@ const onFrame = () => {
     }
 }
 
-const addFrame = (obj) => {
-    orders.push(obj)
+let contextsToRender = []
+
+const repaintEverything = () => {
+    contextsToRender = []
+    paintPool.forEach((_, context) => { contextsToRender.push(context) })
 
     if (!requested) {
         requested = true
@@ -55,43 +81,7 @@ export function setSmartProgram(smartContract) {
     smartContract.addChangeListener(() => {
         supplyChainState = smartContract.getContractState("supply-chain-v1")
         resetCache()
-    })
-}
-
-export function clear(width: number, height: number, ctx: CanvasRenderingContext2D) {
-    addFrame({
-        f: clearSync,
-        args: [
-            width,
-            height,
-            ctx
-        ]
-    })
-}
-
-export function drawWorkItem(id: string, width: number, height: number, ctx: CanvasRenderingContext2D, options: Options = null) {
-    addFrame({
-        f: drawWorkItemSync,
-        args: [
-            id,
-            width,
-            height,
-            ctx,
-            options
-        ]
-    })
-}
-
-export function drawArtWork(artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, options: Options = null) {
-    addFrame({
-        f: drawArtWorkSync,
-        args: [
-            artWorkId,
-            width,
-            height,
-            ctx,
-            options
-        ]
+        repaintEverything()
     })
 }
 
