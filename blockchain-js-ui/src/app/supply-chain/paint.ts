@@ -17,10 +17,6 @@ let backCanvasMap = new Map<any, Map<string, BackBuffer>>()
 
 let supplyChainState: Model.ProgramState = EMPTY_STATE
 
-let orders = []
-let waitBeforeClear = false
-let requested = false
-
 let paintPool = new Map<CanvasRenderingContext2D, { itemId: string; width: number; height: number; options: Options }>()
 
 export function updatePool(context: CanvasRenderingContext2D, itemId: string, width: number, height: number, options: Options = null) {
@@ -50,18 +46,19 @@ export function removeArtworkFromPool(context: CanvasRenderingContext2D) {
     paintPool.delete(context)
 }
 
+let ended = true
 const onFrame = () => {
-    requested = false
-
-    let poolSize = 20
+    let poolSize = 15
     while (contextsToRender.length && poolSize-- >= 0) {
         let context = contextsToRender.shift()
         paintOneContext(context)
     }
 
-    if (orders.length && !requested) {
-        requested = true
+    if (contextsToRender.length) {
         requestAnimationFrame(onFrame)
+    }
+    else {
+        ended = true
     }
 }
 
@@ -71,8 +68,8 @@ const repaintEverything = () => {
     contextsToRender = []
     paintPool.forEach((_, context) => { contextsToRender.push(context) })
 
-    if (!requested) {
-        requested = true
+    if (ended) {
+        ended = false
         requestAnimationFrame(onFrame)
     }
 }
