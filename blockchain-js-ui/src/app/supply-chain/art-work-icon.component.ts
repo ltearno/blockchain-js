@@ -1,8 +1,6 @@
 import { Component, OnInit, ViewChild, AfterViewInit, Input, Output, EventEmitter, ChangeDetectorRef, OnDestroy } from '@angular/core'
-import * as Model from './model'
 import * as Paint from './paint'
 import { State } from './state'
-import { CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT } from '../constants';
 
 @Component({
     selector: 'art-work-icon',
@@ -75,7 +73,6 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
 
     private paint() {
         this._artWorkId && this.context && Paint.drawWorkItem(
-            this.state.programState,
             this._artWorkId,
             this.disablePaintCache ? 1000 : 100,
             this.disablePaintCache ? 1000 : 100,

@@ -159,10 +159,13 @@ export class SmartContract {
 
     private hasNewThingForListeners = false
     private listenerCallbackSequencer = new TestTools.CallSerializer(async (_) => {
+        console.log(`LISTENER LOOP FOR SMART CONTRACT`)
         this.hasNewThingForListeners = false
         for (let listener of this.listeners) {
-            if (this.hasNewThingForListeners)
+            if (this.hasNewThingForListeners){
+                console.log(`skipping current listener loop`)
                 return
+            }
             listener()
         }
     })

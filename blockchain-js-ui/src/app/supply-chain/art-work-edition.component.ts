@@ -167,7 +167,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
             return
 
         Paint.clearSync(CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
-        Paint.drawArtWorkSync(this.state.programState, this.artWork.id, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
+        Paint.drawArtWorkSync(this.artWork.id, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
         if (this.mouseOver)
             Paint.drawCellSync(this.artWork, this.mouseOver.x, this.mouseOver.y, CANVAS_BASE_WIDTH, CANVAS_BASE_HEIGHT, this.context)
     }

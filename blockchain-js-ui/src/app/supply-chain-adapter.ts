@@ -3,7 +3,7 @@ import * as Model from "./supply-chain/model"
 
 const SUPPLY_CHAIN_CONTRACT_ID = "supply-chain-v1"
 
-const EMPTY_STATE = {
+export const EMPTY_STATE = {
     accounts: {},
     artWorks: {},
     redistributableItems: []
