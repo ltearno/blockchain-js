@@ -74,6 +74,8 @@ async function run() {
 
         let artWorkId = null
 
+        let supplyChainState = null
+
         let state = 0
         while (state >= 0) {
             await wait(500)
@@ -113,7 +115,7 @@ async function run() {
                 }
 
                 case 2: {
-                    let supplyChainState = smartContract.getContractState(supplyChainRegistryContractUuid)
+                    supplyChainState = smartContract.getContractState(supplyChainRegistryContractUuid)
 
                     if (!supplyChainState.accounts[user.id]) {
                         console.log(`registering account on supply chain...`)
@@ -133,12 +135,18 @@ async function run() {
                 }
 
                 case 3: {
+                    supplyChainState = smartContract.getContractState(supplyChainRegistryContractUuid)
+                    userAccount = supplyChainState.accounts[user.id]
+
                     console.log(`account ${JSON.stringify(userAccount, null, 4)}`)
                     console.log(`user ${JSON.stringify(user, null, 4)}`)
 
-                    if (!Object.keys(userAccount.inventory).length) {
+                    let count = 0
+                    Object.keys(userAccount.inventory).forEach(id => count += userAccount.inventory[id])
+                    if (count <= 0) {
                         console.log(`no more items, bye bye`)
                         state = -1
+                        break
                     }
 
                     artWorkId = `rr${Math.random()}`
@@ -151,15 +159,28 @@ async function run() {
                         }
                     })
 
+                    supplyChainState = smartContract.getContractState(supplyChainRegistryContractUuid)
+                    userAccount = supplyChainState.accounts[user.id]
+
                     console.log(`artwork created`)
 
                     state = 4
                 }
 
                 case 4: {
+                    let l = 49
+
                     let x = 0
                     let y = 0
                     Object.keys(userAccount.inventory).forEach(itemId => {
+                        if (!userAccount.inventory[itemId])
+                            return
+
+                        if (l-- <= 0)
+                            return
+
+                        console.log(`add item ${itemId} at ${x};${y}`)
+
                         callContract(supplyChainRegistryContractUuid, 0, 'addItemInArtWorkFromInventory', null, {
                             artWorkId, itemId, x, y
                         })
@@ -169,6 +190,34 @@ async function run() {
                             y++
                         }
                     })
+
+                    if (Object.keys(supplyChainState.artWorks).length > 3) {
+                        for (let i = 0; i < 3; i++) {
+                            if (l-- <= 0)
+                                return
+
+                            let awid: any = Object.keys(supplyChainState.artWorks)
+                            awid = awid[Math.floor(Math.random() * awid.length)]
+
+                            if (!supplyChainState.artWorks[awid].validated)
+                                continue
+
+                            let itemId = `artwork-${awid}`
+                            console.log(`add artwork ${itemId} at ${x};${y}`)
+
+                            callContract(supplyChainRegistryContractUuid, 0, 'addItemInArtWorkFromInventory', null, {
+                                artWorkId, itemId, x, y
+                            })
+
+                            x++
+                            if (x > 5) {
+                                x = 0
+                                y++
+                            }
+                        }
+                    }
+
+                    await callContract(supplyChainRegistryContractUuid, 0, 'validateArtWork', null, { artWorkId })
 
                     state = 3
 

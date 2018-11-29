@@ -423,6 +423,8 @@
             if (itemId.startsWith('pixel-') || itemId.startsWith('emoji-')) {
                 if (this.data.accounts[artWork.author].inventory[itemId] > 0) {
                     this.data.accounts[artWork.author].inventory[itemId]--
+                    if (this.data.accounts[artWork.author].inventory[itemId] == 0)
+                        delete this.data.accounts[artWork.author].inventory[itemId]
                 }
                 else {
                     return false
