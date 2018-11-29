@@ -188,8 +188,8 @@ function drawArtWorkInternal(state: Model.ProgramState, artWorkId: string, width
     }
 
     if (options && options.filterAuthor && options.filterAuthor != artWork.author) {
-        ctx.fillStyle = 'rgba(0,0,0,.1)'
-        ctx.strokeStyle = 'rgba(0,0,0,.1)'
+        ctx.fillStyle = 'rgba(0,0,0,.05)'
+        ctx.strokeStyle = 'rgba(0,0,0,.05)'
         ctx.lineJoin = "round"
         ctx.strokeRect(0, 0, width, height)
     }
@@ -222,8 +222,8 @@ function drawPixel(color: string, width: number, height: number, ctx: CanvasRend
     const MARGIN = width / 15
 
     if (fade) {
-        ctx.fillStyle = 'rgba(0,0,0,.1)'
-        ctx.strokeStyle = 'rgba(0,0,0,.1)'
+        ctx.fillStyle = 'rgba(0,0,0,.05)'
+        ctx.strokeStyle = 'rgba(0,0,0,.05)'
     }
     else {
         ctx.fillStyle = color
@@ -245,7 +245,10 @@ function drawPixel(color: string, width: number, height: number, ctx: CanvasRend
 }
 
 function drawEmoji(text: string, width: number, height: number, ctx: CanvasRenderingContext2D, fade: boolean) {
-    ctx.fillStyle = 'black'
+    if (fade)
+        ctx.fillStyle = 'rgba(0,0,0,.05)'
+    else
+        ctx.fillStyle = 'black'
     ctx.font = `${Math.min(width, height) * .64}px Verdana`
 
     ctx.textAlign = 'center'
