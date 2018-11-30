@@ -8,14 +8,15 @@ body {
     right: 0;
 }
 
-#blockchain-main{
+#blockchain-main {
     flex-grow: 1;
     overflow: auto;
     padding: 0 1.5rem;
     background-color: white;
+    width: 100%;
 }
 
-#blockchain-footer{
+#blockchain-footer {
     background-color: whitesmoke;
     padding: 0.1em;
 }
