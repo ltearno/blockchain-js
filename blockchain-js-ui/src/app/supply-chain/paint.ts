@@ -103,6 +103,65 @@ export function drawWorkItemSync(id: string, width: number, height: number, ctx:
     drawWorkItemInternal(id, width, height, ctx, null, options)
 }
 
+// todo : pool of canvas elements for caching
+interface CanvasPool {
+    canvases: HTMLCanvasElement[]
+    ctx: CanvasRenderingContext2D[]
+    firstFreeIndex: number
+}
+
+const canvasPool = new Map<number, CanvasPool>()
+
+function borrowCanvas(size: number) {
+    if (!size || size <= 0)
+        return null
+
+    let pool = canvasPool.get(size)
+    if (!pool) {
+        pool = {
+            canvases: [],
+            ctx: [],
+            firstFreeIndex: 0
+        }
+        canvasPool.set(size, pool)
+    }
+
+    if (pool.firstFreeIndex >= pool.canvases.length) {
+        if (pool.firstFreeIndex != pool.canvases.length) {
+            throw "BIG ERROR UNEXPECTED !"
+        }
+
+        let canvas = document.createElement('canvas')
+        canvas.width = size
+        canvas.height = size
+        let ctx = canvas.getContext('2d')
+
+        pool.canvases.push(canvas)
+        pool.ctx.push(ctx)
+
+        console.log(`canvaspool size increase ${pool.ctx.length} for size ${size}`);
+
+    }
+
+    let result = {
+        canvas: pool.canvases[pool.firstFreeIndex],
+        ctx: pool.ctx[pool.firstFreeIndex]
+    }
+
+    pool.firstFreeIndex++
+
+    return result
+}
+
+function resetCanvasPool() {
+    canvasPool.forEach(pool => pool.firstFreeIndex = 0)
+}
+
+function resetCache() {
+    backCanvasMap.clear()
+    resetCanvasPool()
+}
+
 export function drawArtWorkSync(artWorkId: string, width: number, height: number, ctx: CanvasRenderingContext2D, options: Options = null) {
     if (USE_BACK_CACHE && !(options && options.disablePaintCache)) {
         let cacheSize
@@ -125,25 +184,15 @@ export function drawArtWorkSync(artWorkId: string, width: number, height: number
             ctx.drawImage(cache.get(artWorkId).canvas, 0, 0, cacheSize, cacheSize, 0, 0, width, height)
         }
         else {
-            if (cacheSize == 1000)
-                console.log(`danslemil`);
-
-            // create back canvas
-            let backCanvas = document.createElement('canvas')
-            backCanvas.width = cacheSize
-            backCanvas.height = cacheSize
-            let backCtx = backCanvas.getContext('2d')
-            cache.set(artWorkId, {
-                canvas: backCanvas,
-                ctx: backCtx
-            })
+            let canvasInfo = borrowCanvas(cacheSize)
+            cache.set(artWorkId, canvasInfo)
 
             // draw in the cache
-            //clearSync(cacheSize, cacheSize, backCtx)
-            drawArtWorkInternal(artWorkId, cacheSize, cacheSize, backCtx, options)
+            clearSync(cacheSize, cacheSize, canvasInfo.ctx)
+            drawArtWorkInternal(artWorkId, cacheSize, cacheSize, canvasInfo.ctx, options)
 
             // draw from cache
-            ctx.drawImage(backCanvas, 0, 0, cacheSize, cacheSize, 0, 0, width, height)
+            ctx.drawImage(canvasInfo.canvas, 0, 0, cacheSize, cacheSize, 0, 0, width, height)
         }
     }
     else {
@@ -155,10 +204,6 @@ export interface Options {
     disablePaintCache?: boolean
     cacheSize?: number
     filterAuthor?: string
-}
-
-function resetCache() {
-    backCanvasMap.clear()
 }
 
 function drawWorkItemInternal(id: string, width: number, height: number, ctx: CanvasRenderingContext2D, currentAuthor: string, options: Options) {
