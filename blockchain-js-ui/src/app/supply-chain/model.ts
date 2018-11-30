@@ -10,6 +10,12 @@ export interface Account {
     inventory: {
         [workItemId: string]: number
     }
+
+    nbWinnedPixels?: number
+    nbWinnedEmojis?: number
+    nbConsumedPixels?: number
+    nbConsumedEmojis?: number
+    nbConsumedArtWorks?: number
 }
 
 export interface ChatMessage {

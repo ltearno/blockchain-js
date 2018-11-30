@@ -221,8 +221,6 @@
             this.data.accounts[id] = {
                 id,
                 inventory: items,
-                nbCreatedArtWorks: 0,
-                nbValidatedArtWorks: 0,
                 nbConsumedPixels: 0,
                 nbConsumedEmojis: 0,
                 nbConsumedArtWorks: 0,
@@ -273,11 +271,6 @@
 
             this.data.artWorks[artWork.id] = artWork
             this.data.artWorks[artWork.id].serialNumber = Object.keys(this.data.artWorks).length
-
-            if (this.data.accounts[artWork.author].nbCreatedArtWorks)
-                this.data.accounts[artWork.author].nbCreatedArtWorks++
-            else
-                this.data.accounts[artWork.author].nbCreatedArtWorks = 1
 
             return true
         },
@@ -372,8 +365,6 @@
                     this.data.accounts[artWork.author].nbConsumedArtWorks++
                 }
             })
-
-            this.data.accounts[artWork.author].nbValidatedArtWorks++
         },
 
 

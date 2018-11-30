@@ -168,7 +168,7 @@ async function run() {
                 }
 
                 case 4: {
-                    let l = 49
+                    let count = 0
 
                     let x = 0
                     let y = 0
@@ -176,7 +176,7 @@ async function run() {
                         if (!userAccount.inventory[itemId])
                             return
 
-                        if (l-- <= 0)
+                        if (count++ > 5)
                             return
 
                         console.log(`add item ${itemId} at ${x};${y}`)
@@ -191,11 +191,9 @@ async function run() {
                         }
                     })
 
+                    count = 10
                     if (Object.keys(supplyChainState.artWorks).length > 3) {
-                        for (let i = 0; i < 3; i++) {
-                            if (l-- <= 0)
-                                return
-
+                        while (count-- >= 0) {
                             let awid: any = Object.keys(supplyChainState.artWorks)
                             awid = awid[Math.floor(Math.random() * awid.length)]
 
