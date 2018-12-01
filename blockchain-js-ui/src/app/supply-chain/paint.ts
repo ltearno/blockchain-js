@@ -139,8 +139,6 @@ function borrowCanvas(size: number) {
         pool.canvases.push(canvas)
         pool.ctx.push(ctx)
 
-        console.log(`canvaspool size increase ${pool.ctx.length} for size ${size}`);
-
     }
 
     let result = {
