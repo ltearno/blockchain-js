@@ -309,10 +309,18 @@
             processArtWorkParticipations(this.data, artWork)
 
             let seed = callContract('random-generator-v1', 0, 'generate', args)
+            let seedIndex = 0
 
             let random = (modulo) => {
-                let result = parseInt(seed.substr(0, 8), 16)
-                seed = lib.hash(seed)
+                let result = parseInt(seed.substr(seedIndex, 4), 16)
+
+                seedIndex += 4
+
+                if (seedIndex > seed.length - 4) {
+                    seed = lib.hash(seed) // gives 64 digits
+                    seedIndex = 0
+                }
+                
                 return result % modulo
             }
 
