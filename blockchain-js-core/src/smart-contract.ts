@@ -220,7 +220,7 @@ export class SmartContract {
                 continue
             }
 
-            this.processing = `block ${blockId}, count ${this.processedBlocks}`
+            this.processing = `count ${this.processedBlocks}, block ${blockId}`
 
             for (let contractItem of items) {
                 // be friendly with other people on the thread
