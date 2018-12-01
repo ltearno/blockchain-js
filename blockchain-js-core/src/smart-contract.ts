@@ -391,7 +391,7 @@ export class SmartContract {
             throw `method ${method} does not exist on contract, cannot apply`
 
         // make a copy of the current state
-        let backup = JSON.stringify(contractState.instanceData)
+        //let backup = JSON.stringify(contractState.instanceData)
 
         try {
             args = args != null ? JSON.parse(JSON.stringify(args)) : args
@@ -416,7 +416,7 @@ export class SmartContract {
             console.warn(`error while executing smart contract code ${contractState.uuid} ${method} ${JSON.stringify(args)}, reverting changes. Error :\n\n`, error)
             console.warn('\r')
 
-            contractState.instanceData = JSON.parse(backup)
+            //contractState.instanceData = JSON.parse(backup)
 
             throw error
         }
