@@ -78,7 +78,7 @@ async function run() {
 
         let state = 0
         while (state >= 0) {
-            await wait(500)
+            await wait(250)
 
             console.log(`state ${state}`)
 
@@ -176,7 +176,7 @@ async function run() {
                         if (!userAccount.inventory[itemId])
                             return
 
-                        if (count++ > 5)
+                        if (count++ > 2)
                             return
 
                         console.log(`add item ${itemId} at ${x};${y}`)
