@@ -76,7 +76,8 @@ export interface MachineState {
 type LiveInstance = any
 
 export class SmartContract {
-    processing = false
+    processing: string = null
+    processedBlocks = 0
 
     private contractItemList: SequenceStorage.SequenceStorage
     private registeredChangeListener: SequenceStorage.SequenceChangeListener
@@ -161,7 +162,7 @@ export class SmartContract {
     private listenerCallbackSequencer = new TestTools.CallSerializer(async (_) => {
         this.hasNewThingForListeners = false
         for (let listener of this.listeners) {
-            if (this.hasNewThingForListeners){
+            if (this.hasNewThingForListeners) {
                 console.log(`skipping current listener loop`)
                 return
             }
@@ -174,8 +175,6 @@ export class SmartContract {
     }
 
     private async realUpdateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
-        this.processing = true
-
         let state: MachineState
 
         // start from : 'go reverse from the end until finding something in the cache'
@@ -215,9 +214,13 @@ export class SmartContract {
         for (let idx = startIdx; idx < sequenceItemsByBlock.length; idx++) {
             let { blockId, items } = sequenceItemsByBlock[idx]
 
+            this.processedBlocks++
+
             if (!items || !items.length) {
                 continue
             }
+
+            this.processing = `block ${blockId}, count ${this.processedBlocks}`
 
             for (let contractItem of items) {
                 // be friendly with other people on the thread
@@ -367,7 +370,7 @@ export class SmartContract {
         this.hasNewThingForListeners = true
         setTimeout(() => this.listenerCallbackSequencer.pushData(), 0)
 
-        this.processing = false
+        this.processing = null
     }
 
     /**

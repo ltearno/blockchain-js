@@ -2,7 +2,7 @@
     <h2>Loading blocks and initializing the Supply Chain, please wait...</h2>
     <div *ngIf='state.loaders'>{{ state.loaders }} loading processes running...</div>
     <div *ngIf='state.fullNode.transfer.isLoading()'>Local node is receiving and processing new blocks...</div>
-    <div *ngIf='state.smartContract.processing'>Smart Contract component is processing data...</div>
+    <div *ngIf='state.smartContract.processing'>Smart Contract component is processing data ({{ state.smartContract.processing }})...</div>
     <div>User : {{ state.user != null ? '✔️' : '❌' }}</div>
     <div>RSA keys : {{ state.user?.keys != null ? '✔️' : '❌' }}</div>
     <div>Identity contract : {{ state.hasIdentityContract ? '✔️' : '❌' }}</div>
