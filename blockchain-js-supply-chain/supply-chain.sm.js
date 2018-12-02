@@ -37,6 +37,12 @@
         Object.values(artWork.grid).forEach(workItemId => {
             if (workItemId.startsWith('artwork-')) {
                 const participedArtWork = data.artWorks[workItemId.substr('artwork-'.length)]
+                // count 1 for the artwork
+                if (!participations[participedArtWork.author])
+                    participations[participedArtWork.author] = 0
+                participations[participedArtWork.author]++
+
+                // and add the sub artwork participations
                 for (let author in participedArtWork.participations) {
                     if (!participations[author])
                         participations[author] = 0
@@ -320,7 +326,7 @@
                     seed = lib.hash(seed) // gives 64 digits
                     seedIndex = 0
                 }
-                
+
                 return result % modulo
             }
 
