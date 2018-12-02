@@ -9,6 +9,8 @@ export class WallOfFameComponent implements OnInit, OnDestroy {
     constructor(private state: State) { }
 
     users = []
+    nbArtWorks = 0
+    nbUsers = 0
 
     private maxes = new Map<string, number>()
 
@@ -36,6 +38,9 @@ export class WallOfFameComponent implements OnInit, OnDestroy {
 
         if (!this.state.programState || !this.state.programState.accounts)
             return
+
+        this.nbArtWorks = Object.keys(this.state.programState.artWorks).length
+        this.nbUsers = Object.keys(this.state.programState.accounts).length
 
         let artWorkUses = {}
         Object.keys(this.state.programState.artWorks).forEach(id => {

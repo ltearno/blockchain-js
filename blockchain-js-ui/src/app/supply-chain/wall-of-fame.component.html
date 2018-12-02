@@ -1,7 +1,11 @@
 <div class='container'>
 
     <h1>Wall of Fame</h1>
-    List of all users' statistics :
+
+    <p>{{ nbUsers }} users</p>
+    <p>{{ nbArtWorks }} artworks</p>
+
+    <h2>List of all users' statistics :</h2>
 
     <div *ngFor='let user of users' class='card'>
         <header class="card-header">
