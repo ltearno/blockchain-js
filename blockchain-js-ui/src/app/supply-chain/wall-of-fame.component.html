@@ -1,6 +1,7 @@
 <div class='container'>
 
     <h1>Wall of Fame</h1>
+    List of all users' statistics :
 
     <div *ngFor='let user of users' class='card'>
         <header class="card-header">
@@ -11,18 +12,18 @@
 
         <div class="card-content">
             <div class="content">
-                <p>Id: {{ user.id }}</p>
-                <p>Winned items: {{ user.nbWinnedItems }}<span *ngIf='isMax("winned-items", user.nbWinnedItems)'>
+                <p style="font-size:.6em;">Id: {{ user.id }}</p>
+                <p>Winned items: <b>{{ user.nbWinnedItems }}</b><span *ngIf='isMax("winned-items", user.nbWinnedItems)'>
                         🎉🏆👏</span></p>
-                <p>Winned emojis: {{ user.nbWinnedEmojis }}<span *ngIf='isMax("winned-emojis", user.nbWinnedEmojis)'>
+                <p>Winned emojis: <b>{{ user.nbWinnedEmojis }}</b><span *ngIf='isMax("winned-emojis", user.nbWinnedEmojis)'>
                         🎉🏆👏</span></p>
-                <p>Winned pixels: {{ user.nbWinnedPixels }}<span *ngIf='isMax("winned-pixels", user.nbWinnedPixels)'>
+                <p>Winned pixels: <b>{{ user.nbWinnedPixels }}</b><span *ngIf='isMax("winned-pixels", user.nbWinnedPixels)'>
                         🎉🏆👏</span></p>
-                <p>Consummed ArtWorks: {{ user.nbConsumedArtWorks }}<span *ngIf='isMax("consumed-artworks", user.nbConsumedArtWorks)'>
+                <p>Consummed ArtWorks: <b>{{ user.nbConsumedArtWorks }}</b><span *ngIf='isMax("consumed-artworks", user.nbConsumedArtWorks)'>
                         🎉🏆👏</span></p>
-                <p>Consummed Emojis: {{ user.nbConsumedEmojis }}<span *ngIf='isMax("consumed-emojis", user.nbConsumedEmojis)'>
+                <p>Consummed Emojis: <b>{{ user.nbConsumedEmojis }}</b><span *ngIf='isMax("consumed-emojis", user.nbConsumedEmojis)'>
                         🎉🏆👏</span></p>
-                <p>Consummed Pixels: {{ user.nbConsumedPixels }}<span *ngIf='isMax("consumed-pixels", user.nbConsumedPixels)'>
+                <p>Consummed Pixels: <b>{{ user.nbConsumedPixels }}</b><span *ngIf='isMax("consumed-pixels", user.nbConsumedPixels)'>
                         🎉🏆👏</span></p>
 
                 <!--{{ user | json }}-->

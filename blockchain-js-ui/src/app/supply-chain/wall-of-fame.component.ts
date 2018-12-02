@@ -104,6 +104,14 @@ export class WallOfFameComponent implements OnInit, OnDestroy {
 
             this.users.push(user)
         })
+
+        this.users = this.users.sort((a, b) => {
+            if (a.nbWinnedItems > b.nbWinnedItems)
+                return -1
+            if (a.nbWinnedItems < b.nbWinnedItems)
+                return 1
+            return 0
+        })
     }
 
     isMax(item: string, value: number) {
