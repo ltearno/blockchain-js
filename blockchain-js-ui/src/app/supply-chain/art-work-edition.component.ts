@@ -122,11 +122,11 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     artWork: Model.ArtWork = null
 
     plusArtWorks() {
-        this.limitArtWorks += 20
+        this.limitArtWorks *= 2
     }
 
     plusInventory() {
-        this.limitInventory += 20
+        this.limitInventory *= 2
     }
 
     ngAfterViewInit() {
