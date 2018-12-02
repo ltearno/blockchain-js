@@ -3,6 +3,7 @@
     <div class="subtitle">
         <p class="is-6">Author: <b>{{ pseudoOrId(artWork.author) }}</b></p>
         <p class="is-6">PartID: {{ artWork.serialNumber }}</p>
+        <p class="is-6"><button [disabled]='!hasNext()' class='button' (click)='next()'>👈</button><button class='button' [disabled]='!hasPrevious()' (click)='previous()'>👉</button></p>
     </div>
 </div>
 

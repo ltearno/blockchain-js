@@ -59,6 +59,38 @@ export class ArtWorkDetailComponent implements OnDestroy {
         }
     }
 
+    hasSuccessor(inc) {
+        if (!this.artWork)
+            return null
+
+        return Object.keys(this.state.programState.artWorks)
+            .find(artWordId => this.state.programState.artWorks[artWordId] && (this.state.programState.artWorks[artWordId].serialNumber == this.artWork.serialNumber + inc))
+    }
+
+    hasNext() {
+        return this.hasSuccessor(1)
+    }
+
+    next() {
+        let nextArtWorkId = this.hasNext()
+        if (nextArtWorkId) {
+            this.artWorkId = nextArtWorkId
+            this.updateFromContract()
+        }
+    }
+
+    hasPrevious() {
+        return this.hasSuccessor(-1)
+    }
+
+    previous() {
+        let nextArtWorkId = this.hasPrevious()
+        if (nextArtWorkId) {
+            this.artWorkId = nextArtWorkId
+            this.updateFromContract()
+        }
+    }
+
     pseudoOrId(id: string) {
         return (this.state.identities[id] && this.state.identities[id].pseudo) || id
     }
