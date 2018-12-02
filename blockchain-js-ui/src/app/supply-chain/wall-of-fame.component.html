@@ -1,0 +1,43 @@
+<div class='container'>
+
+    <h1>Wall of Fame</h1>
+
+    <div *ngFor='let user of users' class='card'>
+        <header class="card-header">
+            <p class="card-header-title">
+                {{ user.pseudo }}
+            </p>
+        </header>
+
+        <div class="card-content">
+            <div class="content">
+                <p>Id: {{ user.id }}</p>
+                <p>Public key: {{ user.publicKey }}</p>
+                <p>Winned items: {{ user.nbWinnedItems }}</p>
+                <p>Winned pixels: {{ user.nbWinnedPixels }}</p>
+                <p>Winned emojis: {{ user.nbWinnedEmojis }}</p>
+                <p>Consummed ArtWorks: {{ user.nbConsumedArtWorks }}</p>
+                <p>Consummed Emojis: {{ user.nbConsumedEmojis }}</p>
+                <p>Consummed Pixels: {{ user.nbConsumedPixels }}</p>
+
+                <!--{{ user | json }}-->
+
+                <div *ngFor='let artWork of user.artWorks' style='display:inline-block;' class='score-icon'>
+                    <div class="card">
+                        <div class="card-image">
+                            <art-work-icon [artWorkId]='"artwork-"+artWork.id'></art-work-icon>
+                        </div>
+                        <div class="card-content">
+                            <h1>{{ artWork.title }}</h1>
+                            <div *ngIf='artWork.uses'>Used {{ artWork.uses }} times</div>
+                            <div *ngIf='artWork.messages'>
+                                <div *ngFor='let message of artWork.messages'><i>{{ pseudoOrId(message.author) }} : </i>{{
+                                    message.text }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

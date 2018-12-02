@@ -9,6 +9,7 @@ import { ArtWorkEditionComponent } from './supply-chain/art-work-edition.compone
 import { ArtWorkDetailComponent } from './supply-chain/art-work-detail.component'
 import { ArtWorkIconComponent } from './supply-chain/art-work-icon.component'
 import { SupplyChainOverviewComponent } from './supply-chain/supply-chain-overview.component'
+import { WallOfFameComponent } from './supply-chain/wall-of-fame.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,9 @@ import { SupplyChainOverviewComponent } from './supply-chain/supply-chain-overvi
     ArtWorkEditionComponent,
     ArtWorkDetailComponent,
     ArtWorkIconComponent,
-    SupplyChainOverviewComponent
+    SupplyChainOverviewComponent,
+    ArtWorkEditionComponent,
+    WallOfFameComponent
   ],
   imports: [
     BrowserModule,

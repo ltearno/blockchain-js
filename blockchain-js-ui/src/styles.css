@@ -132,3 +132,13 @@ art-work-edition #canvas {
         padding: .2em;
     }
 }
+
+.score-icon {
+    margin: .5em;
+}
+
+.score-icon .card-image .art-work-icon {
+    min-width: 50%;
+    height: auto;
+    margin-left: 25%;
+}

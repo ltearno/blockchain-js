@@ -23,6 +23,9 @@
       <li [class.is-active]='selectedTab==5' (click)='selectTab(5)'>
         <a>Production</a>
       </li>
+      <li [class.is-active]='selectedTab==6' (click)='selectTab(6)'>
+        <a>WoF</a>
+      </li>
       <li [class.is-active]='selectedTab==1' (click)='selectTab(1)'>
         <a>Messages</a>
       </li>
@@ -291,6 +294,12 @@
   <div *ngIf='selectedTab==5'>
     <div class="container is-fluid">
       <supply-chain></supply-chain>
+    </div>
+  </div>
+
+  <div *ngIf='selectedTab==6'>
+    <div class="container is-fluid">
+      <wall-of-fame></wall-of-fame>
     </div>
   </div>
 </section>
