@@ -260,7 +260,7 @@ function drawArtWorkInternal(artWorkId: string, width: number, height: number, c
 }
 
 function drawPixel(color: string, width: number, height: number, ctx: CanvasRenderingContext2D, fade: boolean) {
-    const MARGIN = width / 15
+    let MARGIN = width / 15
 
     if (fade) {
         ctx.fillStyle = 'rgba(0,0,0,.05)'
@@ -270,19 +270,25 @@ function drawPixel(color: string, width: number, height: number, ctx: CanvasRend
         ctx.fillStyle = color
         ctx.strokeStyle = color
     }
-    ctx.lineJoin = "round"
-    ctx.lineWidth = width / 8
 
-    ctx.beginPath()
-    ctx.moveTo(MARGIN, MARGIN)
-    ctx.lineTo(width - MARGIN - 1, MARGIN)
-    ctx.lineTo(width - MARGIN - 1, height - MARGIN - 1)
-    ctx.lineTo(MARGIN, height - MARGIN - 1)
-    ctx.lineTo(MARGIN, MARGIN)
-    ctx.closePath()
+    if (MARGIN < .1) {
+        ctx.fillRect(0, 0, width, height)
+    }
+    else {
+        ctx.lineJoin = "round"
+        ctx.lineWidth = width / 8
 
-    ctx.stroke()
-    ctx.fill()
+        ctx.beginPath()
+        ctx.moveTo(MARGIN, MARGIN)
+        ctx.lineTo(width - MARGIN - 1, MARGIN)
+        ctx.lineTo(width - MARGIN - 1, height - MARGIN - 1)
+        ctx.lineTo(MARGIN, height - MARGIN - 1)
+        ctx.lineTo(MARGIN, MARGIN)
+        ctx.closePath()
+
+        ctx.stroke()
+        ctx.fill()
+    }
 }
 
 function drawEmoji(text: string, width: number, height: number, ctx: CanvasRenderingContext2D, fade: boolean) {
