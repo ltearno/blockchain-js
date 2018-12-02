@@ -17,6 +17,11 @@ export class SupplyChainComponent {
     nbWinnedItems = 0
     position = 0
 
+    artWorkCreationSize = {
+        height: 7,
+        width: 7
+    }
+
     ngOnDestroy() {
         this.state.smartContract.removeChangeListener(this.smartContractChangeListener)
     }
@@ -55,8 +60,6 @@ export class SupplyChainComponent {
     }
 
     async initArtWorkCreation() {
-        const SIZE = 7
-
         let id = `r${Math.random()}`
 
         await this.state.suppyChain.registerArtWork({
@@ -64,7 +67,7 @@ export class SupplyChainComponent {
             author: this.state.user.id,
             title: 'Artwork',
             validated: false,
-            size: { width: SIZE, height: SIZE },
+            size: { width: this.artWorkCreationSize.width, height: this.artWorkCreationSize.height },
             grid: null,
             messages: []
         })
@@ -85,8 +88,11 @@ export class SupplyChainComponent {
     }
 
     validateArtWork() {
-        if (this.editingArtworkId)
+        if (this.editingArtworkId) {
+            this.artWorkCreationSize.height = this.state.programState.artWorks[this.editingArtworkId].size.height
+            this.artWorkCreationSize.width = this.state.programState.artWorks[this.editingArtworkId].size.width
             this.state.suppyChain.validateArtWork(this.editingArtworkId)
+        }
 
         this.editingArtworkId = null
     }
