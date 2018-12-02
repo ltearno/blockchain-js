@@ -3,14 +3,15 @@
     <div class="subtitle">
         <p class="is-6">Author: <b>{{ pseudoOrId(artWork.author) }}</b></p>
         <p class="is-6">PartID: {{ artWork.serialNumber }}</p>
-        <p class="is-6"><button [disabled]='!hasNext()' class='button' (click)='next()'>👈</button><button class='button' [disabled]='!hasPrevious()' (click)='previous()'>👉</button></p>
     </div>
 </div>
 
 <art-work-icon [artWorkId]='"artwork-"+artWork.id' [disablePaintCache]='true' [filterAuthor]='filterAuthor'></art-work-icon>
 
 <div>
+    <button [disabled]='!hasNext()' class='button' (click)='next()'>👈</button>
     <button class='button is-primary' (click)='cancel.emit()'>Back</button>
+    <button class='button' [disabled]='!hasPrevious()' (click)='previous()'>👉</button>
 </div>
 
 <div *ngIf='artWork.messages'>
