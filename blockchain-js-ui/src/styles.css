@@ -140,5 +140,6 @@ art-work-edition #canvas {
 .score-icon .card-image .art-work-icon {
     min-width: 50%;
     height: auto;
+    margin-top: .5em;
     margin-left: 25%;
 }

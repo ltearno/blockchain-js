@@ -10,6 +10,8 @@ export class WallOfFameComponent implements OnInit, OnDestroy {
 
     users = []
 
+    private maxes = new Map<string, number>()
+
     ngOnInit() {
         this.state.smartContract.addChangeListener(this.smartContractChangeListener)
         this.updateFromContract()
@@ -25,6 +27,12 @@ export class WallOfFameComponent implements OnInit, OnDestroy {
 
     private updateFromContract() {
         this.users = []
+
+        this.maxes = new Map<string, number>()
+        let maybeStoreMax = (item: string, value: number) => {
+            if (!this.maxes.has(item) || this.maxes.get(item) < value)
+                this.maxes.set(item, value)
+        }
 
         if (!this.state.programState || !this.state.programState.accounts)
             return
@@ -68,7 +76,16 @@ export class WallOfFameComponent implements OnInit, OnDestroy {
             user.nbConsumedEmojis = account.nbConsumedEmojis
             user.nbConsumedPixels = account.nbConsumedPixels
 
+            maybeStoreMax('winned-items', user.nbWinnedItems)
+            maybeStoreMax('winned-emojis', user.nbWinnedItems)
+            maybeStoreMax('winned-pixels', user.nbWinnedItems)
+            maybeStoreMax('consumed-artworks', user.nbConsumedArtWorks)
+            maybeStoreMax('consumed-emojis', user.nbConsumedEmojis)
+            maybeStoreMax('consumed-pixels', user.nbConsumedPixels)
+
             user.artWorks = Object.keys(this.state.programState.artWorks).filter(artWorkId => this.state.programState.artWorks[artWorkId].author == user.id).map(artWorkId => {
+                maybeStoreMax('artwork-uses', artWorkUses[artWorkId] || 0)
+
                 return {
                     id: artWorkId,
                     title: this.state.programState.artWorks[artWorkId].title,
@@ -87,6 +104,10 @@ export class WallOfFameComponent implements OnInit, OnDestroy {
 
             this.users.push(user)
         })
+    }
+
+    isMax(item: string, value: number) {
+        return this.maxes.has(item) && this.maxes.get(item) <= value
     }
 
     pseudoOrId(id: string) {

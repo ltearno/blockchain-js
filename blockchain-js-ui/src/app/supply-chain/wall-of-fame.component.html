@@ -5,20 +5,25 @@
     <div *ngFor='let user of users' class='card'>
         <header class="card-header">
             <p class="card-header-title">
-                {{ user.pseudo }}
+                {{ user.pseudo }}<span *ngIf='user.id==state.user.id'>(🌼 It's you 🌼)</span>
             </p>
         </header>
 
         <div class="card-content">
             <div class="content">
                 <p>Id: {{ user.id }}</p>
-                <p>Public key: {{ user.publicKey }}</p>
-                <p>Winned items: {{ user.nbWinnedItems }}</p>
-                <p>Winned pixels: {{ user.nbWinnedPixels }}</p>
-                <p>Winned emojis: {{ user.nbWinnedEmojis }}</p>
-                <p>Consummed ArtWorks: {{ user.nbConsumedArtWorks }}</p>
-                <p>Consummed Emojis: {{ user.nbConsumedEmojis }}</p>
-                <p>Consummed Pixels: {{ user.nbConsumedPixels }}</p>
+                <p>Winned items: {{ user.nbWinnedItems }}<span *ngIf='isMax("winned-items", user.nbWinnedItems)'>
+                        🎉🏆👏</span></p>
+                <p>Winned emojis: {{ user.nbWinnedEmojis }}<span *ngIf='isMax("winned-emojis", user.nbWinnedEmojis)'>
+                        🎉🏆👏</span></p>
+                <p>Winned pixels: {{ user.nbWinnedPixels }}<span *ngIf='isMax("winned-pixels", user.nbWinnedPixels)'>
+                        🎉🏆👏</span></p>
+                <p>Consummed ArtWorks: {{ user.nbConsumedArtWorks }}<span *ngIf='isMax("consumed-artworks", user.nbConsumedArtWorks)'>
+                        🎉🏆👏</span></p>
+                <p>Consummed Emojis: {{ user.nbConsumedEmojis }}<span *ngIf='isMax("consumed-emojis", user.nbConsumedEmojis)'>
+                        🎉🏆👏</span></p>
+                <p>Consummed Pixels: {{ user.nbConsumedPixels }}<span *ngIf='isMax("consumed-pixels", user.nbConsumedPixels)'>
+                        🎉🏆👏</span></p>
 
                 <!--{{ user | json }}-->
 
@@ -28,8 +33,8 @@
                             <art-work-icon [artWorkId]='"artwork-"+artWork.id'></art-work-icon>
                         </div>
                         <div class="card-content">
-                            <h1>{{ artWork.title }}</h1>
-                            <div *ngIf='artWork.uses'>Used {{ artWork.uses }} times</div>
+                            <div class='card-header-title'>{{ artWork.title }}</div>
+                            <div *ngIf='artWork.uses'>Used {{ artWork.uses }} times<span *ngIf='isMax("artwork-uses", artWork.uses)'>🎉🏆👏</span></div>
                             <div *ngIf='artWork.messages'>
                                 <div *ngFor='let message of artWork.messages'><i>{{ pseudoOrId(message.author) }} : </i>{{
                                     message.text }}</div>
@@ -37,6 +42,8 @@
                         </div>
                     </div>
                 </div>
+
+                <p style="font-size:.5em;">Public key: {{ user.publicKey }}</p>
             </div>
         </div>
     </div>
