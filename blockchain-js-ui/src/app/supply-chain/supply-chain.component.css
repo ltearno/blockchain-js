@@ -9,9 +9,6 @@
     border: 3px solid black;
 }
 
-.lot-grid {
-}
-
 .lot-grid > div {
     display: inline-block;
     margin: .2em;
@@ -31,4 +28,9 @@
 
 .grille > div {
     background-color: aqua;
+}
+
+.score {
+    text-align: center;
+    font-size: 1.5em;
 }

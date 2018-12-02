@@ -2,7 +2,8 @@
     <h2>Loading blocks and initializing the Supply Chain, please wait...</h2>
     <div *ngIf='state.loaders'>{{ state.loaders }} loading processes running...</div>
     <div *ngIf='state.fullNode.transfer.isLoading()'>Local node is receiving and processing new blocks...</div>
-    <div *ngIf='state.smartContract.processing'>Smart Contract component is processing data ({{ state.smartContract.processing }})...</div>
+    <div *ngIf='state.smartContract.processing'>Smart Contract component is processing data ({{
+        state.smartContract.processing }})...</div>
     <div>User : {{ state.user != null ? '✔️' : '❌' }}</div>
     <div>RSA keys : {{ state.user?.keys != null ? '✔️' : '❌' }}</div>
     <div>Identity contract : {{ state.hasIdentityContract ? '✔️' : '❌' }}</div>
@@ -10,6 +11,17 @@
 </div>
 
 <div *ngIf='state.hasSupplyChainAccount'>
+    <div class='container'>
+        <div class='score' *ngIf='nbWinnedItems'>
+            <span><b>{{ nbWinnedItems }}</b> winned items</span>
+        </div>
+        <div class='score' *ngIf='position > 1'>
+            <span>Rank: <b>{{ position }}</b></span>
+        </div>
+        <div class='score' *ngIf='position == 1'>
+            <span>🎉 🏆👏 You are the first 👏🏆 !! 🎉</span>
+        </div>
+    </div>
     <div *ngIf='!editingArtworkId' class="container is-fluid">
         <supply-chain-overview (initArtWorkCreation)='initArtWorkCreation()' (editArtWork)='editArtWork($event)'
             (selectArtWork)='selectArtWork($event)'></supply-chain-overview>

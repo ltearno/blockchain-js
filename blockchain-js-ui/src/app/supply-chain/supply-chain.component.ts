@@ -9,19 +9,39 @@ import { State } from './state'
 })
 export class SupplyChainComponent {
     constructor(
-        public state: State,
-        private changeDetectorRef: ChangeDetectorRef
+        public state: State
     ) {
         this.state.smartContract.addChangeListener(this.smartContractChangeListener)
     }
+
+    nbWinnedItems = 0
+    position = 0
 
     ngOnDestroy() {
         this.state.smartContract.removeChangeListener(this.smartContractChangeListener)
     }
 
     private smartContractChangeListener = () => {
-        if (!this.changeDetectorRef['destroyed'])
-            this.changeDetectorRef.detectChanges()
+        if (!this.state || !this.state.user || !this.state.user.id)
+            return
+
+        let account = this.state.programState.accounts[this.state.user.id]
+        if (!account)
+            return
+
+        this.nbWinnedItems = (account.nbWinnedPixels || 0) + (account.nbWinnedEmojis || 0)
+
+        this.position = 1
+        Object.keys(this.state.programState.accounts).forEach(id => {
+            if (id == this.state.user.id)
+                return
+
+            let account = this.state.programState.accounts[id]
+            let nbWinnedItems = (account.nbWinnedPixels || 0) + (account.nbWinnedEmojis || 0)
+
+            if (nbWinnedItems > this.nbWinnedItems)
+                this.position++
+        })
     }
 
     /**
