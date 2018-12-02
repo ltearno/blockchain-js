@@ -79,8 +79,9 @@
           </ul>
           This means that you never loose creating something or using someone else's creation, and you gain revenues
           when others use your work !
-          <br>
+          <br><br><br>
           <div class="field has-addons" *ngIf='state.user && state.hasIdentityContract'>
+            Choose your pseudo for this session
             <p class="control is-expanded">
               <input #pseudo class='input' type="text" placeholder='Choose a pseudo' (keyup.enter)='setPseudo(pseudo.value)'>
             </p>
