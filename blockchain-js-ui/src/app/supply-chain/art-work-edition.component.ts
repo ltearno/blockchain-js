@@ -30,6 +30,22 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     @Output()
     cancel = new EventEmitter<void>()
 
+    viewInventory = true
+    viewCommunity = false
+    moreArtWorks = false
+    moreInventory = false
+
+    setView(index) {
+        if (index == 0) {
+            this.viewInventory = true
+            this.viewCommunity = false
+        }
+        else {
+            this.viewInventory = false
+            this.viewCommunity = true
+        }
+    }
+
     constructor(public state: State, private changeDetectorRef: ChangeDetectorRef) {
     }
 
@@ -51,12 +67,16 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
             .map(itemId => ({ id: itemId, count: inv[itemId] }))
             .filter(item => item.count > 0)
 
+        this.smallInventory = this.inventory.slice(0, 25)
+
         this.inventoryNbItems = 0
         this.inventory.forEach(item => this.inventoryNbItems += item.count)
 
         this.othersInventory = Object.keys(this.state.programState.artWorks).filter(artWorkId => artWorkId != this.artWorkId).sort((id1, id2) => {
             return this.state.programState.artWorks[id1].serialNumber > this.state.programState.artWorks[id2].serialNumber ? -1 : 1
         }).map(artWorkId => `artwork-${artWorkId}`)
+
+        this.smallOthersInventory = this.othersInventory.slice(0, 25)
 
         this.canValidate = Model.canValidateArtWork(this.state.programState, this.artWorkId)
     }
@@ -76,7 +96,9 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
 
     inventoryNbItems = 0
     inventory = []
+    smallInventory = []
     othersInventory = []
+    smallOthersInventory = []
     canValidate = false
 
     private context: CanvasRenderingContext2D
