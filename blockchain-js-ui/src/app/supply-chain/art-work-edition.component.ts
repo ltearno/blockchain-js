@@ -30,11 +30,6 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     @Output()
     cancel = new EventEmitter<void>()
 
-    viewInventory = true
-    viewCommunity = false
-    moreArtWorks = false
-    moreInventory = false
-
     setView(index) {
         if (index == 0) {
             this.viewInventory = true
@@ -67,16 +62,12 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
             .map(itemId => ({ id: itemId, count: inv[itemId] }))
             .filter(item => item.count > 0)
 
-        this.smallInventory = this.inventory.slice(0, 25)
-
         this.inventoryNbItems = 0
         this.inventory.forEach(item => this.inventoryNbItems += item.count)
 
         this.othersInventory = Object.keys(this.state.programState.artWorks).filter(artWorkId => artWorkId != this.artWorkId).sort((id1, id2) => {
             return this.state.programState.artWorks[id1].serialNumber > this.state.programState.artWorks[id2].serialNumber ? -1 : 1
         }).map(artWorkId => `artwork-${artWorkId}`)
-
-        this.smallOthersInventory = this.othersInventory.slice(0, 25)
 
         this.canValidate = Model.canValidateArtWork(this.state.programState, this.artWorkId)
     }
@@ -95,14 +86,48 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     selectedInOthersInventory = null
 
     inventoryNbItems = 0
+
     inventory = []
-    smallInventory = []
     othersInventory = []
-    smallOthersInventory = []
+
+    limitArtWorks = 20
+    limitInventory = 20
+
+    _limitedInventory = []
+
+    get limitedInventory() {
+        if (this._limitedInventory.length < this.limitInventory && this.inventory.length > this._limitedInventory.length) {
+            this._limitedInventory = this.inventory.concat([]).slice(0, this.limitInventory)
+        }
+
+        return this._limitedInventory
+    }
+
+    _limitedOthersInventory = []
+
+    get limitedOthersInventory() {
+        if (this._limitedOthersInventory.length < this.limitArtWorks && this.othersInventory.length > this._limitedOthersInventory.length) {
+            this._limitedOthersInventory = this.othersInventory.concat([]).slice(0, this.limitArtWorks)
+        }
+
+        return this._limitedOthersInventory
+    }
+
     canValidate = false
+
+    viewInventory = true
+    viewCommunity = false
 
     private context: CanvasRenderingContext2D
     artWork: Model.ArtWork = null
+
+    plusArtWorks() {
+        this.limitArtWorks += 20
+    }
+
+    plusInventory() {
+        this.limitInventory += 20
+    }
 
     ngAfterViewInit() {
         let canvas = this.canvas.nativeElement

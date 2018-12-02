@@ -53,22 +53,22 @@
 <div *ngIf='viewInventory'>
     <h2>Your items ({{ inventoryNbItems }} items in {{ inventory.length }} categories)</h2>
     <div class="inventory">
-        <div *ngFor='let item of moreArtWorks?inventory:smallInventory' [class.selected]='item.id == selectedInInventory'
+        <div *ngFor='let item of limitedInventory' [class.selected]='item.id == selectedInInventory'
             (click)='selectInventory(item.id)'>
             <art-work-icon [artWorkId]='item.id' (selected)='selectInventory(item.id)'></art-work-icon>
             <b>{{ item.count }}</b>
         </div>
-        <button *ngIf='!moreInventory && inventory.length>25' class="button" (click)='moreInventory = true'>More...</button>
+        <button *ngIf='inventory.length>limitInventory' class="button" (click)='plusInventory()'>More...</button>
     </div>
 </div>
 
 <div *ngIf='viewCommunity'>
     <h2>Available artworks</h2>
     <div class="inventory artworks-inventory">
-        <div *ngFor='let itemId of moreArtWorks?othersInventory:smallOthersInventory' [class.selected]='itemId == selectedInOthersInventory'
+        <div *ngFor='let itemId of limitedOthersInventory' [class.selected]='itemId == selectedInOthersInventory'
             (click)='selectOthersInventory(itemId)'>
             <art-work-icon [artWorkId]='itemId' (selected)='selectOthersInventory(itemId)'></art-work-icon>
         </div>
-        <button *ngIf='!moreArtWorks && othersInventory.length>25' class="button" (click)='moreArtWorks = true'>More...</button>
+        <button *ngIf='othersInventory.length>limitArtWorks' class="button" (click)='plusArtWorks()'>More...</button>
     </div>
 </div>
