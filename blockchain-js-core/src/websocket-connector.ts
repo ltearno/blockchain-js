@@ -55,7 +55,6 @@ export class WebSocketConnector implements NodeApi.NodeApi {
                         try {
                             let result = await this.messageToNode(message, this.localNode)
                             let payload = JSON.stringify({ id: message.id, type: 'reply', data: result })
-                            //console.log(`ws reply: ${payload}`)
                             this.ws.send(payload)
                         }
                         catch (error) {
