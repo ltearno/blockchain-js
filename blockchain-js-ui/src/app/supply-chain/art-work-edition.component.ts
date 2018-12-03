@@ -56,6 +56,13 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     private updateFromContract() {
         this.artWork = this.state.programState.artWorks[this.artWorkId]
 
+        let notValidatedArtworkIds = {}
+        Object.values(this.artWork.grid)
+            .filter(id => id.startsWith('artwork-'))
+            .filter(id => !this.state.programState.artWorks[id.substr('artwork-'.length)].validated)
+            .forEach(id => notValidatedArtworkIds[id] = true)
+        this.notValidatedWorkItemIds = Object.keys(notValidatedArtworkIds)
+
         let inv = this.state.programState.accounts[this.state.user.id].inventory
         this.inventory = Object.keys(inv)
             .sort()
@@ -114,6 +121,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     }
 
     canValidate = false
+    notValidatedWorkItemIds = []
 
     viewInventory = true
     viewCommunity = false

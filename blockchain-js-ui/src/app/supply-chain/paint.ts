@@ -249,14 +249,14 @@ function drawArtWorkInternal(artWorkId: string, width: number, height: number, c
         ctx.restore()
     })
 
-    if (!artWork.validated) {
+    /*if (!artWork.validated) {
         ctx.lineWidth = CW / 7
         ctx.strokeStyle = 'rgba(235,201,67,.8)'
         ctx.strokeRect(0, 0, width, height)
 
         ctx.fillStyle = 'rgba(255,221,87,.1)'
         ctx.fillRect(0, 0, width, height)
-    }
+    }*/
 }
 
 function drawPixel(color: string, width: number, height: number, ctx: CanvasRenderingContext2D, fade: boolean) {

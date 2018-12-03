@@ -33,8 +33,9 @@
 
 <div>
     <button class="button" (click)='cancel.emit()'>Back</button><br />
-    <button *ngIf="canValidate" class="button is-primary" (click)='validate.emit()'>Validate</button><br />
-    <span *ngIf='!canValidate'>Cannot validate because not all sub artworks are validated.</span>
+    <button [disabled]="!canValidate" class="button is-primary" (click)='validate.emit()'>Validate</button><br />
+    <span *ngIf='!canValidate'>Cannot validate because those artworks you use are not themselves validated :</span>
+    <art-work-icon style='padding:.5em;' *ngFor='let workItemId of notValidatedWorkItemIds' [artWorkId]='workItemId'></art-work-icon>
 </div>
 
 <br>
@@ -53,8 +54,7 @@
 <div *ngIf='viewInventory'>
     <h2>Your items ({{ inventoryNbItems }} items in {{ inventory.length }} categories)</h2>
     <div class="inventory">
-        <div *ngFor='let item of limitedInventory' [class.selected]='item.id == selectedInInventory'
-            (click)='selectInventory(item.id)'>
+        <div *ngFor='let item of limitedInventory' [class.selected]='item.id == selectedInInventory' (click)='selectInventory(item.id)'>
             <art-work-icon [artWorkId]='item.id' (selected)='selectInventory(item.id)'></art-work-icon>
             <b>{{ item.count }}</b>
         </div>
