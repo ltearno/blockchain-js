@@ -82,8 +82,8 @@ export class WallOfFameComponent implements OnInit, OnDestroy {
             user.nbConsumedPixels = account.nbConsumedPixels
 
             maybeStoreMax('winned-items', user.nbWinnedItems)
-            maybeStoreMax('winned-emojis', user.nbWinnedItems)
-            maybeStoreMax('winned-pixels', user.nbWinnedItems)
+            maybeStoreMax('winned-emojis', user.nbWinnedEmojis)
+            maybeStoreMax('winned-pixels', user.nbWinnedPixels)
             maybeStoreMax('consumed-artworks', user.nbConsumedArtWorks)
             maybeStoreMax('consumed-emojis', user.nbConsumedEmojis)
             maybeStoreMax('consumed-pixels', user.nbConsumedPixels)
