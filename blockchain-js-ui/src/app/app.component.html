@@ -228,14 +228,14 @@
           </div>
         </div>
         <div *ngIf='state.state[state.selectedBranch]'>
-          <div *ngIf='state.state[state.selectedBranch].blocks.length'>
-            head block id: {{state.state[state.selectedBranch].blocks[0].blockMetadata.blockId}}
-            <br /> valid: {{state.state[state.selectedBranch].blocks[0].blockMetadata.isValid}}
-            <br /> branch: {{state.state[state.selectedBranch].blocks[0].blockData?.branch}}
-            <br /> previous blocks: {{state.state[state.selectedBranch].blocks[0].blockData?.previousBlockIds | json}}
-            <br /> confidence: {{state.state[state.selectedBranch].blocks[0].blockMetadata.confidence}}
-            <br /> blockCount: {{state.state[state.selectedBranch].blocks[0].blockMetadata.blockCount}}
-            <br /> validityProof: {{state.state[state.selectedBranch].blocks[0].blockData?.validityProof | json}}
+          <div *ngIf='state.state[state.selectedBranch].headBlock'>
+            head block id: {{state.state[state.selectedBranch].headBlock.blockMetadata.blockId}}
+            <br /> valid: {{state.state[state.selectedBranch].headBlock.blockMetadata.isValid}}
+            <br /> branch: {{state.state[state.selectedBranch].headBlock.blockData?.branch}}
+            <br /> previous blocks: {{state.state[state.selectedBranch].headBlock.blockData?.previousBlockIds | json}}
+            <br /> confidence: {{state.state[state.selectedBranch].headBlock.blockMetadata.confidence}}
+            <br /> blockCount: {{state.state[state.selectedBranch].headBlock.blockMetadata.blockCount}}
+            <br /> validityProof: {{state.state[state.selectedBranch].headBlock.blockData?.validityProof | json}}
           </div>
         </div>
       </div>

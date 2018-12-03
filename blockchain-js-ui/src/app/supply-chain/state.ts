@@ -68,9 +68,9 @@ export class State {
         [key: string]: {
             branch: string
             head: string
-            blocks: any[]
+            headBlock: any[]
         }
-    } = { "master": { branch: Blockchain.Block.MASTER_BRANCH, head: null, blocks: [] } }
+    } = { "master": { branch: Blockchain.Block.MASTER_BRANCH, head: null, headBlock: [] } }
 
     messageSequence: Blockchain.SequenceStorage.SequenceStorage
     smartContract: Blockchain.SmartContract.SmartContract = null
@@ -92,7 +92,7 @@ export class State {
     }
 
     get branches() {
-        return Object.getOwnPropertyNames(this.state)
+        return Object.keys(this.state)
     }
 
     programState: ProgramState = null
@@ -212,7 +212,7 @@ export class State {
         let branchState = {
             branch: branch,
             head: toFetch,
-            blocks: []
+            headBlock: null
         }
 
         let toFetchs = [toFetch]
@@ -224,9 +224,7 @@ export class State {
             let blockDatas = await this.fullNode.node.blockChainBlockData(fetching, 1)
             let blockData = blockDatas && blockDatas[0]
 
-            branchState.blocks.push({ blockMetadata, blockData })
-
-            blockData && blockData.previousBlockIds && blockData.previousBlockIds.forEach(b => !toFetchs.some(bid => bid == b) && toFetchs.push(b))
+            branchState.headBlock = { blockMetadata, blockData }
         }
 
         state[branch] = branchState
