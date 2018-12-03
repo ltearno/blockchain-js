@@ -2,7 +2,7 @@ import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as NetworkApi from './network-api'
 
-const MAGIC_HELLO = "hello"
+const MAGIC_HELLO = "reply"
 
 export interface Message {
     type: 'message' | 'reply' | 'hello' | 'event'
