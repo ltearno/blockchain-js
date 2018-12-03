@@ -71,10 +71,12 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
 
         this.inventoryNbItems = 0
         this.inventory.forEach(item => this.inventoryNbItems += item.count)
+        this._limitedInventory = null
 
         this.othersInventory = Object.keys(this.state.programState.artWorks).filter(artWorkId => artWorkId != this.artWorkId).sort((id1, id2) => {
             return this.state.programState.artWorks[id1].serialNumber > this.state.programState.artWorks[id2].serialNumber ? -1 : 1
         }).map(artWorkId => `artwork-${artWorkId}`)
+        this._limitedOthersInventory = null
 
         this.canValidate = Model.canValidateArtWork(this.state.programState, this.artWorkId)
     }
@@ -103,7 +105,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     _limitedInventory = []
 
     get limitedInventory() {
-        if (this._limitedInventory.length < this.limitInventory && this.inventory.length > this._limitedInventory.length) {
+        if (!this._limitedInventory || (this._limitedInventory.length < this.limitInventory && this.inventory.length > this._limitedInventory.length)) {
             this._limitedInventory = this.inventory.concat([]).slice(0, this.limitInventory)
         }
 
@@ -113,7 +115,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     _limitedOthersInventory = []
 
     get limitedOthersInventory() {
-        if (this._limitedOthersInventory.length < this.limitArtWorks && this.othersInventory.length > this._limitedOthersInventory.length) {
+        if (!this._limitedOthersInventory || (this._limitedOthersInventory.length < this.limitArtWorks && this.othersInventory.length > this._limitedOthersInventory.length)) {
             this._limitedOthersInventory = this.othersInventory.concat([]).slice(0, this.limitArtWorks)
         }
 
