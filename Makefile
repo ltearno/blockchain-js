@@ -4,7 +4,8 @@ IMAGE_NAME := "eu.gcr.io/${PROJECT}/blockchain-js/certbot:arnaud"
 UI_IMAGE_REF = $(shell git rev-parse HEAD)
 CORE_IMAGE_REF = $(shell git rev-parse HEAD)
 
-all:
+all: build-core build-ui push-core push-ui update-deployment
+	echo "all done."
 
 build-core:
 	echo "building core..."
