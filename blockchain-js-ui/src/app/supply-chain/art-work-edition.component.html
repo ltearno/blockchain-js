@@ -40,7 +40,7 @@
 
 <br>
 <p>To create your artwork, use items from :</p>
-<div class="tabs" style='display: block;'>
+<div *ngIf='showTabs' class="tabs" style='display: block;'>
     <ul>
         <li [class.is-active]='viewInventory' (click)='setView(0)'>
             <a>Your inventory</a>

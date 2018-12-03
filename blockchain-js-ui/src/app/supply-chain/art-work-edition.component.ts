@@ -21,6 +21,8 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
         this.paint()
     }
 
+    showTabs = false
+
     @Input()
     artWorkId: string = null
 
@@ -78,6 +80,12 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
         }).map(artWorkId => `artwork-${artWorkId}`)
         this._limitedOthersInventory = null
 
+        if (!this.showTabs && (this.inventory.length > this.limitInventory || this.othersInventory.length > this.limitArtWorks)) {
+            this.showTabs = true
+            this.viewInventory = true
+            this.viewCommunity = false
+        }
+
         this.canValidate = Model.canValidateArtWork(this.state.programState, this.artWorkId)
     }
 
@@ -126,7 +134,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     notValidatedWorkItemIds = []
 
     viewInventory = true
-    viewCommunity = false
+    viewCommunity = true
 
     private context: CanvasRenderingContext2D
     artWork: Model.ArtWork = null
