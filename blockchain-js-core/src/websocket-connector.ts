@@ -2,6 +2,8 @@ import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as NetworkApi from './network-api'
 
+const MAGIC_HELLO = "hello"
+
 export interface Message {
     type: 'message' | 'reply' | 'hello' | 'event'
     id: string
@@ -30,10 +32,10 @@ export class WebSocketConnector implements NodeApi.NodeApi {
     constructor(private localNode: NodeApi.NodeApi, private ws: NetworkApi.WebSocket) {
         ws.on('message', this.messageListener)
 
-        if (this.localNode)
-            ws.send(JSON.stringify({ id: null, type: 'hello', data: `hello` }))
-        else
-            console.log(`WARNING : localNode is null`)
+        ws.send(JSON.stringify({ id: null, type: 'hello', data: MAGIC_HELLO }))
+
+        if (!this.localNode)
+            console.warn(`localNode is null`)
     }
 
     private messageListener = async rawMessage => {
@@ -41,6 +43,11 @@ export class WebSocketConnector implements NodeApi.NodeApi {
             let message = JSON.parse(rawMessage) as Message
             switch (message.type) {
                 case 'hello':
+                    console.log(`received hello : ${message.data}`)
+                    if (!message.data || message.data != MAGIC_HELLO) {
+                        console.warn(`refuse socket connection from client ${message.data}`)
+                        this.ws.close()
+                    }
                     break
 
                 case 'event': {
