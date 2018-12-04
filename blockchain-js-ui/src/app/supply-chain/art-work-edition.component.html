@@ -1,6 +1,6 @@
 <div>
     <div class="field">
-        <label class="label">Title <span *ngIf='!titleOnly' style='font-weight: bold;'>choose a title to validate your artwork !</span></label>
+        <label class="label">Title <span *ngIf='titleOnly' style='font-weight: bold;'>choose a title to validate your artwork !</span></label>
         <div class="control">
             <input #title class="input" type="text" (change)='updateArtWorkTitle(title.value)' [value]='artWork.title'
                 maxlength="100">
