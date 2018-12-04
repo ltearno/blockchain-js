@@ -178,7 +178,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     }
 
     async validateArtWork(title: string) {
-        if (!this.artWork || !this.artWork.title || !this.artWork.title.trim().length) {
+        if (!title || !title.trim().length) {
             this.titleOnly = true
         }
         else {
