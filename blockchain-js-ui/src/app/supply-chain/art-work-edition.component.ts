@@ -178,8 +178,15 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     }
 
     validateArtWork() {
-        if (!this.artWork || !this.artWork.title || this.artWork.title.trim().length == 0)
+        if (!this.artWork || !this.artWork.title || !this.artWork.title.trim().length) {
+            // hack : because clicking on the button trigger input change which trigger title update,
+            // sometimes we come here because the title has not been recorded yet
+            if (this.titleOnly) {
+                setTimeout(() => this.validateArtWork(), 1000)
+            }
+
             this.titleOnly = true
+        }
         else
             this.validate.emit()
     }
