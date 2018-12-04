@@ -26,6 +26,8 @@
 </div>
 
 <div class="container" style="text-align: center;">
+    <art-work-icon *ngIf='titleOnly' [artWorkId]='"artwork-" + artWorkId' class='preview-before-validate' [disablePaintCache]='true'></art-work-icon>
+
     <canvas [style.display]='titleOnly?"none":"initial"' id='canvas' #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()'
         (click)='mouseClick($event)'></canvas>
 

@@ -102,6 +102,13 @@ art-work-edition #canvas {
     display:none;
 }
 
+art-work-edition .preview-before-validate canvas {
+    width: 50vw;
+    max-width: 50vh;
+    height: 50vh;
+    max-height: 50vw;
+}
+
 @media print {
     body, figure.artWork-icon, div.artWorks, supply-chain-overview, supply-chain {
         display: block !important;
