@@ -84,13 +84,13 @@
           when others use your work !
           <br><br><br>
           <div class="field has-addons" *ngIf='state.user && state.hasIdentityContract'>
-            Choose your pseudo for this session
+            <p>Choose your pseudo for this session</p>
             <p class="control is-expanded">
               <input #pseudo class='input' type="text" placeholder='Choose a pseudo' (keyup.enter)='setPseudo(pseudo.value)'>
             </p>
             <p class="control">
               <button (click)='setPseudo(pseudo.value)' class='button has-icon-left'>
-                Set your pseudo
+                Go with this!
               </button>
             </p>
           </div>
