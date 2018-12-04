@@ -177,23 +177,22 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
         }
     }
 
-    validateArtWork() {
+    async validateArtWork(title: string) {
         if (!this.artWork || !this.artWork.title || !this.artWork.title.trim().length) {
-            // hack : because clicking on the button trigger input change which trigger title update,
-            // sometimes we come here because the title has not been recorded yet
-            if (this.titleOnly) {
-                setTimeout(() => this.validateArtWork(), 1000)
-            }
-
             this.titleOnly = true
         }
-        else
+        else {
+            if (this.artWork && this.artWork.id && this.artWork.title != title)
+                await this.updateArtWorkTitle(title)
+
             this.validate.emit()
+        }
     }
 
     async updateArtWorkTitle(title) {
         if (title && title.length > 100)
             title = title.substr(0, 100)
+
         await this.state.suppyChain.updateArtWorkTitle(this.artWork.id, title)
     }
 
