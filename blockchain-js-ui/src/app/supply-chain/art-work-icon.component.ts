@@ -14,6 +14,8 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
 
     private _artWorkId: string = null
     private _filterAuthor: string = null
+
+    // should be renamed : use big cache size aka show fine definition
     private _disablePaintCache: boolean = false
 
     constructor(
@@ -75,7 +77,6 @@ export class ArtWorkIconComponent implements AfterViewInit, OnInit, OnDestroy {
             this._disablePaintCache ? 1000 : 100,
             {
                 cacheSize: this._disablePaintCache ? 1000 : null,
-                disablePaintCache: this._disablePaintCache,
                 filterAuthor: this._filterAuthor
             })
     }
