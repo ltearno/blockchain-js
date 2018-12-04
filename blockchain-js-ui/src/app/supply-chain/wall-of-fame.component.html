@@ -23,6 +23,8 @@
                         🎉🏆👏</span></p>
                 <p>Winned pixels: <b>{{ user.nbWinnedPixels }}</b><span *ngIf='isMax("winned-pixels", user.nbWinnedPixels)'>
                         🎉🏆👏</span></p>
+                <p>Inventory items: <b>{{ user.nbInventoryItems }}</b><span *ngIf='isMax("inventory-items",user.nbInventoryItems)'>
+                        🎉🏆👏</span></p>
                 <p>Consummed ArtWorks: <b>{{ user.nbConsumedArtWorks }}</b><span *ngIf='isMax("consumed-artworks", user.nbConsumedArtWorks)'>
                         🎉🏆👏</span></p>
                 <p>Consummed Emojis: <b>{{ user.nbConsumedEmojis }}</b><span *ngIf='isMax("consumed-emojis", user.nbConsumedEmojis)'>

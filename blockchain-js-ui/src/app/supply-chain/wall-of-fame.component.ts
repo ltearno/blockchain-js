@@ -80,6 +80,8 @@ export class WallOfFameComponent implements OnInit, OnDestroy {
             user.nbConsumedArtWorks = account.nbConsumedArtWorks
             user.nbConsumedEmojis = account.nbConsumedEmojis
             user.nbConsumedPixels = account.nbConsumedPixels
+            user.nbInventoryItems = 0
+            Object.values(account.inventory).forEach(nb => user.nbInventoryItems += nb)
 
             maybeStoreMax('winned-items', user.nbWinnedItems)
             maybeStoreMax('winned-emojis', user.nbWinnedEmojis)
@@ -87,6 +89,7 @@ export class WallOfFameComponent implements OnInit, OnDestroy {
             maybeStoreMax('consumed-artworks', user.nbConsumedArtWorks)
             maybeStoreMax('consumed-emojis', user.nbConsumedEmojis)
             maybeStoreMax('consumed-pixels', user.nbConsumedPixels)
+            maybeStoreMax('inventory-items', user.nbInventoryItems)
 
             user.artWorks = Object.keys(this.state.programState.artWorks).filter(artWorkId => this.state.programState.artWorks[artWorkId].author == user.id).map(artWorkId => {
                 maybeStoreMax('artwork-uses', artWorkUses[artWorkId] || 0)
