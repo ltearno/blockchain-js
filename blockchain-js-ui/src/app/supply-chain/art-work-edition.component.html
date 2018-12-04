@@ -1,13 +1,13 @@
 <div>
     <div class="field">
-        <label class="label">Title</label>
+        <label class="label">Title <span *ngIf='!titleOnly' style='font-weight: bold;'>choose a title to validate your artwork !</span></label>
         <div class="control">
             <input #title class="input" type="text" (change)='updateArtWorkTitle(title.value)' [value]='artWork.title'
                 maxlength="100">
         </div>
         <p class="help">Title of the ArtWork</p>
     </div>
-    <div class="field">
+    <div class="field" *ngIf='!titleOnly'>
         <label class="label">Size</label>
         <div class="control">
             Width
@@ -21,54 +21,57 @@
     </div>
 </div>
 
-<canvas id='canvas' #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()' (click)='mouseClick($event)'></canvas>
+<canvas [style.display]='titleOnly?"none":"initial"' id='canvas' #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()'
+    (click)='mouseClick($event)'></canvas>
 
-<div *ngIf='artWork.messages'>
+<div *ngIf='artWork.messages && !titleOnly'>
     <div *ngFor='let message of artWork.messages'>
         <i>{{ pseudoOrId(message.author) }} :</i> {{ message.text }}
     </div>
 </div>
-<input *ngIf='!artWork.validated' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)'
+<input *ngIf='!titleOnly' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)'
     style='font-size: 80%;'>
 
 <div>
     <button class="button" (click)='cancel.emit()'>Back</button><br />
-    <button [disabled]="!canValidate" class="button is-primary" (click)='validate.emit()'>Validate</button><br />
+    <button [disabled]="!canValidate" class="button is-primary" (click)='validateArtWork()'>Validate</button><br />
     <span *ngIf='!canValidate'>Cannot validate because those artworks you use are not themselves validated :</span>
     <art-work-icon style='padding:.5em;' *ngFor='let workItemId of notValidatedWorkItemIds' [artWorkId]='workItemId'></art-work-icon>
 </div>
 
-<br>
-<p>To create your artwork, use items from :</p>
-<div *ngIf='showTabs' class="tabs" style='display: block;'>
-    <ul>
-        <li [class.is-active]='viewInventory' (click)='setView(0)'>
-            <a>Your inventory</a>
-        </li>
-        <li [class.is-active]='viewCommunity' (click)='setView(1)'>
-            <a>Community artworks</a>
-        </li>
-    </ul>
-</div>
-
-<div *ngIf='viewInventory'>
-    <h2>Your items ({{ inventoryNbItems }} items in {{ inventory.length }} categories)</h2>
-    <div class="inventory">
-        <div *ngFor='let item of limitedInventory' [class.selected]='item.id == selectedInInventory' (click)='selectInventory(item.id)'>
-            <art-work-icon [artWorkId]='item.id' (selected)='selectInventory(item.id)'></art-work-icon>
-            <b>{{ item.count }}</b>
-        </div>
-        <button *ngIf='inventory.length>limitInventory' class="button" (click)='plusInventory()'>More...</button>
+<div *ngIf='!titleOnly'>
+    <br>
+    <p>To create your artwork, use items from :</p>
+    <div *ngIf='showTabs' class="tabs" style='display: block;'>
+        <ul>
+            <li [class.is-active]='viewInventory' (click)='setView(0)'>
+                <a>Your inventory</a>
+            </li>
+            <li [class.is-active]='viewCommunity' (click)='setView(1)'>
+                <a>Community artworks</a>
+            </li>
+        </ul>
     </div>
-</div>
 
-<div *ngIf='viewCommunity'>
-    <h2>Available artworks</h2>
-    <div class="inventory artworks-inventory">
-        <div *ngFor='let itemId of limitedOthersInventory' [class.selected]='itemId == selectedInOthersInventory'
-            (click)='selectOthersInventory(itemId)'>
-            <art-work-icon [artWorkId]='itemId' (selected)='selectOthersInventory(itemId)'></art-work-icon>
+    <div *ngIf='viewInventory'>
+        <h2>Your items ({{ inventoryNbItems }} items in {{ inventory.length }} categories)</h2>
+        <div class="inventory">
+            <div *ngFor='let item of limitedInventory' [class.selected]='item.id == selectedInInventory' (click)='selectInventory(item.id)'>
+                <art-work-icon [artWorkId]='item.id' (selected)='selectInventory(item.id)'></art-work-icon>
+                <b>{{ item.count }}</b>
+            </div>
+            <button *ngIf='inventory.length>limitInventory' class="button" (click)='plusInventory()'>More...</button>
         </div>
-        <button *ngIf='othersInventory.length>limitArtWorks' class="button" (click)='plusArtWorks()'>More...</button>
+    </div>
+
+    <div *ngIf='viewCommunity'>
+        <h2>Available artworks</h2>
+        <div class="inventory artworks-inventory">
+            <div *ngFor='let itemId of limitedOthersInventory' [class.selected]='itemId == selectedInOthersInventory'
+                (click)='selectOthersInventory(itemId)'>
+                <art-work-icon [artWorkId]='itemId' (selected)='selectOthersInventory(itemId)'></art-work-icon>
+            </div>
+            <button *ngIf='othersInventory.length>limitArtWorks' class="button" (click)='plusArtWorks()'>More...</button>
+        </div>
     </div>
 </div>

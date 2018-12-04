@@ -99,6 +99,8 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
         y: number
     } = null
 
+    titleOnly = false
+
     selectedInInventory = null
     selectedInOthersInventory = null
 
@@ -173,6 +175,13 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
             x: Math.floor(((x - rect.left) / (rect.right - rect.left)) * this.artWork.size.width),
             y: Math.floor(((y - rect.top) / (rect.bottom - rect.top)) * this.artWork.size.height)
         }
+    }
+
+    validateArtWork() {
+        if (!this.artWork || !this.artWork.title || this.artWork.title.trim().length == 0)
+            this.titleOnly = true
+        else
+            this.validate.emit()
     }
 
     async updateArtWorkTitle(title) {
