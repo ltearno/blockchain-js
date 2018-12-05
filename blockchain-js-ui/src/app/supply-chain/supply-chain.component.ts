@@ -15,7 +15,6 @@ export class SupplyChainComponent {
     }
 
     nbUsers = 0
-    nbItems = 0
     nbPixels = 0
     nbEmojis = 0
     nbWinnedItems = 0
@@ -48,8 +47,7 @@ export class SupplyChainComponent {
             else if (itemId.startsWith('emoji-'))
                 this.nbEmojis += account.inventory[itemId]
         })
-        this.nbItems = this.nbEmojis + this.nbPixels
-
+        
         this.nbWinnedItems = (account.nbWinnedPixels || 0) + (account.nbWinnedEmojis || 0)
 
         this.position = 1
