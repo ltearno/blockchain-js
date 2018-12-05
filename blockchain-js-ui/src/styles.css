@@ -150,3 +150,7 @@ art-work-edition .preview-before-validate canvas {
     margin-top: .5em;
     margin-left: 25%;
 }
+
+.score {
+    text-align: center;
+}
