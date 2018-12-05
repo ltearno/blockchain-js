@@ -13,14 +13,12 @@
 <div *ngIf='state.hasSupplyChainAccount'>
     <div class='container'>
         <div class="score">
-            You have <b>{{ nbEmojis }}</b> emojis and <b>{{ nbPixels }}</b> pixels
-        </div>
-        <div class='score' *ngIf='nbWinnedItems'>
-            <span>You have winned <b>{{ nbWinnedItems }}</b> items</span>
-            <span *ngIf='position > 1'>
+            You have <b>{{ nbEmojis }}</b> emojis and <b>{{ nbPixels }}</b> pixels.
+            <span *ngIf='nbWinnedItems'>You have winned <b>{{ nbWinnedItems }}</b> items</span>
+            <span *ngIf='nbWinnedItems && position > 1'>
                 and your rank is <b>{{ position }}</b> on {{ nbUsers }} users
             </span>
-            <span *ngIf='position == 1'>
+            <span *ngIf='nbWinnedItems && position == 1'>
                 and congrats because you are the winner! 👏🏆🎉 ({{ nbUsers }} users)
             </span>
         </div>
