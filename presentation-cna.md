@@ -4,7 +4,7 @@
 
 Bonjour à tous, c'est un honneur et un grand plaisir d'être parmis vous ce soir. Je m'appelle Arnaud Tournier et je viens vous proposer une expérience de la blockchain qui vous permettra d'imaginer les usages possibles de cette technologie.
 
-Je suis actuellement directeur de la branche R&D de Stack Labs. Nous sommes une entreprise basée à Toulouse spécialisée dans le développement de systèmes informatiques distribués et nous aidons 
+Je suis directeur de la branche R&D de Stack Labs. Nous sommes une entreprise basée à Toulouse spécialisée dans le développement de systèmes informatiques distribués et nous aidons 
 nos clients à profiter de la transformation numérique majeure qui s'opère massivement à un niveau global. Nous sommes experts sur les technologies cloud, sécurité, big data et machine learning.
 Nous sommes partenaires de grands fournisseurs d'infrastructure comme Google, Amazon Web Service ; mais déployons aussi des solutions 'on premise', à savoir sur des clouds d'entreprise.
 
@@ -27,11 +27,11 @@ se déroulera dans le navigateur de votre téléphone.
 
 En entrant dans la salle, une adresse web et les accès au wifi vous ont été communiqués. Il s'agit d'un jeu, vous pouvez vous y connecter si ce n'est déjà fait.
 
-Ce jeu est une métaphore, vous allez créer des oeuvres d'art, les mettre à la disposition de la communauté, et être rétribués par des "droits d'auteur" lorsque celles-ci seront réutilisées par d'autres.
+Ce jeu est une métaphore, vous allez être amenés à créer des oeuvres d'art, à les mettre à la disposition de la communauté, puis à être rétribués sous forme de "droits d'auteur" lorsque vos oeuvres seront réutilisées par d'autres.
 
-Tout ceci est mis en oeuvre avec les principes de la blockchain.
+Techniquement, ce jeu a été développé en respectant les principes de la blockchain. C'est peut-être votre première participation à une blockchain !
 
-Voici l'écran tel qu'il est quand vous vous connectez à l'application. Il montre l'ensemble des oeuvres d'arts créées par la communauté que nous formons. Pour l'instant il n'y en a qu'une.
+Voici l'écran tel qu'il est quand vous vous connectez à l'application. Il montre l'ensemble des oeuvres d'arts créées par notre communauté. Pour l'instant il n'y en a qu'une.
 
 Chaque participant possède son identité propre, garantie par cryptographie. Si vous ne l'avez déjà fait, vous pouvez saisir le pseudonyme sous lequel vous apparaitrez aux autres.
 
@@ -39,31 +39,31 @@ Ah, juste une note pratique : les écrans des téléphones étant tout compte fa
 
 Je vais maintenant vous montrer comment créer une oeuvre d'art et la mettre à la disposition de la communauté :
 
-Cliquez sur ce bouton, voilà la nouvelle oeuvre vierge prête.
+Cliquez sur ce bouton, voilà la nouvelle oeuvre prête à être dessinée.
 
 Notez votre inventaire en bas de la page, pour dessiner vous pouvez choisir en cliquant dessus un de vos pixels ou emojis.
 
-Cliquez ensuite dans la grille pour ajouter un pixel.
+Cliquez ensuite sur le canevas pour ajouter ce pixel dans votre oeuvre.
 
 Cliquez sur un pixel de votre oeuvre pour le faire disparaitre.
 
 Notez qu'à chaque fois que vous utilisez un pixel, il disparait de votre inventaire.
 
-Ne vous inquiétez pas, vous allez pouvoir regagner ces pixels au moment de la redistribution des droits d'auteur, en validant cette oeuvre c'est-à-dire en la "figeant".
+Ne vous inquiétez pas, vous allez pouvoir regagner autant de pixels que vous utilisez au moment de la redistribution des droits d'auteur, quand on validera l'oeuvre c'est-à-dire en la "figeant".
 
-Cliquez sur "Valider" (saisissez un titre) et vous constatez que votre nombre de pixels est revenu à 86.
+C'est ce que nous allons faire tout de suite : cliquez sur "Valider" (saisissez un titre) et vous constatez que votre nombre de pixels est revenu à 86.
 
-Créeons maintenant une autre oeuvre d'art. On utilise maintenant non seulement des pixels mais aussi les oeuvres de la communauté.
+Créeons maintenant une autre oeuvre d'art pour vous montrer comment utiliser les oeuvres d'art de la communauté. On utilise maintenant non seulement des pixels mais aussi les oeuvres de la communauté.
 
-On valide l'oeuvre, les pixels reviennent et l'oeuvre est maintenant "figée". A partir de maintenant des droits d'auteur vous seront reversés pour l'utilisation de cette oeuvre. Notez que l'utilisation des oeuvres d'autrui est gratuite, c'est un jeu gagnant gagnant !
+On valide l'oeuvre, les pixels reviennent et l'oeuvre est maintenant "figée". Notez que l'utilisation des oeuvres d'autrui est gratuite, c'est un jeu gagnant gagnant !
 
 Maintenant, pour vous montrer la distribution des droits d'auteur, je vais créer une oeuvre depuis mon téléphone et utiliser l'oeuvre que vient de créer Thibaut. Vous la voyez apparaître à l'écran.
 
-Quand je valide mon oeuvre, cela déclenche les rétributions et nous constatons que Thibaut a gagné des pixels (en haut de son écran) !
+Quand je valide mon oeuvre, cela déclenche les rétributions et nous constatons que Thibaut a gagné des pixels (en haut de son écran) ! Les droits d'auteur sont reversés automatiquement pour l'utilisation de vos oeuvres.
 
 Voilà, vous avez les bases pour partir !
 
-Le but du jeu est de gagner le plus d'emojis/pixels possibles, il faut donc créer des oeuvres qui plaisent et qui soient réutilisées par les autres participants.
+Le but du jeu est de gagner le plus d'emojis/pixels possibles, il faut donc créer des oeuvres qui plaisent et qui soient utilisées par les autres participants.
 Le gagnant recevra une très bonne bouteille de XXXX présent ici.
 
 Le thème de ce soir pour vos créations si vous cherchez de l'imagination est l'amour qu'on porte à notre planète et vous pouvez donc dessiner les plus belles mosaiques possibles
@@ -81,12 +81,22 @@ Avant de vous laisser jouer, je me permets de vous rappeller certains points imp
 
 - cette application implémente les véritables concepts de la blockchain, donc même si un serveur web est mis en place pour fournir l'application à votre navigateur, une fois connecté chaque "noeud" est identique et indépendant
 - les règles sont appliqués de façon transparente et vérifiable (rétributions) => on peut créer en confiance, sachant que la rétribution est AUTOMATIQUE et SECURISEE
-- données en possession directe (autant votre téléphone que n'importe quel autre noeud) => pas de tiers central tout puissant
-- coût réduits pour le suivi des informations partagées entre deux entreprises => c'est le travail naturel d'une blockchain.
+- les données sont en possession directe de tous les noeuds (autant votre téléphone que n'importe quel autre) => pas de tiers central tout puissant (ce qui crée la confiance et retire le doute lié aux conflits d'intérêts)
+- coût réduits pour le suivi des informations partagées entre deux entreprises => c'est le travail naturel d'une blockchain
 
-Imaginez en fait que chacun de vos téléphone est le système d'information de votre entreprise, avec toutes ses factures, ses bons de commandes (donc des informations *échangées* avec d'autres SI) et que ces différents systèmes informatiques communiquent et se coordonnent les uns avec les autres de façon autonome, pour arriver à une vision commune de la donnée, transparente, vérifiable et sécurisée. Comme si on avait ici 200 bases de données qui se synchronisaient naturellement.
+Imaginez en fait que chacun de vos téléphone est le système d'information de votre entreprise, avec toutes ses factures, ses bons de commandes (donc des informations *échangées* avec d'autres SI) et que ces différents systèmes informatiques communiquent et se coordonnent les uns avec les autres de façon autonome, pour arriver à une vision commune de la donnée, transparente, vérifiable et sécurisée. Comme si on avait ici 200 bases de données qui se synchronisaient parfaitement et naturellement, sans aucun coût de réconciliation.
 
-Amusez-vous bien, nous nous retrouvons pour la distribution du lot au gagnant. Ecoutez quand même attentivement la présentation suivante de Benoît qui va vous expliquer plus en
+Amusez-vous bien, merci à tous, nous nous retrouvons pour la distribution du lot au gagnant. Ecoutez quand même attentivement la présentation suivante, de Benoît, qui va vous expliquer plus en
 détail le fonctionnement des blockchains !
 
 Il nous reste un peu de temps, peut-être avez vous quelques questions ?
+
+
+## Deuxième partie
+
+Montrer le wall of fame
+Montrer une oeuvre avec plusieurs contributeurs et le fait qu'on peut tracer qui a dessiné quel pixel.
+
+Chaque utilisateur a dans la mémoire de son téléphone une copie des données accompagnées des clés cryptographique qui permettent de prouver chaque action
+
+Nous allons maintenant appeler le gagnant qui porte le pseudo XXXX. On pourra vérifier par cryptographie que son téléphone contient bien la clé privée correspondant à son identité sur la chaine.
