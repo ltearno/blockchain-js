@@ -16,10 +16,10 @@
             <span>You have <b>{{ nbEmojis }}</b> emojis and <b>{{ nbPixels }}</b> pixels.</span>
             <span *ngIf='nbWinnedItems'>You have winned <b>{{ nbWinnedItems }}</b> items</span>
             <span *ngIf='nbWinnedItems && position > 1'>
-                and your rank is <b>{{ position }}</b> on {{ nbUsers }} users
+                and your rank is <b>{{ position }}</b> in {{ nbUsers }} users.
             </span>
             <span *ngIf='nbWinnedItems && position == 1'>
-                and congrats because you are the winner! 👏🏆🎉 ({{ nbUsers }} users)
+                and congrats because you are the winner! 👏🏆🎉 (in {{ nbUsers }} users)
             </span>
         </div>
     </div>
