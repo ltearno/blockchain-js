@@ -13,16 +13,16 @@
 <div *ngIf='state.hasSupplyChainAccount'>
     <div class='container'>
         <div class="score">
-            You have <b>{{ nbEmojis }}</b> emojis and <b>{{ nbPixels }}</b> pixels (total: {{ nbItems }}).
+            You have <b>{{ nbEmojis }}</b> emojis and <b>{{ nbPixels }}</b> pixels <span style='font-size: .8em;'>(total: {{ nbItems }})</span>
         </div>
         <div class='score' *ngIf='nbWinnedItems'>
             <span>You have winned <b>{{ nbWinnedItems }}</b> items</span>
         </div>
         <div class='score' *ngIf='position > 1'>
-            <span>Rank: <b>{{ position }}</b></span>
+            <span>Your rank is <b>{{ position }}</b> on {{ nbUsers }} users</span>
         </div>
         <div class='score' *ngIf='position == 1'>
-            <span>🎉🏆👏 You are the first! 👏🏆🎉</span>
+            <span>🎉🏆👏 You are the first! 👏🏆🎉 on {{ nbUsers }} users</span>
         </div>
     </div>
     <div *ngIf='!editingArtworkId' class="container is-fluid">

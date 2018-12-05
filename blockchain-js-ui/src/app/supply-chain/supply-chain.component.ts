@@ -14,6 +14,7 @@ export class SupplyChainComponent {
         this.state.smartContract.addChangeListener(this.smartContractChangeListener)
     }
 
+    nbUsers = 0
     nbItems = 0
     nbPixels = 0
     nbEmojis = 0
@@ -32,6 +33,8 @@ export class SupplyChainComponent {
     private smartContractChangeListener = () => {
         if (!this.state || !this.state.user || !this.state.user.id)
             return
+
+        this.nbUsers = Object.keys(this.state.programState.accounts).length
 
         let account = this.state.programState.accounts[this.state.user.id]
         if (!account)
