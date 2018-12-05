@@ -2,6 +2,8 @@ import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as MinerApi from './miner-api'
 
+const unifiedNow = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now()
+
 export class MinerImpl implements MinerApi.MinerApi {
     private dataToMineByBranch = new Map<string, any[]>()
     private executing = false
@@ -28,10 +30,18 @@ export class MinerImpl implements MinerApi.MinerApi {
 
         this.executing = true
 
+        let startTime = unifiedNow()
         this.mineData().then(() => {
-            this.executing = false
+            let sleepTime = 20 - (unifiedNow() - startTime)
+            if (sleepTime < 1)
+                sleepTime = 1
 
-            setTimeout(() => this.schedule(), 1)
+            console.log(`sleeping ${sleepTime}`)
+
+            setTimeout(() => {
+                this.executing = false
+                this.schedule()
+            }, sleepTime)
         })
     }
 
@@ -52,7 +62,7 @@ export class MinerImpl implements MinerApi.MinerApi {
         let minedBlockIds = []
         let errors = []
 
-        let startTime = Date.now()
+        let startTime = unifiedNow()
         //console.log("START MINING")
 
         for (let [branch, dataToMine] of dataToMineByBranch.entries()) {
@@ -84,7 +94,7 @@ export class MinerImpl implements MinerApi.MinerApi {
             minedBlockIds.push(blockId)
         }
 
-        let endTime = Date.now()
+        let endTime = unifiedNow()
 
         console.log(`mining time: ${endTime - startTime}, mined blocks : ${minedBlockIds.map(id => id.substr(0, 5)).join()}`)
 
