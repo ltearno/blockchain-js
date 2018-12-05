@@ -2,40 +2,33 @@
 
 ## Introduction
 
-Bonjour à tous, c'est un honneur et un grand plaisir d'être parmis vous ce soir. Je m'appelle Arnaud Tournier et je viens vous proposer une expérience de la blockchain qui vous permettra d'imaginer les usages possibles de cette technologie.
+Bonjour à tous, c'est un honneur et un grand plaisir d'être parmi vous ce soir. Je m'appelle Arnaud Tournier et je viens vous proposer une expérience de la blockchain qui vous permettra d'imaginer et comprendre les usages possibles de cette technologie.
 
-Je suis directeur de la branche R&D de Stack Labs. Nous sommes une entreprise basée à Toulouse spécialisée dans le développement de systèmes informatiques distribués et nous aidons 
-nos clients à profiter de la transformation numérique majeure qui s'opère massivement à un niveau global. Nous sommes experts sur les technologies cloud, sécurité, big data et machine learning.
-Nous sommes partenaires de grands fournisseurs d'infrastructure comme Google, Amazon Web Service ; mais déployons aussi des solutions 'on premise', à savoir sur des clouds d'entreprise.
+Je suis directeur de la branche R&D de Stack Labs. Nous sommes une entreprise basée à Toulouse spécialisée dans le développement de systèmes informatiques distribués et nous aidons nos clients à profiter de la transformation numérique majeure qui s'opère actuellement massivement et à un niveau global. Nous sommes experts sur les technologies cloud, sécurité, big data et machine learning. Nous sommes partenaires de grands fournisseurs d'infrastructure comme Google, Amazon Web Service ; mais déployons aussi des solutions 'on premise', à savoir sur des clouds d'entreprise. Nous sommes également organisme de formation et ferrus du partage de connaissance.
 
-A ce titre les technologies sous-tendant la blockchain sont pour nous très intéressantes car elles permettent de déployer des systèmes d'informations décentralisés et coopératifs 
-d'une toute nouvelle façon (sans rentrer dans les détails, la communication s'effectue sur un modèle pair à pair au lieu du modèle classique client/serveur).
+A ce titre les technologies sous-tendant la blockchain sont pour nous très intéressantes car elles permettent de déployer des systèmes d'informations décentralisés et coopératifs d'une toute nouvelle façon (sans rentrer dans les détails, la communication s'effectue sur un modèle pair à pair au lieu du modèle classique client/serveur dans lequel un service est dépendant du bon fonctionnement d'une brique du système).
 
-Le transfert de valeur, la tenue comptable, l'application de règles (et toutes sortes d'autres informations) ne sont plus garanties par un tiers de confiance unique mais par 
-un algorithme en réseau où tous les participants sont égaux et disposent des mêmes informations. Tout est ici complètement transparent, prouvé et vérifiable par tous.
+Le transfert de valeur, la tenue comptable, l'application de règles (et toutes autres sortes d'informations) ne sont plus garanties par un tiers de confiance unique mais par un algorithme et un réseau dans lequel tous les participants sont égaux et disposent des mêmes informations. Tout est ici complètement accessible, transparent, prouvé et vérifiable par tous.
 
-Les possibilités de mise en oeuvre sont très vastes et ne demandent qu'à être explorées. N'hésitez pas bien sûr à venir nous rencontrer aujourd'hui ou plus tard si vous avez des 
-besoins sur ce plan !
+Les possibilités de mise en oeuvre sont très vastes et ne demandent qu'à être explorées. N'hésitez pas bien sûr à venir nous rencontrer aujourd'hui (ou plus tard) !
 
-Nous vous proposons donc ce soir une expérience directe, un exemple de ce que peut procurer les paradigmes blockchain. On associe souvent cette technologie aux monnaies mais ses applications
-vont bien plus loin que ce seul champ d'application. Et nous en faisons ici la démonstration grâce à une application-prototype que nous avons développée chez Stack Labs.
+On associe souvent cette technologie aux monnaies mais ses applications vont bien plus loin que ce champ d'application. Et nous en faisons ici la démonstration grâce à une application-prototype que nous avons développée chez Stack Labs.
 
-Nous allons ici et maintenant tous participer à une blockchain et bénéficier des avantage de cette technologie. Et ceci simplement avec nos téléphones portables, sans application à installer, tout 
-se déroulera dans le navigateur de votre téléphone.
+Nous vous proposons donc ce soir une expérience directe. Nous allons ici et maintenant tous participer à une blockchain et bénéficier des avantages de cette technologie. Et ceci simplement avec nos téléphones portables, sans application à installer, tout se déroulera dans le navigateur de votre téléphone.
 
 ## Règles de jeu
 
-En entrant dans la salle, une adresse web et les accès au wifi vous ont été communiqués. Il s'agit d'un jeu, vous pouvez vous y connecter si ce n'est déjà fait.
+En entrant dans la salle, une adresse web et les accès au wifi vous ont été communiqués. Il s'agit d'un jeu, vous pouvez vous y connecter si ce n'est pas déjà fait.
 
 Ce jeu est une métaphore, vous allez être amenés à créer des oeuvres d'art, à les mettre à la disposition de la communauté, puis à être rétribués sous forme de "droits d'auteur" lorsque vos oeuvres seront réutilisées par d'autres.
 
-Techniquement, ce jeu a été développé en respectant les principes de la blockchain. C'est peut-être votre première participation à une blockchain !
+Techniquement, ce jeu a été développé en respectant les principes de la blockchain. Chacun de vos téléphones contient donc toutes les oeuvres de la communauté et est à même de prouver la paternité de vos oeuvres et de vréifier celle des autres. Il est connecté aux autres en peer-to-peer.
 
 Voici l'écran tel qu'il est quand vous vous connectez à l'application. Il montre l'ensemble des oeuvres d'arts créées par notre communauté. Pour l'instant il n'y en a qu'une.
 
 Chaque participant possède son identité propre, garantie par cryptographie. Si vous ne l'avez déjà fait, vous pouvez saisir le pseudonyme sous lequel vous apparaitrez aux autres.
 
-Ah, juste une note pratique : les écrans des téléphones étant tout compte fait petits, vous pouvez activer le mode plein écran de l'application en cliquant sur le petit "viseur" à droite de la bannière.
+Ah, une note pratique : les écrans des téléphones étant tout compte fait petits, vous pouvez activer le mode plein écran de l'application en cliquant sur le petit "viseur" à droite de la bannière.
 
 Je vais maintenant vous montrer comment créer une oeuvre d'art et la mettre à la disposition de la communauté :
 
@@ -84,10 +77,11 @@ Avant de vous laisser jouer, je me permets de vous rappeller certains points imp
 - les données sont en possession directe de tous les noeuds (autant votre téléphone que n'importe quel autre) => pas de tiers central tout puissant (ce qui crée la confiance et retire le doute lié aux conflits d'intérêts)
 - coût réduits pour le suivi des informations partagées entre deux entreprises => c'est le travail naturel d'une blockchain
 
-Imaginez en fait que chacun de vos téléphone est le système d'information de votre entreprise, avec toutes ses factures, ses bons de commandes (donc des informations *échangées* avec d'autres SI) et que ces différents systèmes informatiques communiquent et se coordonnent les uns avec les autres de façon autonome, pour arriver à une vision commune de la donnée, transparente, vérifiable et sécurisée. Comme si on avait ici 200 bases de données qui se synchronisaient parfaitement et naturellement, sans aucun coût de réconciliation.
+Imaginez en fait que chacun de vos téléphone est le système d'information de votre entreprise, avec toutes ses factures, ses bons de commandes (donc des informations *échangées* avec d'autres SI) et que ces différents systèmes informatiques communiquent et se coordonnent les uns avec les autres de façon autonome, pour arriver à une vision partagée de la réalité, transparente, vérifiable et sécurisée.
 
-Amusez-vous bien, merci à tous, nous nous retrouvons pour la distribution du lot au gagnant. Ecoutez quand même attentivement la présentation suivante, de Benoît, qui va vous expliquer plus en
-détail le fonctionnement des blockchains !
+Exactement comme si on avait ici 200 bases de données qui se synchronisaient parfaitement et naturellement, sans aucun coût de réconciliation.
+
+Amusez-vous bien, merci à tous, nous nous retrouvons pour la distribution du lot au gagnant. Ecoutez quand même attentivement la présentation suivante, de Benoît, qui va vous expliquer plus en détail le fonctionnement des blockchains !
 
 Il nous reste un peu de temps, peut-être avez vous quelques questions ?
 
