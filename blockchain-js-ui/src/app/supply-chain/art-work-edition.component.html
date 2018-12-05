@@ -22,7 +22,7 @@
         style='font-size: 80%;'>
 
     <div>
-        <button class="button" (click)='cancel.emit()'>Back</button><br />
+        <button class="button" (click)='cancel.emit()'>Back</button>
         <button [disabled]="!canValidate" class="button is-primary" (click)='validateArtWork(title.value)'>Validate</button><br />
         <span *ngIf='!canValidate'>Cannot validate because those artworks you use are not themselves validated :</span>
         <art-work-icon style='padding:.5em;' *ngFor='let workItemId of notValidatedWorkItemIds' [artWorkId]='workItemId'></art-work-icon>
