@@ -197,9 +197,7 @@ export class ArtWorkEditionComponent implements AfterViewInit, OnDestroy {
     }
 
     async changeArtWorkSize(width, height) {
-        await this.state.suppyChain.updateArtWorkSize(this.artWork.id, width, height)
-
-        this.paint()
+        this.state.suppyChain.updateArtWorkSize(this.artWork.id, width, height)
     }
 
     mouseMove(event: MouseEvent) {
