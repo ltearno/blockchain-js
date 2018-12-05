@@ -22,17 +22,17 @@ export class MinerImpl implements MinerApi.MinerApi {
 
     // if already executing, mark as to redo when finish
     // otherwise, schedule next operation
-    private async schedule() {
+    private schedule() {
         if (this.executing || !this.dataToMineByBranch || !this.dataToMineByBranch.size)
             return
 
         this.executing = true
 
-        await this.mineData()
+        this.mineData().then(() => {
+            this.executing = false
 
-        this.executing = false
-
-        this.schedule()
+            setTimeout(() => this.schedule(), 1)
+        })
     }
 
     /**
