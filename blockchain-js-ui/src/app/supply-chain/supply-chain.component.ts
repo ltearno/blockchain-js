@@ -1,5 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core'
-import * as Model from './model'
+import { Component } from '@angular/core'
 import { State } from './state'
 
 @Component({
