@@ -14,6 +14,9 @@ export class SupplyChainComponent {
         this.state.smartContract.addChangeListener(this.smartContractChangeListener)
     }
 
+    nbItems = 0
+    nbPixels = 0
+    nbEmojis = 0
     nbWinnedItems = 0
     position = 0
 
@@ -33,6 +36,16 @@ export class SupplyChainComponent {
         let account = this.state.programState.accounts[this.state.user.id]
         if (!account)
             return
+
+        this.nbPixels = 0
+        this.nbEmojis = 0
+        Object.keys(account.inventory).forEach(itemId => {
+            if (itemId.startsWith('pixel-'))
+                this.nbPixels += account.inventory[itemId]
+            else if (itemId.startsWith('emoji-'))
+                this.nbEmojis += account.inventory[itemId]
+        })
+        this.nbItems = this.nbEmojis + this.nbPixels
 
         this.nbWinnedItems = (account.nbWinnedPixels || 0) + (account.nbWinnedEmojis || 0)
 
