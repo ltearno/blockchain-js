@@ -1,31 +1,6 @@
-<div>
-    <div class="field">
-        <label class="label">Title <span *ngIf='titleOnly' style='font-weight: bold;'>choose a title to validate your
-                artwork !</span></label>
-        <div class="control">
-            <input #title class="input" type="text" (change)='updateArtWorkTitle(title.value)' [value]='artWork.title'
-                maxlength="100">
-        </div>
-    </div>
-    <div class="field" *ngIf='!titleOnly'>
-        <label class="label">Size</label>
-        <div class="control columns">
-            <div class='column'>
-                Width
-                <input #width class="input" type="number" max="100" min="1" (change)='changeArtWorkSize(width.value, height.value)'
-                    [value]='artWork.size.width'>
-            </div>
-            <div class='column'>
-                Height
-                <input #height class="input" type="number" max="100" min="1" (change)='changeArtWorkSize(width.value, height.value)'
-                    [value]='artWork.size.height'>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="container" style="text-align: center;">
-    <art-work-icon *ngIf='titleOnly' [artWorkId]='"artwork-" + artWorkId' class='preview-before-validate' [disablePaintCache]='true'></art-work-icon>
+    <art-work-icon *ngIf='titleOnly' [artWorkId]='"artwork-" + artWorkId' class='preview-before-validate'
+        [disablePaintCache]='true'></art-work-icon>
 
     <canvas [style.display]='titleOnly?"none":"initial"' id='canvas' #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()'
         (click)='mouseClick($event)'></canvas>
@@ -78,6 +53,32 @@
                     <art-work-icon [artWorkId]='itemId' (selected)='selectOthersInventory(itemId)'></art-work-icon>
                 </div>
                 <button *ngIf='othersInventory.length>limitArtWorks' class="button" (click)='plusArtWorks()'>More...</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <div class="field">
+        <label class="label">Title <span *ngIf='titleOnly' style='font-weight: bold;'>choose a title to validate your
+                artwork !</span></label>
+        <div class="control">
+            <input #title class="input" type="text" (change)='updateArtWorkTitle(title.value)' [value]='artWork.title'
+                maxlength="100">
+        </div>
+    </div>
+    <div class="field" *ngIf='!titleOnly'>
+        <label class="label">Size</label>
+        <div class="control columns">
+            <div class='column'>
+                Width
+                <input #width class="input" type="number" max="100" min="1" (change)='changeArtWorkSize(width.value, height.value)'
+                    [value]='artWork.size.width'>
+            </div>
+            <div class='column'>
+                Height
+                <input #height class="input" type="number" max="100" min="1" (change)='changeArtWorkSize(width.value, height.value)'
+                    [value]='artWork.size.height'>
             </div>
         </div>
     </div>
