@@ -59,13 +59,16 @@
 </div>
 
 <div *ngIf='!titleOnly'>
-    <div *ngIf='artWork.messages && !titleOnly'>
-        <div *ngFor='let message of artWork.messages'>
-            <i>{{ pseudoOrId(message.author) }} :</i> {{ message.text }}
+    <div class='container' style='text-align: center;'>
+        Messages:
+        <div *ngIf='artWork.messages'>
+            <div *ngFor='let message of artWork.messages'>
+                <i>{{ pseudoOrId(message.author) }} :</i> {{ message.text }}
+            </div>
         </div>
+        <input #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)'
+            style='font-size: 80%;'>
     </div>
-    <input *ngIf='!titleOnly' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)'
-        style='font-size: 80%;'>
 
     <div class="field">
         <label class="label">You can change your artwork's grid size</label>
