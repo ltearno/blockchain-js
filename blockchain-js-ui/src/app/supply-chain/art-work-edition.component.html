@@ -2,7 +2,7 @@
     <div [hidden]='!titleOnly' class="field">
         <label class="label">Choose a title for your artwork!</label>
         <div class="control">
-            <input #title class="input" type="text" (change)='updateArtWorkTitle(title || title.value)' [value]='artWork.title'
+            <input #title class="input" type="text" (change)='updateArtWorkTitle(title.value)' [value]='artWork.title'
                 maxlength="100">
         </div>
     </div>
