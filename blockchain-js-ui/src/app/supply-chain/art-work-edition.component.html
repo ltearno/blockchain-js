@@ -13,14 +13,6 @@
     <canvas [style.display]='titleOnly?"none":"initial"' id='canvas' #canvas (mousemove)='mouseMove($event)' (mouseout)='mouseOut()'
         (click)='mouseClick($event)'></canvas>
 
-    <div *ngIf='artWork.messages && !titleOnly'>
-        <div *ngFor='let message of artWork.messages'>
-            <i>{{ pseudoOrId(message.author) }} :</i> {{ message.text }}
-        </div>
-    </div>
-    <input *ngIf='!titleOnly' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)'
-        style='font-size: 80%;'>
-
     <div>
         <button class="button" (click)='cancel.emit()'>Back</button>
         <button [disabled]="!canValidate" class="button is-primary" (click)='validateArtWork(title.value)'>Validate</button><br />
@@ -67,6 +59,14 @@
 </div>
 
 <div *ngIf='!titleOnly'>
+    <div *ngIf='artWork.messages && !titleOnly'>
+        <div *ngFor='let message of artWork.messages'>
+            <i>{{ pseudoOrId(message.author) }} :</i> {{ message.text }}
+        </div>
+    </div>
+    <input *ngIf='!titleOnly' #newMessage placeholder="type any message here" type="text" (keyup.enter)='sendMessage(artWork.id, newMessage)'
+        style='font-size: 80%;'>
+
     <div class="field">
         <label class="label">You can change your artwork's grid size</label>
         <div class="control columns">
