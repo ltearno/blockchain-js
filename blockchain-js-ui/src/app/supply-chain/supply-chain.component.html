@@ -17,12 +17,12 @@
         </div>
         <div class='score' *ngIf='nbWinnedItems'>
             <span>You have winned <b>{{ nbWinnedItems }}</b> items</span>
-        </div>
-        <div class='score' *ngIf='position > 1'>
-            <span>Your rank is <b>{{ position }}</b> on {{ nbUsers }} users</span>
-        </div>
-        <div class='score' *ngIf='position == 1'>
-            <span>🎉🏆👏 You are the first! 👏🏆🎉 on {{ nbUsers }} users</span>
+            <span *ngIf='position > 1'>
+                and your rank is <b>{{ position }}</b> on {{ nbUsers }} users
+            </span>
+            <span *ngIf='position == 1'>
+                and congrats because you are the winner! 👏🏆🎉 ({{ nbUsers }} users)
+            </span>
         </div>
     </div>
     <div *ngIf='!editingArtworkId' class="container is-fluid">

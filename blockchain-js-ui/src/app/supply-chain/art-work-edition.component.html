@@ -1,14 +1,12 @@
-<div>
-    <div class="field">
-        <label class="label">Title <span *ngIf='titleOnly' style='font-weight: bold;'>choose a title to validate your artwork !</span></label>
+<div class="container" style="text-align: center;">
+    <div [hidden]='!titleOnly' class="field">
+        <label class="label">Choose a title for your artwork!</label>
         <div class="control">
-            <input #title class="input" type="text" (change)='updateArtWorkTitle(title.value)' [value]='artWork.title'
+            <input #title class="input" type="text" (change)='updateArtWorkTitle(title || title.value)' [value]='artWork.title'
                 maxlength="100">
         </div>
     </div>
-</div>
 
-<div class="container" style="text-align: center;">
     <art-work-icon *ngIf='titleOnly' [artWorkId]='"artwork-" + artWorkId' class='preview-before-validate'
         [disablePaintCache]='true'></art-work-icon>
 
@@ -70,7 +68,7 @@
 
 <div *ngIf='!titleOnly'>
     <div class="field">
-        <label class="label">Size</label>
+        <label class="label">You can change your artwork's grid size</label>
         <div class="control columns">
             <div class='column'>
                 Width
