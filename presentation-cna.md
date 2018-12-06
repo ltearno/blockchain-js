@@ -64,7 +64,7 @@ Nous présenterons le gagnant à XXXXX.
 
 Donc n'oubliez pas de valider vos oeuvres afin de pouvoir obtenir vos récompenses ! Et notez que vous ne pouvez valider une oeuvre que si toutes les oeuvres qu'elle utilise sont aussi validées (un message apparait dans le cas contraire).
 
-## Bénéfices de la blockchain
+## Un dernier mot
 
 Avant de vous laisser jouer, je me permets de vous rappeller certains points importants:
 
