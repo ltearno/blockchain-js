@@ -36,8 +36,6 @@ export class MinerImpl implements MinerApi.MinerApi {
             if (sleepTime < 1)
                 sleepTime = 1
 
-            console.log(`sleeping ${sleepTime}`)
-
             setTimeout(() => {
                 this.executing = false
                 this.schedule()
