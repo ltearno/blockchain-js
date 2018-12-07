@@ -43,12 +43,12 @@
 
   <div *ngIf='!state.registeredPseudo'>
     <div class="container welcome">
-      <h2>Bonjour et bienvenue !</h2>
+      <!--<h2>Bonjour et bienvenue !</h2>
       <p>Vous allez participer à une expérience <i>"blockchain"</i>, nous vous présenterons très bientôt les instructions
         d'utilisation.</p>
       <p>Merci et bons blocs !</p>
-      <br><br><br>
-      <!--<h2>
+      <br><br><br>-->
+      <h2>
         Hi and welcome !
       </h2>
       <p>
@@ -87,7 +87,7 @@
           </ul>
           This means that you never loose creating something or using someone else's creation, and you gain revenues
           when others use your work !
-          <br><br><br>-->
+          <br><br><br>
       <div class="field has-addons" *ngIf='state.user && state.hasIdentityContract'>
         <p class="control is-expanded">
           <input #pseudo class='input' type="text" placeholder='Choose a pseudo' (keyup.enter)='setPseudo(pseudo.value)'>
