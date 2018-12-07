@@ -1,15 +1,12 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as BlockStore from './block-store'
-import { MemoryBlockStore } from './block-store-inmemory'
+import { InMemoryBlockStore } from './block-store-inmemory'
 
 export class NodeImpl implements NodeApi.NodeApi {
-    // block together with their metadata which are known by the node
-    private blockStore: BlockStore.BlockStore = new MemoryBlockStore()
-
     private listeners: Map<string, NodeApi.NodeEventListener<keyof NodeApi.BlockchainEventMap>[]> = new Map()
 
-    constructor() {
+    constructor(private blockStore: BlockStore.BlockStore = new InMemoryBlockStore()) {
         this.listeners.set('head', [])
         this.listeners.set('block', [])
     }

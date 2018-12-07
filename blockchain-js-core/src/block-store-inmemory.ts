@@ -1,7 +1,7 @@
 import * as Block from './block'
 import * as BlockStore from './block-store'
 
-export class MemoryBlockStore implements BlockStore.BlockStore {
+export class InMemoryBlockStore implements BlockStore.BlockStore {
     private metadata = new Map<string, Block.BlockMetadata>()
     private data = new Map<string, Block.Block>()
 
