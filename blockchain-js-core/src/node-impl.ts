@@ -1,132 +1,11 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
-
-export interface BlockStore {
-    blockIdsSync(callback: (blockId: string, block: Block.Block) => any)
-
-    branches(): string[] // TODO async visitor
-    getBranch(branch: string): string[]
-    getBranchHead(branch: string): string
-    setBranchHead(branch: string, blockId: string)
-
-    registerWaitingBlock(waitingBlockId: string, waitedBlockId: string)
-    browseWaitingBlocksAndForget(blockId: string, callback: (waitingBlockId) => any)
-
-    blockCount(): number
-    blockMetadataCount(): number
-    hasBlockData(id: string): boolean
-    getBlockData(id: string): Block.Block
-    setBlockData(blockId: string, block: Block.Block)
-    hasBlockMetadata(id: string): boolean
-    getBlockMetadata(id: string): Block.BlockMetadata
-    setBlockMetadata(id: string, metadata: Block.BlockMetadata)
-}
-
-export class MemoryBlockStore implements BlockStore {
-    private metadata = new Map<string, Block.BlockMetadata>()
-    private data = new Map<string, Block.Block>()
-
-    // history of the blockchain heads by branch
-    // at 0 is the oldest,
-    // at size-1 is the current
-    private headLog: Map<string, string[]> = new Map()
-
-    private waitingBlocks = new Map<string, Set<string>>()
-
-    branches() {
-        let res = []
-        for (let branch of this.headLog.keys())
-            res.push(branch)
-        return res
-    }
-
-    hasBranch(id: string) {
-        return this.headLog.has(id)
-    }
-
-    getBranch(branch: string) {
-        if (!branch || !this.headLog.has(branch))
-            return null
-        return this.headLog.get(branch)
-    }
-
-    getBranchHead(branch: string) {
-        let headLog = this.getBranch(branch)
-        if (headLog && headLog.length)
-            return headLog[headLog.length - 1]
-        return null
-    }
-
-    setBranchHead(branch: string, blockId: string) {
-        let headLog = this.getBranch(branch)
-        if (!headLog) {
-            headLog = []
-            this.headLog.set(branch, headLog)
-        }
-
-        headLog.push(blockId)
-    }
-
-    blockMetadataCount() {
-        return this.metadata.size
-    }
-
-    blockCount() {
-        return this.data.size
-    }
-
-    blockIdsSync(callback: (blockId: string, block: Block.Block) => any) {
-        for (let [blockId, block] of this.data)
-            callback(blockId, block)
-    }
-
-    hasBlockData(id: string) {
-        return this.data.has(id)
-    }
-
-    getBlockData(id: string) {
-        return this.data.get(id)
-    }
-
-    setBlockData(blockId: string, block: Block.Block) {
-        this.data.set(blockId, block)
-    }
-
-    hasBlockMetadata(id: string): boolean {
-        return this.metadata.has(id)
-    }
-
-    getBlockMetadata(id: string): Block.BlockMetadata {
-        return this.metadata.get(id)
-    }
-
-    setBlockMetadata(id: string, metadata: Block.BlockMetadata) {
-        this.metadata.set(id, metadata)
-    }
-
-    registerWaitingBlock(waitingBlockId: string, waitedBlockId: string) {
-        if (this.waitingBlocks.has(waitedBlockId)) {
-            this.waitingBlocks.get(waitedBlockId).add(waitingBlockId)
-        }
-        else {
-            let waitSet = new Set<string>()
-            waitSet.add(waitingBlockId)
-            this.waitingBlocks.set(waitedBlockId, waitSet)
-        }
-    }
-
-    browseWaitingBlocksAndForget(blockId: string, callback: (waitingBlockId) => any) {
-        if (!this.waitingBlocks.has(blockId))
-            return
-
-        this.waitingBlocks.get(blockId).forEach(callback)
-        this.waitingBlocks.delete(blockId)
-    }
-}
+import * as BlockStore from './block-store'
+import { MemoryBlockStore } from './block-store-inmemory'
 
 export class NodeImpl implements NodeApi.NodeApi {
     // block together with their metadata which are known by the node
-    private blockStore: BlockStore = new MemoryBlockStore()
+    private blockStore: BlockStore.BlockStore = new MemoryBlockStore()
 
     private listeners: Map<string, NodeApi.NodeEventListener<keyof NodeApi.BlockchainEventMap>[]> = new Map()
 
@@ -144,11 +23,11 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     blockIdsSync(callback: (blockId: string, block: Block.Block) => any) {
-        this.blockStore.blockIdsSync(callback)
+        this.blockStore.blockIds(callback)
     }
 
     async branches(): Promise<string[]> {
-        return this.blockStore.branches()
+        return this.blockStore.getBranches()
     }
 
     async blockChainHead(branch: string) {
@@ -295,12 +174,12 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         switch (type) {
             case 'head':
-                for (let branch of this.blockStore.branches())
+                for (let branch of this.blockStore.getBranches())
                     listener({ type: 'head', branch, headBlockId: this.blockStore.getBranchHead(branch) })
                 break
 
             case 'block':
-                this.blockStore.blockIdsSync(blockId => listener({ type: 'block', blockId }))
+                this.blockStore.blockIds(blockId => listener({ type: 'block', blockId }))
                 break
         }
     }
