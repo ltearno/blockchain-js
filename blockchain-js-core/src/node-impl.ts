@@ -1,63 +1,146 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
 
-export class NodeImpl implements NodeApi.NodeApi {
-    // block together with their metadata which are known by the node
-    private knownBlocks = new Map<string, Block.BlockMetadata>()
-    private knownBlocksData = new Map<string, Block.Block>()
+export interface BlockStore {
+    blocks(): Map<string, Block.Block> // TODO not possible anymore now ! => transform into async visitor
+    blockIds(): IterableIterator<string> // TODO not possible anymore now ! => transform into async visitor
+
+    branches(): string[] // TODO async visitor
+    getBranch(branch: string): string[]
+    getBranchHead(branch: string): string
+    setBranchHead(branch: string, blockId: string)
+
+    // TODO : add waiting blocks ?
+
+    blockCount(): number
+    blockMetadataCount(): number
+    hasBlockData(id: string): boolean
+    getBlockData(id: string): Block.Block
+    setBlockData(blockId: string, block: Block.Block)
+    hasBlockMetadata(id: string): boolean
+    getBlockMetadata(id: string): Block.BlockMetadata
+    setBlockMetadata(id: string, metadata: Block.BlockMetadata)
+}
+
+export class MemoryBlockStore implements BlockStore {
+    private metadata = new Map<string, Block.BlockMetadata>()
+    private data = new Map<string, Block.Block>()
 
     // history of the blockchain heads by branch
     // at 0 is the oldest,
     // at size-1 is the current
     private headLog: Map<string, string[]> = new Map()
 
-    private listeners: Map<string, NodeApi.NodeEventListener<keyof NodeApi.BlockchainEventMap>[]> = new Map()
-
-    private waitingBlocks = new Map<string, Set<string>>()
-
-    constructor() {
-        this.listeners.set('head', [])
-        this.listeners.set('block', [])
-    }
-
-    private getBranchHead(branch: string) {
-        if (!branch || !this.headLog.has(branch))
-            return null
-        return this.headLog.get(branch)
-    }
-
-    get blockMetadataCount() {
-        return this.knownBlocks.size
-    }
-
-    get blockCount() {
-        return this.knownBlocksData.size
-    }
-
-    blocks() {
-        return this.knownBlocksData
-    }
-
-    async branches(): Promise<string[]> {
+    branches() {
         let res = []
         for (let branch of this.headLog.keys())
             res.push(branch)
         return res
     }
 
-    async blockChainHead(branch: string) {
-        return this.blockChainHeadSync(branch)
+    hasBranch(id: string) {
+        return this.headLog.has(id)
     }
 
-    private blockChainHeadSync(branch: string) {
-        let headLog = this.getBranchHead(branch)
+    getBranch(branch: string) {
+        if (!branch || !this.headLog.has(branch))
+            return null
+        return this.headLog.get(branch)
+    }
+
+    getBranchHead(branch: string) {
+        let headLog = this.getBranch(branch)
         if (headLog && headLog.length)
             return headLog[headLog.length - 1]
         return null
     }
 
+    setBranchHead(branch: string, blockId: string) {
+        let headLog = this.getBranch(branch)
+        if (!headLog) {
+            headLog = []
+            this.headLog.set(branch, headLog)
+        }
+
+        headLog.push(blockId)
+    }
+
+    blockMetadataCount() {
+        return this.metadata.size
+    }
+
+    blockCount() {
+        return this.data.size
+    }
+
+    blocks() {
+        return this.data
+    }
+
+    blockIds() {
+        return this.metadata.keys()
+    }
+
+    hasBlockData(id: string) {
+        return this.data.has(id)
+    }
+
+    getBlockData(id: string) {
+        return this.data.get(id)
+    }
+
+    setBlockData(blockId: string, block: Block.Block) {
+        this.data.set(blockId, block)
+    }
+
+    hasBlockMetadata(id: string): boolean {
+        return this.metadata.has(id)
+    }
+
+    getBlockMetadata(id: string): Block.BlockMetadata {
+        return this.metadata.get(id)
+    }
+
+    setBlockMetadata(id: string, metadata: Block.BlockMetadata) {
+        this.metadata.set(id, metadata)
+    }
+}
+
+export class NodeImpl implements NodeApi.NodeApi {
+    // block together with their metadata which are known by the node
+    private blockStore: BlockStore = new MemoryBlockStore()
+
+    private waitingBlocks = new Map<string, Set<string>>()
+
+    private listeners: Map<string, NodeApi.NodeEventListener<keyof NodeApi.BlockchainEventMap>[]> = new Map()
+
+    constructor() {
+        this.listeners.set('head', [])
+        this.listeners.set('block', [])
+    }
+
+    get blockMetadataCount() {
+        return this.blockStore.blockMetadataCount()
+    }
+
+    get blockCount() {
+        return this.blockStore.blockCount()
+    }
+
+    blocks() {
+        return this.blockStore.blocks()
+    }
+
+    async branches(): Promise<string[]> {
+        return this.blockStore.branches()
+    }
+
+    async blockChainHead(branch: string) {
+        return this.blockStore.getBranchHead(branch)
+    }
+
     async blockChainHeadLog(branch: string, depth: number): Promise<string[]> {
-        let headLog = this.getBranchHead(branch)
+        let headLog = this.blockStore.getBranch(branch)
         if (headLog)
             return headLog.slice(headLog.length - depth, headLog.length).reverse()
         return null
@@ -86,9 +169,9 @@ export class NodeImpl implements NodeApi.NodeApi {
             return null
         }
 
-        if (this.knownBlocksData.has(blockId)) {
+        if (this.blockStore.hasBlockData(blockId)) {
             //console.log(`already registered block ${blockId && blockId.substring(0, 5)}`)
-            return this.knownBlocks.get(blockId)
+            return this.blockStore.getBlockMetadata(blockId)
         }
 
         let fixedId = await Block.idOfBlock(block)
@@ -97,20 +180,20 @@ export class NodeImpl implements NodeApi.NodeApi {
             return null
         }
 
-        this.knownBlocksData.set(blockId, block)
+        this.blockStore.setBlockData(blockId, block)
 
         return this.processBlockMetadata(blockId, block)
     }
 
     private async processBlockMetadata(blockId: string, block: Block.Block) {
-        if (this.knownBlocks.has(blockId)) {
+        if (this.blockStore.hasBlockMetadata(blockId)) {
             //console.log(`already registered block metadata ${blockId.substring(0, 5)}`)
             return
         }
 
-        if (block.previousBlockIds && block.previousBlockIds.length && !block.previousBlockIds.every(parentBlockId => this.knownBlocks.has(parentBlockId))) {
+        if (block.previousBlockIds && block.previousBlockIds.length && !block.previousBlockIds.every(parentBlockId => this.blockStore.hasBlockMetadata(parentBlockId))) {
             block.previousBlockIds.forEach(parentBlockId => {
-                if (!this.knownBlocks.has(parentBlockId)) {
+                if (!this.blockStore.hasBlockMetadata(parentBlockId)) {
                     //console.log(`${blockId} waits for parent ${parentBlockId}`)
                     this.waitBlock(parentBlockId, blockId)
                 }
@@ -124,12 +207,12 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     private waitBlock(waitedBlockId: string, waitingBlockId: string) {
-        if (!this.knownBlocksData.has(waitingBlockId)) {
+        if (!this.blockStore.hasBlockData(waitingBlockId)) {
             console.error(`WAITING WITHOUT DATA !`)
             return
         }
 
-        if (this.knownBlocks.has(waitedBlockId)) {
+        if (this.blockStore.hasBlockMetadata(waitedBlockId)) {
             console.error(`WAITING ALREADY HERE DATA !`)
             return
         }
@@ -148,18 +231,18 @@ export class NodeImpl implements NodeApi.NodeApi {
         if (!this.waitingBlocks.has(blockId))
             return
 
-        if (!this.knownBlocks.has(blockId)) {
+        if (!this.blockStore.hasBlockMetadata(blockId)) {
             console.error(`waking up without metadata`)
             return
         }
 
-        if (!this.knownBlocksData.has(blockId)) {
+        if (!this.blockStore.hasBlockData(blockId)) {
             console.error(`waking up without data`)
             return
         }
 
         this.waitingBlocks.get(blockId).forEach(waitingBlockId => {
-            let waitingBlock = this.knownBlocksData.get(waitingBlockId)
+            let waitingBlock = this.blockStore.getBlockData(waitingBlockId)
             if (!waitingBlockId || !waitingBlock) {
                 console.error(`error cannot find block ${waitingBlockId} data triggered by ${blockId}`)
                 return
@@ -182,7 +265,7 @@ export class NodeImpl implements NodeApi.NodeApi {
             return
         }
 
-        this.knownBlocks.set(metadata.blockId, metadata)
+        this.blockStore.setBlockMetadata(metadata.blockId, metadata)
         this.wakeupBlocks(metadata.blockId)
 
         this.maybeUpdateHead(block, metadata)
@@ -196,7 +279,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     private maybeUpdateHead(block: Block.Block, metadata: Block.BlockMetadata) {
-        let oldHead = this.blockChainHeadSync(block.branch)
+        let oldHead = this.blockStore.getBranchHead(block.branch)
         if (metadata.isValid && this.compareBlockchains(metadata.blockId, oldHead) > 0) {
             this.setHead(block.branch, metadata.blockId)
         }
@@ -207,12 +290,12 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         switch (type) {
             case 'head':
-                for (let branch of this.headLog.keys())
-                    listener({ type: 'head', branch, headBlockId: this.blockChainHeadSync(branch) })
+                for (let branch of this.blockStore.branches())
+                    listener({ type: 'head', branch, headBlockId: this.blockStore.getBranchHead(branch) })
                 break
 
             case 'block':
-                for (let blockId of this.knownBlocks.keys())
+                for (let blockId of this.blockStore.blockIds())
                     listener({ type: 'block', blockId })
                 break
         }
@@ -224,11 +307,11 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     async knowsBlock(id: string): Promise<boolean> {
-        return this.knownBlocksData.has(id)
+        return this.blockStore.hasBlockData(id)
     }
 
     async knowsBlockAsValidated(id: string): Promise<boolean> {
-        return this.knownBlocks.has(id)
+        return this.blockStore.hasBlockMetadata(id)
     }
 
     // TODO : with generic validation, compare the global validation value (pow, pos, other...)
@@ -240,8 +323,8 @@ export class NodeImpl implements NodeApi.NodeApi {
         if (!block2Id)
             return 1
 
-        let meta1 = this.knownBlocks.get(block1Id)
-        let meta2 = this.knownBlocks.get(block2Id)
+        let meta1 = this.blockStore.getBlockMetadata(block1Id)
+        let meta2 = this.blockStore.getBlockMetadata(block2Id)
 
         if (!meta1 || !meta2)
             throw "error, not enough block history"
@@ -274,13 +357,7 @@ export class NodeImpl implements NodeApi.NodeApi {
         if (!blockId || !branch)
             return
 
-        let headLog = this.getBranchHead(branch)
-        if (!headLog) {
-            headLog = []
-            this.headLog.set(branch, headLog)
-        }
-
-        headLog.push(blockId)
+        this.blockStore.setBranchHead(branch, blockId)
 
         //console.log(`new head on branch ${branch} : ${blockId.substring(0, 5)}`)
 
@@ -300,8 +377,8 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         this.notifyTimeout = setTimeout(() => {
             this.lastHeadEvents.forEach(branch => {
-                let headBlockId = this.blockChainHeadSync(branch)
-                let bm = this.knownBlocks.get(headBlockId)
+                let headBlockId = this.blockStore.getBranchHead(branch)
+                let bm = this.blockStore.getBlockMetadata(headBlockId)
                 let blockCount = bm && bm.blockCount
 
                 console.log(`new block ${headBlockId}, depth ${blockCount} is the new head of branch ${branch}`)
@@ -335,7 +412,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         if (block.previousBlockIds) {
             for (let previousBlockId of block.previousBlockIds) {
-                let previousBlockMetadata = this.knownBlocks.get(previousBlockId)
+                let previousBlockMetadata = this.blockStore.getBlockMetadata(previousBlockId)
                 if (!previousBlockMetadata) {
                     console.log("cannot find the parent block in database, so cannot processMetadata")
                     return null
@@ -361,8 +438,8 @@ export class NodeImpl implements NodeApi.NodeApi {
 
     private *browseBlockchainByFirstParent(startBlockId: string, depth: number) {
         while (startBlockId && depth-- > 0) {
-            let metadata = this.knownBlocks.get(startBlockId)
-            let block = this.knownBlocksData.get(startBlockId)
+            let metadata = this.blockStore.getBlockMetadata(startBlockId)
+            let block = this.blockStore.getBlockData(startBlockId)
 
             yield { metadata, block }
 
