@@ -31,13 +31,6 @@ export class NodeImpl implements NodeApi.NodeApi {
         return this.blockStore.getBranchHead(branch)
     }
 
-    async blockChainHeadLog(branch: string, depth: number): Promise<string[]> {
-        let headLog = this.blockStore.getBranch(branch)
-        if (headLog)
-            return headLog.slice(headLog.length - depth, headLog.length).reverse()
-        return null
-    }
-
     async blockChainBlockIds(startBlockId: string, depth: number): Promise<string[]> {
         return Array.from(await this.browseBlockchainByFirstParent(startBlockId, depth)).map(item => item.metadata.blockId)
     }

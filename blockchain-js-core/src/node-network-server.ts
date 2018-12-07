@@ -88,14 +88,6 @@ export class NodeServer {
             res.send(JSON.stringify(result))
         })
 
-        app.get('/blockChainHeadLog/:branch/:depth', async (req, res) => {
-            let branch = req.params.branch
-            let depth = 1 * (req.params.depth || 1)
-
-            let result = await this.node.blockChainHeadLog(branch, depth)
-            res.send(JSON.stringify(result))
-        })
-
         app.get('/blockChainBlockIds/:startBlockId/:depth', async (req, res) => {
             let depth = 1 * (req.params.depth || 1)
             let startBlockId = req.params.startBlockId

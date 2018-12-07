@@ -90,7 +90,6 @@ export class AppComponent {
     window.addEventListener('beforeunload', _ => {
       if (this.autoSave) {
         this.savePreferencesToLocalStorage()
-        this.saveBlocks()
       }
     })
 
@@ -428,45 +427,5 @@ export class AppComponent {
     catch (e) {
       this.log(`error loading preferences ${e}`)
     }
-  }
-
-  private async tryLoadBlocksFromLocalStorage() {
-    let storageBlocksString = localStorage.getItem(STORAGE_BLOCKS)
-    if (storageBlocksString) {
-      this.state.loaders++
-      try {
-        let storageBlocks = Block.deserializeBlockData(storageBlocksString)
-        if (Array.isArray(storageBlocks)) {
-          this.log(`loading blocks from local storage`)
-          let i = 0
-          for (let { blockId, block } of storageBlocks) {
-            this.state.fullNode.node.registerBlock(blockId, block)
-            i++
-            if (i % 2 == 0)
-              await sleep(20)
-          }
-          this.log(`blocks restored from local storage`)
-        }
-      }
-      catch (e) {
-        this.log(`error loading from local storage : ${e}`)
-      }
-      this.state.loaders--
-    }
-  }
-
-  async saveBlocks() {
-    // TODO only save blocks that are in branches...
-    console.log(`saving blocks...`)
-    let toSave = []
-    let blocks: Map<string, Block.Block> = this.state.fullNode.node.blocks()
-    let itr = blocks.entries()
-
-    for (let it = itr.next(); !it.done; it = itr.next()) {
-      let [blockId, block] = it.value
-      toSave.push({ blockId, block })
-    }
-
-    localStorage.setItem(STORAGE_BLOCKS, Block.serializeBlockData(toSave))
   }
 }

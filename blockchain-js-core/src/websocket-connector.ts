@@ -223,13 +223,6 @@ export class WebSocketConnector implements NodeApi.NodeApi {
                 return await node.blockChainHead(branch)
             }
 
-            case 'blockChainHeadLog': {
-                let [branch, depth] = parameters
-                depth = 1 * (depth || 1)
-
-                return await node.blockChainHeadLog(branch, depth)
-            }
-
             case 'blockChainBlockIds': {
                 let [startBlockId, depth] = parameters
                 depth = 1 * (depth || 1)

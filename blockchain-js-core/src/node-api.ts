@@ -33,12 +33,6 @@ export interface NodeApi {
     blockChainHead(branch: string): Promise<string>
 
     /**
-     * Retrieves the blockchain head history at a certain depth
-     * at 0 is the most recent
-     */
-    blockChainHeadLog(branch: string, depth: number): Promise<string[]>
-
-    /**
      * Retrieves the ids of the blocks of a selected part of the blockchain
      */
     blockChainBlockIds(startBlockId: string, depth: number): Promise<string[]>

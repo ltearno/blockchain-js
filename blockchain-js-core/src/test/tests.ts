@@ -147,9 +147,6 @@ async function testNodeProxy() {
             console.log(`bch`)
             return Promise.resolve(null)
         },
-        blockChainHeadLog: (depth) => {
-            return Promise.resolve([])
-        },
         blockChainBlockIds: (blockId, depth) => {
             return Promise.resolve([])
         },

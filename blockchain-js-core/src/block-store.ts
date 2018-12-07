@@ -4,7 +4,6 @@ export interface BlockStore {
     blockIds(callback: (blockId: string, block: Block.Block) => any): Promise<void>
 
     getBranches(): string[]
-    getBranch(branch: string): string[]
     getBranchHead(branch: string): string
     setBranchHead(branch: string, blockId: string)
 
