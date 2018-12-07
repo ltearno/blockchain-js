@@ -19,8 +19,8 @@ export class NodeImpl implements NodeApi.NodeApi {
         return this.blockStore.blockCount()
     }
 
-    blockIdsSync(callback: (blockId: string, block: Block.Block) => any) {
-        this.blockStore.blockIds(callback)
+    blocksSync(callback: (blockId: string, block: Block.Block) => any) {
+        this.blockStore.blocks(callback)
     }
 
     async branches(): Promise<string[]> {

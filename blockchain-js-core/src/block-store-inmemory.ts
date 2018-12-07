@@ -54,7 +54,7 @@ export class InMemoryBlockStore implements BlockStore.BlockStore {
         return this.data.size
     }
 
-    async blockIds(callback: (blockId: string, block: Block.Block) => any) {
+    async blocks(callback: (blockId: string, block: Block.Block) => any) {
         for (let [blockId, block] of this.data)
             callback(blockId, block)
     }

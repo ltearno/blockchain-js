@@ -139,7 +139,7 @@ app.post('/lists/:branch/:listName', async (req, res) => {
 app.get('/save', (req, res) => {
     let o = {}
 
-    fullNode.node.blockIdsSync((blockId, block) => {
+    fullNode.node.blocksSync((blockId, block) => {
         o[blockId] = block
     })
 
