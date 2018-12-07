@@ -2,15 +2,15 @@ import * as Block from './block'
 import * as NodeApi from './node-api'
 
 export interface BlockStore {
-    blocks(): Map<string, Block.Block> // TODO not possible anymore now ! => transform into async visitor
-    blockIds(): IterableIterator<string> // TODO not possible anymore now ! => transform into async visitor
+    blockIdsSync(callback: (blockId: string, block: Block.Block) => any)
 
     branches(): string[] // TODO async visitor
     getBranch(branch: string): string[]
     getBranchHead(branch: string): string
     setBranchHead(branch: string, blockId: string)
 
-    // TODO : add waiting blocks ?
+    registerWaitingBlock(waitingBlockId: string, waitedBlockId: string)
+    browseWaitingBlocksAndForget(blockId: string, callback: (waitingBlockId) => any)
 
     blockCount(): number
     blockMetadataCount(): number
@@ -30,6 +30,8 @@ export class MemoryBlockStore implements BlockStore {
     // at 0 is the oldest,
     // at size-1 is the current
     private headLog: Map<string, string[]> = new Map()
+
+    private waitingBlocks = new Map<string, Set<string>>()
 
     branches() {
         let res = []
@@ -73,12 +75,9 @@ export class MemoryBlockStore implements BlockStore {
         return this.data.size
     }
 
-    blocks() {
-        return this.data
-    }
-
-    blockIds() {
-        return this.metadata.keys()
+    blockIdsSync(callback: (blockId: string, block: Block.Block) => any) {
+        for (let [blockId, block] of this.data)
+            callback(blockId, block)
     }
 
     hasBlockData(id: string) {
@@ -104,13 +103,30 @@ export class MemoryBlockStore implements BlockStore {
     setBlockMetadata(id: string, metadata: Block.BlockMetadata) {
         this.metadata.set(id, metadata)
     }
+
+    registerWaitingBlock(waitingBlockId: string, waitedBlockId: string) {
+        if (this.waitingBlocks.has(waitedBlockId)) {
+            this.waitingBlocks.get(waitedBlockId).add(waitingBlockId)
+        }
+        else {
+            let waitSet = new Set<string>()
+            waitSet.add(waitingBlockId)
+            this.waitingBlocks.set(waitedBlockId, waitSet)
+        }
+    }
+
+    browseWaitingBlocksAndForget(blockId: string, callback: (waitingBlockId) => any) {
+        if (!this.waitingBlocks.has(blockId))
+            return
+
+        this.waitingBlocks.get(blockId).forEach(callback)
+        this.waitingBlocks.delete(blockId)
+    }
 }
 
 export class NodeImpl implements NodeApi.NodeApi {
     // block together with their metadata which are known by the node
     private blockStore: BlockStore = new MemoryBlockStore()
-
-    private waitingBlocks = new Map<string, Set<string>>()
 
     private listeners: Map<string, NodeApi.NodeEventListener<keyof NodeApi.BlockchainEventMap>[]> = new Map()
 
@@ -127,8 +143,8 @@ export class NodeImpl implements NodeApi.NodeApi {
         return this.blockStore.blockCount()
     }
 
-    blocks() {
-        return this.blockStore.blocks()
+    blockIdsSync(callback: (blockId: string, block: Block.Block) => any) {
+        this.blockStore.blockIdsSync(callback)
     }
 
     async branches(): Promise<string[]> {
@@ -217,20 +233,10 @@ export class NodeImpl implements NodeApi.NodeApi {
             return
         }
 
-        if (this.waitingBlocks.has(waitedBlockId)) {
-            this.waitingBlocks.get(waitedBlockId).add(waitingBlockId)
-        }
-        else {
-            let waitSet = new Set<string>()
-            waitSet.add(waitingBlockId)
-            this.waitingBlocks.set(waitedBlockId, waitSet)
-        }
+        this.blockStore.registerWaitingBlock(waitingBlockId, waitedBlockId)
     }
 
-    private async wakeupBlocks(blockId: string) {
-        if (!this.waitingBlocks.has(blockId))
-            return
-
+    private async maybeWakeupBlocks(blockId: string) {
         if (!this.blockStore.hasBlockMetadata(blockId)) {
             console.error(`waking up without metadata`)
             return
@@ -241,7 +247,7 @@ export class NodeImpl implements NodeApi.NodeApi {
             return
         }
 
-        this.waitingBlocks.get(blockId).forEach(waitingBlockId => {
+        this.blockStore.browseWaitingBlocksAndForget(blockId, waitingBlockId => {
             let waitingBlock = this.blockStore.getBlockData(waitingBlockId)
             if (!waitingBlockId || !waitingBlock) {
                 console.error(`error cannot find block ${waitingBlockId} data triggered by ${blockId}`)
@@ -250,7 +256,6 @@ export class NodeImpl implements NodeApi.NodeApi {
 
             this.realProcessBlock(waitingBlockId, waitingBlock)
         })
-        this.waitingBlocks.delete(blockId)
     }
 
     private async realProcessBlock(blockId: string, block: Block.Block) {
@@ -266,7 +271,7 @@ export class NodeImpl implements NodeApi.NodeApi {
         }
 
         this.blockStore.setBlockMetadata(metadata.blockId, metadata)
-        this.wakeupBlocks(metadata.blockId)
+        this.maybeWakeupBlocks(metadata.blockId)
 
         this.maybeUpdateHead(block, metadata)
 
@@ -295,8 +300,7 @@ export class NodeImpl implements NodeApi.NodeApi {
                 break
 
             case 'block':
-                for (let blockId of this.blockStore.blockIds())
-                    listener({ type: 'block', blockId })
+                this.blockStore.blockIdsSync(blockId => listener({ type: 'block', blockId }))
                 break
         }
     }

@@ -139,10 +139,9 @@ app.post('/lists/:branch/:listName', async (req, res) => {
 app.get('/save', (req, res) => {
     let o = {}
 
-    let blocks = fullNode.node.blocks()
-    for (let blockId of blocks.keys()) {
-        o[blockId] = blocks.get(blockId)
-    }
+    fullNode.node.blockIdsSync((blockId, block) => {
+        o[blockId] = block
+    })
 
     fs.writeFileSync(`blocks-${Date.now()}.data.json`, JSON.stringify(o, null, 2), 'utf-8')
 
