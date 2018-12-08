@@ -5,7 +5,8 @@ import {
     HashTools,
     SmartContract,
     NodeNetworkClient,
-    NetworkApiNodeImpl
+    NetworkApiNodeImpl,
+    SequenceStorage
 } from 'blockchain-js-core'
 
 async function run() {
@@ -52,10 +53,21 @@ async function run() {
     try {
         await peerNode.initialize()
 
+        console.log(`connecting to remote peer...`)
         peerInfo.fullNodePeerInfo = fullNode.addPeer(peerNode.remoteFacade(), `peer added through REST: ${peer.address}:${peer.port}`)
-
-
         await wait(1000)
+
+        console.log(`init supplyChainBranchSequence...`)
+        let supplyChainBranchSequence = new SequenceStorage.SequenceStorage(
+            fullNode.node,
+            Block.MASTER_BRANCH,
+            `supply-chain-branch-sequence`,
+            fullNode.miner)
+        supplyChainBranchSequence.initialise()
+        await wait(1000)
+
+        console.log(`registering smart contract...`)
+        supplyChainBranchSequence.addItems([branch])
 
         let smartContract = new SmartContract.SmartContract(fullNode.node, branch, 'people', fullNode.miner)
         smartContract.initialise()
