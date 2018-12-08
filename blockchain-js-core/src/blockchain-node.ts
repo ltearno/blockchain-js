@@ -12,13 +12,14 @@ import * as BlockStoreDisk from './block-store-disk'
 const run = async () => {
     const NETWORK_CLIENT_API = new NetworkApiNodeImpl.NetworkApiNodeImpl()
 
+    // input parameters
+    let port = (process.argv.length >= 3 && parseInt(process.argv[2])) || 9091
+    
+    // TODO should use disk store only if param "disk" is set
     let blockStore = new BlockStoreDisk.DiskBlockStore()
     await blockStore.init()
 
     let fullNode = new FullNode.FullNode(null, blockStore)
-
-    // input parameters
-    let port = (process.argv.length >= 3 && parseInt(process.argv[2])) || 9091
 
     // node rest/ws servicing
     let app = express()

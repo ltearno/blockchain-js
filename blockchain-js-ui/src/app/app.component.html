@@ -319,9 +319,9 @@
       </p>
       <p>
         <span *ngIf='state.isLoading()' style='color:green;'>Loading - </span>
-        <span *ngIf='!state.fullNode.node.blockCount'>Empty blockchain</span>
-        <span *ngIf='state.fullNode.node.blockCount'>{{state.fullNode.node.blockCount}} blocks</span>
-        <span *ngIf='state.currentHead'> - {{state.currentHead}}</span>
+        <!--<span *ngIf='!state.fullNode.node.blockCount'>Empty blockchain</span>
+        <span *ngIf='state.fullNode.node.blockCount'>{{state.fullNode.node.blockCount}} blocks</span>-->
+        <span *ngIf='state.currentHead'>{{state.currentHead}}</span>
         <span *ngIf='autoMining' style='color:green;'> - auto-mining enabled</span>
       </p>
     </div>

@@ -19,14 +19,25 @@ async function run() {
         secure: true
     }
 
+    function uuidv4() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8)
+            return v.toString(16)
+        })
+    }
+
+    let branch = uuidv4()
+
     if (process.argv.length > 2)
         peer.address = process.argv[2]
     if (process.argv.length > 3)
         peer.port = parseInt(process.argv[3])
     if (process.argv.length > 4)
         peer.secure = process.argv[4] == 'secure'
+    if (process.argv.length > 5)
+        branch = process.argv[5]
 
-    console.log(`pushing contracts to ${peer.address}:${peer.port}`)
+    console.log(`pushing contracts to ${peer.address}:${peer.port} on branch ${branch}`)
 
     let peerInfo = {
         peer,
@@ -46,7 +57,7 @@ async function run() {
 
         await wait(1000)
 
-        let smartContract = new SmartContract.SmartContract(fullNode.node, Block.MASTER_BRANCH, 'people', fullNode.miner)
+        let smartContract = new SmartContract.SmartContract(fullNode.node, branch, 'people', fullNode.miner)
         smartContract.initialise()
 
         let callContract = async (contractUuid, iterationId, method, account, data) => {

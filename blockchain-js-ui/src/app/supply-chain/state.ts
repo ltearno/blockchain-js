@@ -153,6 +153,9 @@ export class State {
 
         this.fullNode.node.addEventListener('head', async (event) => {
             //this.log(`new head on branch '${event.branch}': ${event.headBlockId.substr(0, 7)}`)
+            if (event.branch != Blockchain.Block.MASTER_BRANCH)
+                return
+
             this.triggerLoad(event.branch, event.headBlockId)
             this.currentHead = event.headBlockId.substr(0, 7)
         })
