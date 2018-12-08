@@ -4,3 +4,4 @@ dist/
 
 cert.pem
 key.pem
+block-db/

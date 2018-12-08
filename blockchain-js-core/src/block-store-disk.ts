@@ -3,6 +3,8 @@ import * as BlockStore from './block-store'
 
 const level = require('level')
 
+const DEBUG_LOG = false
+
 interface RawLevelDb {
     close: any
     put: any
@@ -38,25 +40,32 @@ class LevelDb {
     }
 
     put(key: string, value: string): Promise<boolean> {
+        DEBUG_LOG && console.log(`put ${key} : ${value}`)
         return this.db.put(key, value)
     }
 
     async has(name: string): Promise<boolean> {
         let result = false
-        await this.iterate({ gte: name, lte: name, values: false, keys: false }, () => result = true)
+        await this.iterate({ gte: name, lte: name, values: false, keys: true }, () => result = true)
+        DEBUG_LOG && console.log(`has ${name} : ${result}`)
         return result
     }
 
     async get(name: string): Promise<string> {
+        let result = null
+
         try {
-            return await this.db.get(name)
+            result = await this.db.get(name)
         }
         catch (err) {
-            return null
         }
+
+        DEBUG_LOG && console.log(`get ${name} : ${result}`)
+        return result
     }
 
     del(name: string): Promise<void> {
+        DEBUG_LOG && console.log(`del ${name}`)
         return this.db.del(name)
     }
 
@@ -72,8 +81,21 @@ class LevelDb {
         values: boolean
     }, callback: (key: string, value: string) => any): Promise<boolean> {
         return new Promise(resolve => {
+            let ext = null
+            if (options.keys && options.values)
+                ext = data => callback(data.key, data.value)
+            else if (options.keys)
+                ext = data => callback(data, null)
+            else if (options.values)
+                ext = data => callback(null, data)
+
+            DEBUG_LOG && console.log(`iterate ${JSON.stringify(options)} :`)
+
             this.db.createReadStream(options)
-                .on('data', data => callback(data.key, data.value))
+                .on('data', data => {
+                    DEBUG_LOG && console.log(` - ${JSON.stringify(data)}`)
+                    ext(data)
+                })
                 .on('error', err => resolve(false))
                 .on('end', () => resolve(true))
         })
@@ -127,11 +149,11 @@ export class DiskBlockStore implements BlockStore.BlockStore {
     }
 
     async getBranchHead(branch: string) {
-        return this.db.get(`/branch/${branch}`)
+        return this.db.get(`/branches/${branch}`)
     }
 
     async setBranchHead(branch: string, blockId: string) {
-        await this.db.put(`/branch/${branch}`, blockId)
+        await this.db.put(`/branches/${branch}`, blockId)
     }
 
     async registerWaitingBlock(waitingBlockId: string, waitedBlockId: string) {
@@ -161,7 +183,7 @@ export class DiskBlockStore implements BlockStore.BlockStore {
     }
 
     async setBlockData(blockId: string, block: Block.Block) {
-        await this.db.put(`/block/${blockId}`, JSON.stringify(block))
+        await this.db.put(`/blocks/${blockId}`, JSON.stringify(block))
     }
 
     async hasBlockMetadata(id: string) {
