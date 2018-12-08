@@ -47,8 +47,13 @@ class LevelDb {
         return result
     }
 
-    get(name: string): Promise<string> {
-        return this.db.get(name)
+    async get(name: string): Promise<string> {
+        try {
+            return await this.db.get(name)
+        }
+        catch (err) {
+            return null
+        }
     }
 
     del(name: string): Promise<void> {
@@ -143,24 +148,8 @@ export class DiskBlockStore implements BlockStore.BlockStore {
             },
             (key, _) => callback(key.substr(`/waiting-blocks/${blockId}/`.length))
         )
-    }
 
-    async blockCount() {
-        try {
-            return parseInt(await this.db.get('/stats/block-count'))
-        }
-        catch (_) {
-            return 0
-        }
-    }
-
-    async blockMetadataCount() {
-        try {
-            return parseInt(await this.db.get('/stats/metadata-count'))
-        }
-        catch (_) {
-            return 0
-        }
+        // TODO : remove entries
     }
 
     async hasBlockData(id: string) {

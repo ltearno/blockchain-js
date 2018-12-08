@@ -10,8 +10,6 @@ export interface BlockStore {
     registerWaitingBlock(waitingBlockId: string, waitedBlockId: string): Promise<void>
     browseWaitingBlocksAndForget(blockId: string, callback: (waitingBlockId) => any): Promise<void>
 
-    blockCount(): Promise<number>
-    blockMetadataCount(): Promise<number>
     hasBlockData(id: string): Promise<boolean>
     getBlockData(id: string): Promise<Block.Block>
     setBlockData(blockId: string, block: Block.Block)

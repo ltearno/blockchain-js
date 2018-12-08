@@ -1,26 +1,18 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as BlockStore from './block-store'
-import { InMemoryBlockStore } from './block-store-inmemory'
+import * as BlockStoreInMemory from './block-store-inmemory'
 
 export class NodeImpl implements NodeApi.NodeApi {
     private listeners: Map<string, NodeApi.NodeEventListener<keyof NodeApi.BlockchainEventMap>[]> = new Map()
 
-    constructor(private blockStore: BlockStore.BlockStore = new InMemoryBlockStore()) {
+    constructor(private blockStore: BlockStore.BlockStore = new BlockStoreInMemory.InMemoryBlockStore()) {
         this.listeners.set('head', [])
         this.listeners.set('block', [])
     }
 
-    get blockMetadataCount() {
-        return this.blockStore.blockMetadataCount()
-    }
-
-    get blockCount() {
-        return this.blockStore.blockCount()
-    }
-
-    blocksSync(callback: (blockId: string, block: Block.Block) => any) {
-        this.blockStore.blocks(callback)
+    async blocks(callback: (blockId: string, block: Block.Block) => any) {
+        await this.blockStore.blocks(callback)
     }
 
     async branches(): Promise<string[]> {
@@ -32,15 +24,15 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     async blockChainBlockIds(startBlockId: string, depth: number): Promise<string[]> {
-        return Array.from(await this.browseBlockchainByFirstParent(startBlockId, depth)).map(item => item.metadata.blockId)
+        return (await this.browseBlockchainByFirstParent(startBlockId, depth, false)).map(item => item.metadata.blockId)
     }
 
     async blockChainBlockMetadata(startBlockId: string, depth: number): Promise<Block.BlockMetadata[]> {
-        return Array.from(await this.browseBlockchainByFirstParent(startBlockId, depth)).map(item => item.metadata)
+        return (await this.browseBlockchainByFirstParent(startBlockId, depth, false)).map(item => item.metadata)
     }
 
     async blockChainBlockData(startBlockId: string, depth: number): Promise<Block.Block[]> {
-        return Array.from(await this.browseBlockchainByFirstParent(startBlockId, depth)).map(item => item.block)
+        return (await this.browseBlockchainByFirstParent(startBlockId, depth, true)).map(item => item.block)
     }
 
     // registers a new block in the collection
@@ -54,9 +46,9 @@ export class NodeImpl implements NodeApi.NodeApi {
             return null
         }
 
-        if (this.blockStore.hasBlockData(blockId)) {
+        if (await this.blockStore.hasBlockData(blockId)) {
             //console.log(`already registered block ${blockId && blockId.substring(0, 5)}`)
-            return this.blockStore.getBlockMetadata(blockId)
+            return await this.blockStore.getBlockMetadata(blockId)
         }
 
         let fixedId = await Block.idOfBlock(block)
@@ -65,25 +57,31 @@ export class NodeImpl implements NodeApi.NodeApi {
             return null
         }
 
-        this.blockStore.setBlockData(blockId, block)
+        await this.blockStore.setBlockData(blockId, block)
 
         return this.processBlockMetadata(blockId, block)
     }
 
     private async processBlockMetadata(blockId: string, block: Block.Block) {
-        if (this.blockStore.hasBlockMetadata(blockId)) {
-            //console.log(`already registered block metadata ${blockId.substring(0, 5)}`)
+        if (!blockId || !block)
+            throw `processBlockMetadata received null args`
+
+        if (await this.blockStore.hasBlockMetadata(blockId)) {
             return
         }
 
-        if (block.previousBlockIds && block.previousBlockIds.length && !block.previousBlockIds.every(parentBlockId => this.blockStore.hasBlockMetadata(parentBlockId))) {
-            block.previousBlockIds.forEach(parentBlockId => {
-                if (!this.blockStore.hasBlockMetadata(parentBlockId)) {
+        // check we have all the parents, if not add missing parents to wait list
+        if (block.previousBlockIds) {
+            let isWaitingForParents = false
+            for (let parentBlockId of block.previousBlockIds) {
+                if (!await this.blockStore.hasBlockMetadata(parentBlockId)) {
                     //console.log(`${blockId} waits for parent ${parentBlockId}`)
-                    this.waitBlock(parentBlockId, blockId)
+                    await this.blockStore.registerWaitingBlock(blockId, parentBlockId)
+                    isWaitingForParents = true
                 }
-            })
-            return
+            }
+            if (isWaitingForParents)
+                return
         }
 
         let metadata = this.realProcessBlock(blockId, block)
@@ -91,40 +89,31 @@ export class NodeImpl implements NodeApi.NodeApi {
         return metadata
     }
 
-    private waitBlock(waitedBlockId: string, waitingBlockId: string) {
-        if (!this.blockStore.hasBlockData(waitingBlockId)) {
-            console.error(`WAITING WITHOUT DATA !`)
-            return
-        }
-
-        if (this.blockStore.hasBlockMetadata(waitedBlockId)) {
-            console.error(`WAITING ALREADY HERE DATA !`)
-            return
-        }
-
-        this.blockStore.registerWaitingBlock(waitingBlockId, waitedBlockId)
-    }
-
     private async maybeWakeupBlocks(blockId: string) {
-        if (!this.blockStore.hasBlockMetadata(blockId)) {
+        if (!await this.blockStore.hasBlockMetadata(blockId)) {
             console.error(`waking up without metadata`)
             return
         }
 
-        if (!this.blockStore.hasBlockData(blockId)) {
+        if (!await this.blockStore.hasBlockData(blockId)) {
             console.error(`waking up without data`)
             return
         }
 
-        this.blockStore.browseWaitingBlocksAndForget(blockId, waitingBlockId => {
-            let waitingBlock = this.blockStore.getBlockData(waitingBlockId)
+        let waitingBlocks = []
+        await this.blockStore.browseWaitingBlocksAndForget(blockId, waitingBlockId => {
+            waitingBlocks.push(waitingBlockId)
+        })
+
+        for (let waitingBlockId of waitingBlocks) {
+            let waitingBlock = await this.blockStore.getBlockData(waitingBlockId)
             if (!waitingBlockId || !waitingBlock) {
                 console.error(`error cannot find block ${waitingBlockId} data triggered by ${blockId}`)
                 return
             }
 
-            this.realProcessBlock(waitingBlockId, waitingBlock)
-        })
+            await this.realProcessBlock(waitingBlockId, waitingBlock)
+        }
     }
 
     private async realProcessBlock(blockId: string, block: Block.Block) {
@@ -139,10 +128,10 @@ export class NodeImpl implements NodeApi.NodeApi {
             return
         }
 
-        this.blockStore.setBlockMetadata(metadata.blockId, metadata)
+        await this.blockStore.setBlockMetadata(metadata.blockId, metadata)
         this.maybeWakeupBlocks(metadata.blockId)
 
-        this.maybeUpdateHead(block, metadata)
+        await this.maybeUpdateHead(block, metadata)
 
         this.notifyEvent({
             type: 'block',
@@ -152,24 +141,24 @@ export class NodeImpl implements NodeApi.NodeApi {
         return metadata
     }
 
-    private maybeUpdateHead(block: Block.Block, metadata: Block.BlockMetadata) {
-        let oldHead = this.blockStore.getBranchHead(block.branch)
-        if (metadata.isValid && this.compareBlockchains(metadata.blockId, oldHead) > 0) {
+    private async maybeUpdateHead(block: Block.Block, metadata: Block.BlockMetadata) {
+        let oldHead = await this.blockStore.getBranchHead(block.branch)
+        if (metadata.isValid && await this.compareBlockchains(metadata.blockId, oldHead) > 0) {
             this.setHead(block.branch, metadata.blockId)
         }
     }
 
-    addEventListener<K extends keyof NodeApi.BlockchainEventMap>(type: K, listener: (event: NodeApi.BlockchainEventMap[K]) => any): void {
+    async addEventListener<K extends keyof NodeApi.BlockchainEventMap>(type: K, listener: (event: NodeApi.BlockchainEventMap[K]) => any): Promise<void> {
         this.listeners.get(type).push(listener)
 
         switch (type) {
             case 'head':
-                for (let branch of this.blockStore.getBranches())
-                    listener({ type: 'head', branch, headBlockId: this.blockStore.getBranchHead(branch) })
+                for (let branch of await this.blockStore.getBranches())
+                    listener({ type: 'head', branch, headBlockId: await this.blockStore.getBranchHead(branch) })
                 break
 
             case 'block':
-                this.blockStore.blockIds(blockId => listener({ type: 'block', blockId }))
+                await this.blockStore.blocks(blockId => listener({ type: 'block', blockId }))
                 break
         }
     }
@@ -188,7 +177,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     // TODO : with generic validation, compare the global validation value (pow, pos, other...)
-    private compareBlockchains(block1Id: string, block2Id: string): number {
+    private async compareBlockchains(block1Id: string, block2Id: string): Promise<number> {
         if (block1Id == block2Id)
             return 0
         if (!block1Id)
@@ -196,8 +185,8 @@ export class NodeImpl implements NodeApi.NodeApi {
         if (!block2Id)
             return 1
 
-        let meta1 = this.blockStore.getBlockMetadata(block1Id)
-        let meta2 = this.blockStore.getBlockMetadata(block2Id)
+        let meta1 = await this.blockStore.getBlockMetadata(block1Id)
+        let meta2 = await this.blockStore.getBlockMetadata(block2Id)
 
         if (!meta1 || !meta2)
             throw "error, not enough block history"
@@ -226,7 +215,7 @@ export class NodeImpl implements NodeApi.NodeApi {
         return meta1.blockId.localeCompare(meta2.blockId)
     }
 
-    private setHead(branch: string, blockId: string) {
+    private async setHead(branch: string, blockId: string) {
         if (!blockId || !branch)
             return
 
@@ -236,7 +225,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         if (!this.lastHeadEvents.has(branch)) {
             this.lastHeadEvents.add(branch)
-            this.triggerNotifyHead()
+            await this.triggerNotifyHead()
         }
     }
 
@@ -244,26 +233,32 @@ export class NodeImpl implements NodeApi.NodeApi {
 
     private notifyTimeout
 
-    private triggerNotifyHead() {
+    private async triggerNotifyHead() {
         if (this.notifyTimeout)
             return
 
-        this.notifyTimeout = setTimeout(() => {
-            this.lastHeadEvents.forEach(branch => {
-                let headBlockId = this.blockStore.getBranchHead(branch)
-                let bm = this.blockStore.getBlockMetadata(headBlockId)
-                let blockCount = bm && bm.blockCount
+        this.notifyTimeout = setTimeout(async () => {
+            let lastHeadEvents = this.lastHeadEvents
+            this.lastHeadEvents = new Set()
 
-                console.log(`new block ${headBlockId}, depth ${blockCount} is the new head of branch ${branch}`)
+            for (let branch of lastHeadEvents) {
+                let headBlockId = await this.blockStore.getBranchHead(branch)
+
+                //let bm = await this.blockStore.getBlockMetadata(headBlockId)
+                //let blockCount = bm && bm.blockCount
+                console.log(`branch ${branch}'s new head is block ${headBlockId}`)
 
                 this.listeners.get('head').forEach(listener => listener({
                     type: 'head',
                     branch,
                     headBlockId
                 }))
-            })
-            this.lastHeadEvents.clear()
+            }
+
             this.notifyTimeout = null
+
+            if (this.lastHeadEvents.size)
+                this.triggerNotifyHead()
         }, 0)
     }
 
@@ -285,7 +280,7 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         if (block.previousBlockIds) {
             for (let previousBlockId of block.previousBlockIds) {
-                let previousBlockMetadata = this.blockStore.getBlockMetadata(previousBlockId)
+                let previousBlockMetadata = await this.blockStore.getBlockMetadata(previousBlockId)
                 if (!previousBlockMetadata) {
                     console.log("cannot find the parent block in database, so cannot processMetadata")
                     return null
@@ -309,15 +304,19 @@ export class NodeImpl implements NodeApi.NodeApi {
         return metadata
     }
 
-    private *browseBlockchainByFirstParent(startBlockId: string, depth: number) {
-        while (startBlockId && depth-- > 0) {
-            let metadata = this.blockStore.getBlockMetadata(startBlockId)
-            let block = this.blockStore.getBlockData(startBlockId)
+    private async browseBlockchainByFirstParent(startBlockId: string, depth: number, fetchBlocks: boolean) {
+        let result: { metadata: Block.BlockMetadata; block: Block.Block; }[] = []
 
-            yield { metadata, block }
+        while (startBlockId && depth-- > 0) {
+            let metadata = await this.blockStore.getBlockMetadata(startBlockId)
+            let block = fetchBlocks ? await this.blockStore.getBlockData(startBlockId) : null
+
+            result.push({ metadata, block })
 
             // TODO this only browse first parent, it should browser the entire tree !
-            startBlockId = block && block.previousBlockIds && block.previousBlockIds.length && block.previousBlockIds[0]
+            startBlockId = metadata && metadata.previousBlockIds && metadata.previousBlockIds.length && metadata.previousBlockIds[0]
         }
+
+        return result
     }
 }

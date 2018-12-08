@@ -4,6 +4,8 @@ import * as NodeTransfer from './node-transfer'
 import * as MinerImpl from './miner-impl'
 import * as MinerApi from './miner-api'
 import * as ListOnChain from './list-on-chain'
+import * as BlockStore from './block-store'
+import * as BlockStoreInMemory from './block-store-inmemory'
 
 export interface Peer {
     address: string
@@ -26,6 +28,7 @@ export interface PeerInfo {
  */
 export class FullNode {
     public node: NodeImpl.NodeImpl
+    public blockStore: BlockStore.BlockStore
     public transfer: NodeTransfer.NodeTransfer
     public miner: MinerApi.MinerApi
     public lists: Map<string, ListOnChain.ListOnChain>
@@ -34,9 +37,11 @@ export class FullNode {
 
     private nextPeerId = 1
 
-    constructor(miner: MinerApi.MinerApi = undefined) {
+    constructor(miner: MinerApi.MinerApi = undefined, blockStore: BlockStore.BlockStore = undefined) {
+        this.blockStore = blockStore || new BlockStoreInMemory.InMemoryBlockStore()
+
         // node creation
-        this.node = new NodeImpl.NodeImpl()
+        this.node = new NodeImpl.NodeImpl(this.blockStore)
 
         // node peering
         this.transfer = new NodeTransfer.NodeTransfer(this.node)
