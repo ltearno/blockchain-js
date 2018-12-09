@@ -34,14 +34,6 @@ export class State {
             this.logs.pop()
     }
 
-    /**
-     * That which is residing on master branch
-     */
-
-    /**
-     * That which is residing on a 'dynamic' changeable branch
-     */
-
     user: {
         id: string
         keys: RsaKeyPair
@@ -53,7 +45,37 @@ export class State {
 
     masterHead = ''
 
+    hasIdentityContract = false
+    registeredOnIdentityContract = false
     hasSupplyChainAccount = false
+    private registrationDone = false
+
+    private async updateFlags() {
+        this.hasIdentityContract = this.smartContract.hasContract(this.IDENTITY_REGISTRY_CONTRACT_ID)
+
+        this.registeredOnIdentityContract = this.hasIdentityContract && (() => {
+            let identityContractState = this.smartContract.getContractState(this.IDENTITY_REGISTRY_CONTRACT_ID)
+            return identityContractState && !!identityContractState.identities[this.user.id]
+        })()
+
+        this.hasSupplyChainAccount = (() => {
+            if (!this.user || !this.user.id)
+                return false
+
+            let supplyChainState = this.smartContract.getContractState(this.SUPPLY_CHAIN_CONTRACT_ID)
+            if (!supplyChainState || !supplyChainState.accounts || !supplyChainState.accounts[this.user.id])
+                return false
+
+            return true
+        })()
+
+        if (this.registrationDone && !(this.hasIdentityContract && this.registeredOnIdentityContract && this.hasSupplyChainAccount)) {
+            this.registrationDone = false
+            setTimeout(() => this.registerIdentity(), 1000)
+
+            return
+        }
+    }
 
     setUserInformations(userId: string, keys: RsaKeyPair) {
         if (!userId || !keys) // TODO better check
@@ -93,9 +115,7 @@ export class State {
     init() {
         this.initFullNode()
 
-        setTimeout(() => {
-            this.registerIdentity()
-        }, 1000)
+        this.registerIdentity()
     }
 
     get branches() {
@@ -107,9 +127,6 @@ export class State {
     identities: { [id: string]: { pseudo: string; publicKey: string } } = {}
 
     private messages = []
-
-    hasIdentityContract = false
-    registeredOnIdentityContract = false
 
     callContract = async (contractUuid, iterationId, method, account, data) => {
         if (this.smartContract.hasContract(contractUuid)) {
@@ -182,6 +199,8 @@ export class State {
 
         this.smartContract = new Blockchain.SmartContract.SmartContract(this.fullNode.node, Blockchain.Block.MASTER_BRANCH, 'people', this.fullNode.miner)
         this.smartContract.addChangeListener(() => {
+            this.updateFlags()
+
             this.programState = this.suppyChain.getSuppyChainState() // JSON.parse(JSON.stringify(this.suppyChain.getSuppyChainState()))
 
             if (this.smartContract.hasContract(this.IDENTITY_REGISTRY_CONTRACT_ID)) {
@@ -221,6 +240,8 @@ export class State {
     }
 
     private async registerIdentity() {
+        this.updateFlags()
+
         let callLater = 1
 
         if (this.isLoading()) {
@@ -231,7 +252,6 @@ export class State {
         }
         else if (!this.hasIdentityContract) {
             //console.log(`registerIdentity : wait identity contract`)
-            this.checkIdentityContract()
         }
         else if (!this.registeredOnIdentityContract) {
             //console.log(`registerIdentity : wait identity contract registration`)
@@ -243,15 +263,12 @@ export class State {
         }
         else {
             this.log(`all done for identity registration`)
+            this.registrationDone = true
             callLater = -1
         }
 
         if (callLater >= 0)
             setTimeout(() => this.registerIdentity(), 1000 * callLater)
-    }
-
-    private checkIdentityContract() {
-        this.hasIdentityContract = this.smartContract.hasContract(this.IDENTITY_REGISTRY_CONTRACT_ID)
     }
 
     private async registerIdentityImpl(): Promise<number> {
@@ -269,9 +286,8 @@ export class State {
             return 1
         }
 
-        if (identityContractState.identities[this.user.id]) {
+        if (this.registeredOnIdentityContract) {
             this.log(`identity already registered (${this.user.id})`)
-            this.registeredOnIdentityContract = true
             return 0
         }
 
@@ -288,7 +304,6 @@ export class State {
         }
 
         console.log(`identity registered with id ${account.id}`)
-        this.registeredOnIdentityContract = true
         return 1
     }
 
@@ -298,14 +313,13 @@ export class State {
             keys: this.user.keys
         }
 
-        if (!await this.suppyChain.hasAccount(account.id)) {
+        if (!this.hasSupplyChainAccount) {
             this.log(`registering account on supply chain...`)
             await this.suppyChain.createAccount(account)
             return 1
         }
         else {
             this.log(`already registered on supplychain`)
-            this.hasSupplyChainAccount = true
             return 0
         }
     }

@@ -133,8 +133,8 @@ export class NodeImpl implements NodeApi.NodeApi {
         }
 
         await this.blockStore.setBlockMetadata(metadata.blockId, metadata)
-        this.maybeWakeupBlocks(metadata.blockId)
 
+        await this.maybeWakeupBlocks(metadata.blockId)
         await this.maybeUpdateHead(block, metadata)
 
         this.notifyEvent({

@@ -1,5 +1,5 @@
 <div *ngIf='!state.hasSupplyChainAccount' class="container">
-    <h2>Loading blocks and initializing the Supply Chain, please wait...</h2>
+    <h2>Waiting for Supply Chain initialization, please be patient...</h2>
     <div *ngIf='state.loaders'>{{ state.loaders }} loading processes running...</div>
     <div *ngIf='state.fullNode.transfer.isLoading()'>Local node is receiving and processing new blocks...</div>
     <div *ngIf='state.smartContract.processing'>Smart Contract component is processing data ({{
