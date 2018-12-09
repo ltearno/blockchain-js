@@ -108,10 +108,6 @@ export class SmartContract {
     setBranch(branch: string) {
         this.contractsLiveInstances.clear()
         this.statesCache = []
-        //this.stateCache = {
-        //    contracts: {},
-        //    returnValues: {}
-        //}
 
         this.branch = branch
         this.contractItemList.setBranch(branch)
