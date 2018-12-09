@@ -73,6 +73,8 @@ export class State {
     } = { "master": { branch: Blockchain.Block.MASTER_BRANCH, head: null, headBlock: [] } }
 
     messageSequence: Blockchain.SequenceStorage.SequenceStorage
+    supplyChainBranchSequence: Blockchain.SequenceStorage.SequenceStorage
+    supplyChainBranches: string[] = []
     smartContract: Blockchain.SmartContract.SmartContract = null
     suppyChain: SupplyChainAdapter.SupplyChainAdapter = new SupplyChainAdapter.SupplyChainAdapter()
 
@@ -160,6 +162,24 @@ export class State {
             this.currentHead = event.headBlockId.substr(0, 7)
         })
 
+        this.supplyChainBranchSequence = new Blockchain.SequenceStorage.SequenceStorage(
+            this.fullNode.node,
+            Blockchain.Block.MASTER_BRANCH,
+            `supply-chain-branch-sequence`,
+            this.fullNode.miner)
+        this.supplyChainBranchSequence.initialise()
+        this.supplyChainBranchSequence.addEventListener('change', (sequenceItemsByBlock) => {
+            console.log(`JKJKAHGKJHAGKJAHGKAJHGK`, sequenceItemsByBlock);
+
+            this.supplyChainBranches = []
+            for (let { blockId, items } of sequenceItemsByBlock) {
+                items.forEach(item => {
+                    if (typeof item === 'string')
+                        this.supplyChainBranches.push(item)
+                })
+            }
+        })
+
         this.messageSequence = new Blockchain.SequenceStorage.SequenceStorage(
             this.fullNode.node,
             this.selectedBranch,
@@ -204,35 +224,20 @@ export class State {
         if (this.state && this.state[branch] && this.state[branch].head == blockId)
             return
 
-        // only update current state
-        // stop when we encounter the current branch head
-        // if not found, replace the head
-
-        let state = {}
-
-        let toFetch = blockId
-
         let branchState = {
             branch: branch,
-            head: toFetch,
+            head: blockId,
             headBlock: null
         }
 
-        let toFetchs = [toFetch]
-        while (toFetchs.length) {
-            let fetching = toFetchs.shift()
+        let blockMetadatas = await this.fullNode.node.blockChainBlockMetadata(blockId, 1)
+        let blockMetadata = blockMetadatas && blockMetadatas[0]
+        let blockDatas = await this.fullNode.node.blockChainBlockData(blockId, 1)
+        let blockData = blockDatas && blockDatas[0]
 
-            let blockMetadatas = await this.fullNode.node.blockChainBlockMetadata(fetching, 1)
-            let blockMetadata = blockMetadatas && blockMetadatas[0]
-            let blockDatas = await this.fullNode.node.blockChainBlockData(fetching, 1)
-            let blockData = blockDatas && blockDatas[0]
+        branchState.headBlock = { blockMetadata, blockData }
 
-            branchState.headBlock = { blockMetadata, blockData }
-        }
-
-        state[branch] = branchState
-
-        this.state = state
+        this.state[branch] = branchState
     }
 
     private async registerIdentity() {
