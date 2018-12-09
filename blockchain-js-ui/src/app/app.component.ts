@@ -49,6 +49,16 @@ export class AppComponent {
   accepting = new Map<string, { offerId: string; offerMessage: string }>()
   knownAcceptedMessages = new Set<string>()
 
+  _selectedBranch = Blockchain.Block.MASTER_BRANCH
+
+  get selectedBranch() {
+    return this._selectedBranch
+  }
+
+  set selectedBranch(branch: string) {
+    this._selectedBranch = branch
+  }
+
   private peersSockets = new Map<FullNode.PeerInfo, { ws: NetworkApi.WebSocket, isSelfInitiated: boolean, counterpartyId: string }>()
 
   private decypherCache = new Map<string, string>()

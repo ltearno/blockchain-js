@@ -61,17 +61,6 @@ export class State {
 
     fullNode: Blockchain.FullNode.FullNode = null
 
-    _selectedBranch = Blockchain.Block.MASTER_BRANCH
-
-    get selectedBranch() {
-        return this._selectedBranch
-    }
-
-    set selectedBranch(branch: string) {
-        this._selectedBranch = branch
-        this.messageSequence.setBranch(branch)
-    }
-
     state: {
         [branch: string]: {
             head: string
@@ -176,7 +165,7 @@ export class State {
 
         this.messageSequence = new Blockchain.SequenceStorage.SequenceStorage(
             this.fullNode.node,
-            this.selectedBranch,
+            Blockchain.Block.MASTER_BRANCH,
             `demo-chat-v1`,
             this.fullNode.miner)
         this.messageSequence.initialise()

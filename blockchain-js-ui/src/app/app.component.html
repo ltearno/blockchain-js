@@ -226,18 +226,18 @@
         <div class="field">
           <label class="label">Current branch</label>
           <div class="select">
-            <select [(ngModel)]='state.selectedBranch'>
+            <select [(ngModel)]='selectedBranch'>
               <option *ngFor='let branch of state.branches' value='{{branch}}'>{{branch}}</option>
             </select>
           </div>
         </div>
-        <div *ngIf='state.state[state.selectedBranch]'>
-          <div *ngIf='state.state[state.selectedBranch].head'>
-            head block id: {{state.state[state.selectedBranch].headBlockMetadata.blockId}}
-            <br /> valid: {{state.state[state.selectedBranch].headBlockMetadata.isValid}}
-            <br /> previous blocks: {{state.state[state.selectedBranch].headBlockMetadata?.previousBlockIds | json}}
-            <br /> confidence: {{state.state[state.selectedBranch].headBlockMetadata.confidence}}
-            <br /> blockCount: {{state.state[state.selectedBranch].headBlockMetadata.blockCount}}
+        <div *ngIf='state.state[selectedBranch]'>
+          <div *ngIf='state.state[selectedBranch].head'>
+            head block id: {{state.state[selectedBranch].headBlockMetadata.blockId}}
+            <br /> valid: {{state.state[selectedBranch].headBlockMetadata.isValid}}
+            <br /> previous blocks: {{state.state[selectedBranch].headBlockMetadata?.previousBlockIds | json}}
+            <br /> confidence: {{state.state[selectedBranch].headBlockMetadata.confidence}}
+            <br /> blockCount: {{state.state[selectedBranch].headBlockMetadata.blockCount}}
           </div>
         </div>
       </div>
