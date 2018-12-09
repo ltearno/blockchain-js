@@ -148,7 +148,7 @@ export class State {
         this.fullNode = new Blockchain.FullNode.FullNode(this.miningRouter)
         this.localMiner = new Blockchain.MinerImpl.MinerImpl(this.fullNode.node)
 
-        this.fullNode.node.addEventListener('head', (event) => {
+        this.fullNode.node.addEventListener('head', null, (event) => {
             //this.log(`new head on branch '${event.branch}': ${event.headBlockId.substr(0, 7)}`)
             if (event.branch == Blockchain.Block.MASTER_BRANCH)
                 this.masterHead = event.headBlockId.substr(0, 7)

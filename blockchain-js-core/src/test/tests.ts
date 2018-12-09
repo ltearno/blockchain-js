@@ -22,7 +22,7 @@ async function testDataSerialization() {
 async function testBasicMining() {
     console.log(`creating a node`)
     let node = new NodeImpl.NodeImpl()
-    node.addEventListener('head', async () => console.log(`event : node has new head (${await node.blockChainHead(Block.MASTER_BRANCH)})`))
+    node.addEventListener('head', null, async () => console.log(`event : node has new head (${await node.blockChainHead(Block.MASTER_BRANCH)})`))
 
     console.log(`current head: ${await node.blockChainHead(Block.MASTER_BRANCH)}`)
     let miner = TestTools.createSimpleMiner(Block.MASTER_BRANCH, null, 10)
@@ -161,7 +161,7 @@ async function testNodeProxy() {
             console.log(`*** it should be the same as the created one ***`)
             return null
         },
-        addEventListener: (type, listener) => {
+        addEventListener: (type, options, listener) => {
             console.log(`addListener`)
             setInterval(() => listener({ type: 'head', branch: Block.MASTER_BRANCH, headBlockId: null }), 1000)
         },
@@ -184,7 +184,7 @@ async function testNodeProxy() {
     console.log(`created ${mined.id} : ${JSON.stringify(mined.block)}`)
     let remoteNode = proxy.remoteFacade()
     let metadata = await remoteNode.registerBlock(mined.id, mined.block)
-    remoteNode.addEventListener('head', () => console.log(`receive head change`))
+    remoteNode.addEventListener('head', null, () => console.log(`receive head change`))
 }
 
 async function testListOnBlockBasic() {

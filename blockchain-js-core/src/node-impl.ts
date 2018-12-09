@@ -148,7 +148,8 @@ export class NodeImpl implements NodeApi.NodeApi {
         }
     }
 
-    async addEventListener<K extends keyof NodeApi.BlockchainEventMap>(type: K, listener: (event: NodeApi.BlockchainEventMap[K]) => any): Promise<void> {
+    async addEventListener<K extends keyof NodeApi.BlockchainEventMap>(type: K, options: NodeApi.NodeEventListenerOptionsMap[K], listener: (event: NodeApi.BlockchainEventMap[K]) => any): Promise<void> {
+        // TODO take options in account
         this.listeners.get(type).push(listener)
 
         switch (type) {

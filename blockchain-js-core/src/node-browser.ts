@@ -28,7 +28,7 @@ export class NodeBrowser {
 
     initialise() {
         this.registeredBlockEventListener = e => this.storeBlock(e.blockId)
-        this.node.addEventListener('block', this.registeredBlockEventListener)
+        this.node.addEventListener('block', null, this.registeredBlockEventListener)
     }
 
     terminate() {

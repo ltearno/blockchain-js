@@ -99,10 +99,10 @@ export class WebSocketConnector implements NodeApi.NodeApi {
     blockChainBlockMetadata(startBlockId: string, depth: number): Promise<Block.BlockMetadata[]> { return this.sendCall('blockChainBlockMetadata', [startBlockId, depth]) }
     blockChainBlockData(startBlockId: string, depth: number): Promise<Block.Block[]> { return this.sendCall('blockChainBlockData', [startBlockId, depth]) }
     registerBlock(blockId: string, block: Block.Block): Promise<Block.BlockMetadata> { return this.sendCall('registerBlock', [blockId, block]) }
-    addEventListener<K extends keyof NodeApi.BlockchainEventMap>(type: K, listener: NodeApi.NodeEventListener<K>): void {
+    addEventListener<K extends keyof NodeApi.BlockchainEventMap>(type: K, options: NodeApi.BlockchainEventMap[K], listener: NodeApi.NodeEventListener<K>): void {
         let listenerId = `listener_${uuidv4()}`
         this.remoteEventListeners.set(listenerId, listener as NodeApi.NodeEventListener<keyof NodeApi.BlockchainEventMap>)
-        this.sendCall('addEventListener', [type, listenerId], false)
+        this.sendCall('addEventListener', [type, listenerId, options], false)
     }
     removeEventListener<K extends keyof NodeApi.BlockchainEventMap>(eventListener: NodeApi.NodeEventListener<K>): void {
         for (let [listenerId, registeredEventListener] of this.remoteEventListeners.entries()) {
@@ -185,7 +185,7 @@ export class WebSocketConnector implements NodeApi.NodeApi {
         let { method, parameters } = message.data
         switch (method) {
             case 'addEventListener': {
-                let [type, listenerId] = parameters
+                let [type, listenerId, options] = parameters
                 let listener = event => {
                     try {
                         this.ws.send(JSON.stringify({ id: `event_${uuidv4()}`, type: 'event', data: { listenerId, event } }))
@@ -198,7 +198,7 @@ export class WebSocketConnector implements NodeApi.NodeApi {
                     }
                 }
                 this.localEventListeners.set(listenerId, listener)
-                node.addEventListener(type, listener)
+                node.addEventListener(type, options, listener)
                 return
             }
 

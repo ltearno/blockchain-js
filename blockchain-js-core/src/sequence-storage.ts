@@ -46,7 +46,7 @@ export class SequenceStorage<T> {
             this.browser.initialise()
         }
 
-        this.node.addEventListener('head', event => {
+        this.node.addEventListener('head', null, event => {
             if (event.branch == this.branch)
                 this.updateFromNode()
         })

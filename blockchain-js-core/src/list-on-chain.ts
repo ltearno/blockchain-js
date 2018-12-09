@@ -68,7 +68,7 @@ export class ListOnChain {
     private nodeListener = () => this.updateFromNode()
 
     initialise() {
-        this.node.addEventListener('head', this.nodeListener)
+        this.node.addEventListener('head', null, this.nodeListener)
         this.updateFromNode()
 
         this.list = []

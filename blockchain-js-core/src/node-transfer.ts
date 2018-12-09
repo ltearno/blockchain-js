@@ -63,7 +63,7 @@ export class NodeTransfer {
 
         this.knownNodes.push(nodeInfo)
 
-        remoteNode.addEventListener('head', nodeInfo.listener)
+        remoteNode.addEventListener('head', null, nodeInfo.listener)
 
         console.log(`added remote node for transfer`)
     }

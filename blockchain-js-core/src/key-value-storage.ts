@@ -31,7 +31,7 @@ export class KeyValueStorage {
     private nodeListener = () => this.updateFromNode()
 
     initialise() {
-        this.node.addEventListener('head', this.nodeListener)
+        this.node.addEventListener('head', null, this.nodeListener)
         this.updateFromNode()
     }
 

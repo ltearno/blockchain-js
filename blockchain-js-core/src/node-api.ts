@@ -60,7 +60,7 @@ export interface NodeApi {
      * 
      * TODO register on a specific branch
      */
-    addEventListener<K extends keyof BlockchainEventMap>(type: K, listener: NodeEventListener<K>): void
+    addEventListener<K extends keyof BlockchainEventMap>(type: K, options: NodeEventListenerOptionsMap[K], listener: NodeEventListener<K>): void
 
     /**
      * Removes an event listener
@@ -75,4 +75,15 @@ export interface BlockchainEventMap {
 
 export interface NodeEventListener<K extends keyof BlockchainEventMap> {
     (event: BlockchainEventMap[K]): any
+}
+
+export interface HeadListenerOptions {
+    branch?: string
+}
+
+export interface BlockListenerOptions { }
+
+export interface NodeEventListenerOptionsMap {
+    'head': HeadListenerOptions
+    'block': BlockListenerOptions
 }

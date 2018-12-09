@@ -9,7 +9,7 @@ async function run() {
     console.log(`initializing full node`)
     let fullNode = new FullNode.FullNode()
 
-    fullNode.node.addEventListener('head', async (info) => console.log(`event : node has new head : ${info.branch} as ${info.headBlockId}`))
+    fullNode.node.addEventListener('head', null, async (info) => console.log(`event : node has new head : ${info.branch} as ${info.headBlockId}`))
 
     console.log(`mine a hello world data`)
     fullNode.miner.addData(Block.MASTER_BRANCH, "Hello my friend !")
