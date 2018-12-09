@@ -227,19 +227,17 @@
           <label class="label">Current branch</label>
           <div class="select">
             <select [(ngModel)]='state.selectedBranch'>
-              <option *ngFor='let branch of branches' value='{{branch}}'>{{branch}}</option>
+              <option *ngFor='let branch of state.branches' value='{{branch}}'>{{branch}}</option>
             </select>
           </div>
         </div>
         <div *ngIf='state.state[state.selectedBranch]'>
-          <div *ngIf='state.state[state.selectedBranch].headBlock'>
-            head block id: {{state.state[state.selectedBranch].headBlock.blockMetadata.blockId}}
-            <br /> valid: {{state.state[state.selectedBranch].headBlock.blockMetadata.isValid}}
-            <br /> branch: {{state.state[state.selectedBranch].headBlock.blockData?.branch}}
-            <br /> previous blocks: {{state.state[state.selectedBranch].headBlock.blockData?.previousBlockIds | json}}
-            <br /> confidence: {{state.state[state.selectedBranch].headBlock.blockMetadata.confidence}}
-            <br /> blockCount: {{state.state[state.selectedBranch].headBlock.blockMetadata.blockCount}}
-            <br /> validityProof: {{state.state[state.selectedBranch].headBlock.blockData?.validityProof | json}}
+          <div *ngIf='state.state[state.selectedBranch].head'>
+            head block id: {{state.state[state.selectedBranch].headBlockMetadata.blockId}}
+            <br /> valid: {{state.state[state.selectedBranch].headBlockMetadata.isValid}}
+            <br /> previous blocks: {{state.state[state.selectedBranch].headBlockMetadata?.previousBlockIds | json}}
+            <br /> confidence: {{state.state[state.selectedBranch].headBlockMetadata.confidence}}
+            <br /> blockCount: {{state.state[state.selectedBranch].headBlockMetadata.blockCount}}
           </div>
         </div>
       </div>
@@ -323,7 +321,7 @@
         <span *ngIf='state.isLoading()' style='color:green;'>Loading - </span>
         <!--<span *ngIf='!state.fullNode.node.blockCount'>Empty blockchain</span>
         <span *ngIf='state.fullNode.node.blockCount'>{{state.fullNode.node.blockCount}} blocks</span>-->
-        <span *ngIf='state.currentHead'>{{state.currentHead}}</span>
+        <span *ngIf='state.masterHead'>{{state.masterHead}}</span>
         <span *ngIf='autoMining' style='color:green;'> - auto-mining enabled</span>
       </p>
     </div>

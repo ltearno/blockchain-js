@@ -25,6 +25,14 @@ export class State {
             this.logs.pop()
     }
 
+    /**
+     * That which is residing on master branch
+     */
+
+    /**
+     * That which is residing on a 'dynamic' changeable branch
+     */
+
     user: {
         id: string
         keys: RsaKeyPair
@@ -34,7 +42,7 @@ export class State {
         return this.user && this.identities && this.identities[this.user.id] && this.identities[this.user.id].pseudo
     }
 
-    currentHead = ''
+    masterHead = ''
 
     hasSupplyChainAccount = false
 
@@ -65,12 +73,11 @@ export class State {
     }
 
     state: {
-        [key: string]: {
-            branch: string
+        [branch: string]: {
             head: string
-            headBlock: any[]
+            headBlockMetadata: Blockchain.Block.BlockMetadata
         }
-    } = { "master": { branch: Blockchain.Block.MASTER_BRANCH, head: null, headBlock: [] } }
+    } = { "master": { head: null, headBlockMetadata: null } }
 
     messageSequence: Blockchain.SequenceStorage.SequenceStorage
     supplyChainBranchSequence: Blockchain.SequenceStorage.SequenceStorage
@@ -100,9 +107,6 @@ export class State {
     programState: ProgramState = null
 
     identities: { [id: string]: { pseudo: string; publicKey: string } } = {}
-
-    private nextLoad: { branch, blockId } = { branch: null, blockId: null }
-    private lastLoaded = { branch: null, blockId: null }
 
     private messages = []
 
@@ -146,20 +150,12 @@ export class State {
         this.fullNode = new Blockchain.FullNode.FullNode(this.miningRouter)
         this.localMiner = new Blockchain.MinerImpl.MinerImpl(this.fullNode.node)
 
-        setInterval(() => {
-            if (this.lastLoaded.blockId != this.nextLoad.blockId || this.lastLoaded.branch != this.nextLoad.branch) {
-                this.lastLoaded = { branch: this.nextLoad.branch, blockId: this.nextLoad.blockId }
-                this.loadState(this.lastLoaded.branch, this.lastLoaded.blockId)
-            }
-        }, 500)
-
         this.fullNode.node.addEventListener('head', (event) => {
             //this.log(`new head on branch '${event.branch}': ${event.headBlockId.substr(0, 7)}`)
-            if (event.branch != Blockchain.Block.MASTER_BRANCH)
-                return
+            if (event.branch == Blockchain.Block.MASTER_BRANCH)
+                this.masterHead = event.headBlockId.substr(0, 7)
 
-            this.triggerLoad(event.branch, event.headBlockId)
-            this.currentHead = event.headBlockId.substr(0, 7)
+            this.loadState(event.branch, event.headBlockId)
         })
 
         this.supplyChainBranchSequence = new Blockchain.SequenceStorage.SequenceStorage(
@@ -169,8 +165,6 @@ export class State {
             this.fullNode.miner)
         this.supplyChainBranchSequence.initialise()
         this.supplyChainBranchSequence.addEventListener('change', (sequenceItemsByBlock) => {
-            console.log(`JKJKAHGKJHAGKJAHGKAJHGK`, sequenceItemsByBlock);
-
             this.supplyChainBranches = []
             for (let { blockId, items } of sequenceItemsByBlock) {
                 items.forEach(item => {
@@ -186,7 +180,6 @@ export class State {
             `demo-chat-v1`,
             this.fullNode.miner)
         this.messageSequence.initialise()
-
         this.messageSequence.addEventListener('change', (sequenceItemsByBlock) => this.updateStatusFromSequence(sequenceItemsByBlock))
 
         this.smartContract = new Blockchain.SmartContract.SmartContract(this.fullNode.node, Blockchain.Block.MASTER_BRANCH, 'people', this.fullNode.miner)
@@ -216,28 +209,17 @@ export class State {
         this.messages = this.messages.reverse()
     }
 
-    private triggerLoad(branch: string, blockId: string) {
-        this.nextLoad = { branch, blockId }
-    }
-
     private async loadState(branch: string, blockId: string) {
         if (this.state && this.state[branch] && this.state[branch].head == blockId)
             return
 
-        let branchState = {
-            branch: branch,
-            head: blockId,
-            headBlock: null
-        }
-
         let blockMetadatas = await this.fullNode.node.blockChainBlockMetadata(blockId, 1)
         let blockMetadata = blockMetadatas && blockMetadatas[0]
-        let blockDatas = await this.fullNode.node.blockChainBlockData(blockId, 1)
-        let blockData = blockDatas && blockDatas[0]
 
-        branchState.headBlock = { blockMetadata, blockData }
-
-        this.state[branch] = branchState
+        this.state[branch] = {
+            head: blockId,
+            headBlockMetadata: blockMetadata
+        }
     }
 
     private async registerIdentity() {
