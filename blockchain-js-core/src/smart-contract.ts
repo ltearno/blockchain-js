@@ -106,6 +106,13 @@ export class SmartContract {
     }
 
     setBranch(branch: string) {
+        this.contractsLiveInstances.clear()
+        this.statesCache = []
+        //this.stateCache = {
+        //    contracts: {},
+        //    returnValues: {}
+        //}
+
         this.branch = branch
         this.contractItemList.setBranch(branch)
     }
@@ -125,11 +132,13 @@ export class SmartContract {
         this.contractsLiveInstances.get(contractUuid).set("" + iterationId, liveInstance)
     }
 
-    private getLiveInstance(contractUuid: string, iterationId: number) {
+    private getLiveInstance(contractUuid: string, iterationId: number): LiveInstance {
         let byIterationId = this.contractsLiveInstances.get(contractUuid)
         let liveInstance = byIterationId && byIterationId.get("" + iterationId)
+
         if (!liveInstance)
             console.error(`cannot find liveinstance for ${contractUuid} ${iterationId}`)
+
         return liveInstance
     }
 
@@ -214,6 +223,10 @@ export class SmartContract {
             }
             startIdx = 0
         }
+
+        console.log(`update status from sequence, start ${startIdx}`)
+
+        this.stateCache = state
 
         let startTime = unifiedNow()
 
