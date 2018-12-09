@@ -88,16 +88,16 @@
           This means that you never loose creating something or using someone else's creation, and you gain revenues
           when others use your work !
           <br><br><br>
-      <div class="field has-addons" *ngIf='state.user && state.hasIdentityContract'>
-        <p class="control is-expanded">
-          <input #pseudo class='input' type="text" placeholder='Choose a pseudo' (keyup.enter)='setPseudo(pseudo.value)'>
-        </p>
-        <p class="control">
-          <button (click)='setPseudo(pseudo.value)' class='button has-icon-left'>
-            Go with this!
-          </button>
-        </p>
-      </div>
+          <div class="field has-addons" *ngIf='state.user && state.hasIdentityContract'>
+            <p class="control is-expanded">
+              <input #pseudo class='input' type="text" placeholder='Choose a pseudo' (keyup.enter)='setPseudo(pseudo.value)'>
+            </p>
+            <p class="control">
+              <button (click)='setPseudo(pseudo.value)' class='button has-icon-left'>
+                Go with this!
+              </button>
+            </p>
+          </div>
     </div>
   </div>
 
@@ -306,7 +306,12 @@
   </div>
 </section>
 
-{{state.supplyChainBranches | json }}
+<div>
+  Select your branch :
+  <div *ngFor='let branch of state.supplyChainBranches'>
+    <button class='button' (click)='state.smartContract.setBranch(branch)'>{{ branch }}</button></div>
+</div>
+<!--{{state.supplyChainBranches | json }}-->
 
 <footer id='blockchain-footer' class="footer">
   <div class="container">

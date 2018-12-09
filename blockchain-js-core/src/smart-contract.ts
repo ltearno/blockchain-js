@@ -8,6 +8,7 @@ const unifiedNow = typeof performance !== 'undefined' ? () => performance.now() 
 
 /**
  * TODO :
+ * - access control for permission to change the contract is done by the contract itself !
  * - possibility for an application to wait on smart contract state change
  * - add an identifier (known as 'colony' name) to have segregation between multiple smart contract realms...
  * - options on contracts : can other read state ? can be updated ? list of pubKeys for changing the contract...
@@ -102,6 +103,11 @@ export class SmartContract {
         this.contractItemList.removeEventListener(this.registeredChangeListener)
         this.contractItemList.terminate()
         this.node = undefined
+    }
+
+    setBranch(branch: string) {
+        this.branch = branch
+        this.contractItemList.setBranch(branch)
     }
 
     addChangeListener(listener: () => any) {
