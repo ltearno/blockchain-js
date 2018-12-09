@@ -3,12 +3,16 @@ import * as NodeApi from './node-api'
 import * as BlockStore from './block-store'
 import * as BlockStoreInMemory from './block-store-inmemory'
 
+interface EventListenerInfo<T extends 'head' | 'block'> {
+    listener: NodeApi.NodeEventListener<T>
+    options: NodeApi.NodeEventListenerOptionsMap[T]
+}
+
 export class NodeImpl implements NodeApi.NodeApi {
-    private listeners: Map<string, NodeApi.NodeEventListener<keyof NodeApi.BlockchainEventMap>[]> = new Map()
+    private headListeners: EventListenerInfo<'head'>[] = []
+    private blockListeners: EventListenerInfo<'block'>[] = []
 
     constructor(private blockStore: BlockStore.BlockStore = new BlockStoreInMemory.InMemoryBlockStore()) {
-        this.listeners.set('head', [])
-        this.listeners.set('block', [])
     }
 
     async blocks(callback: (blockId: string, block: Block.Block) => any) {
@@ -149,24 +153,30 @@ export class NodeImpl implements NodeApi.NodeApi {
     }
 
     async addEventListener<K extends keyof NodeApi.BlockchainEventMap>(type: K, options: NodeApi.NodeEventListenerOptionsMap[K], listener: (event: NodeApi.BlockchainEventMap[K]) => any): Promise<void> {
-        // TODO take options in account
-        this.listeners.get(type).push(listener)
+        let info = { listener, options }
 
         switch (type) {
             case 'head':
+                this.headListeners.push(info)
+
                 for (let branch of await this.blockStore.getBranches())
-                    listener({ type: 'head', branch, headBlockId: await this.blockStore.getBranchHead(branch) })
+                    this.notifyHeadEventToListener({ type: 'head', branch, headBlockId: await this.blockStore.getBranchHead(branch) }, info)
+
                 break
 
             case 'block':
+                this.blockListeners.push(info)
+
+                // TODO fix that
                 await this.blockStore.blocks(blockId => listener({ type: 'block', blockId }))
+
                 break
         }
     }
 
     removeEventListener<K extends keyof NodeApi.BlockchainEventMap>(eventListener: NodeApi.NodeEventListener<K>): void {
-        for (let type of this.listeners.keys())
-            this.listeners.set(type, this.listeners.get(type).filter(el => el != eventListener))
+        this.blockListeners = this.blockListeners.filter(el => el.listener !== eventListener)
+        this.headListeners = this.headListeners.filter(el => el.listener !== eventListener)
     }
 
     async knowsBlock(id: string): Promise<boolean> {
@@ -245,15 +255,13 @@ export class NodeImpl implements NodeApi.NodeApi {
             for (let branch of lastHeadEvents) {
                 let headBlockId = await this.blockStore.getBranchHead(branch)
 
-                //let bm = await this.blockStore.getBlockMetadata(headBlockId)
-                //let blockCount = bm && bm.blockCount
                 console.log(`branch ${branch}'s new head is block ${headBlockId}`)
 
-                this.listeners.get('head').forEach(listener => listener({
+                this.notifyEvent({
                     type: 'head',
                     branch,
                     headBlockId
-                }))
+                })
             }
 
             this.notifyTimeout = null
@@ -263,8 +271,19 @@ export class NodeImpl implements NodeApi.NodeApi {
         }, 0)
     }
 
-    private notifyEvent<K extends keyof NodeApi.BlockchainEventMap>(event: NodeApi.BlockchainEventMap[K]) {
-        this.listeners.get(event.type).forEach(listener => listener(event))
+    private notifyEvent(event: NodeApi.NodeEvent) {
+        if (event.type == 'block') {
+            this.blockListeners.forEach(listener => listener.listener(event))
+        }
+        else if (event.type == 'head') {
+            this.headListeners.forEach(listener => this.notifyHeadEventToListener(event, listener))
+        }
+    }
+
+    private notifyHeadEventToListener(event: NodeApi.BlockchainEventMap['head'], listener: EventListenerInfo<'head'>) {
+        if (!listener.options || !listener.options.branch || listener.options.branch == (event as NodeApi.BlockchainEventMap['head']).branch) {
+            listener.listener(event as NodeApi.BlockchainEventMap['head'])
+        }
     }
 
     /**

@@ -73,6 +73,8 @@ export interface BlockchainEventMap {
     'block': AcceptedBlockEvent
 }
 
+export type NodeEvent = BlockchainEventMap['head'] | BlockchainEventMap['block']
+
 export interface NodeEventListener<K extends keyof BlockchainEventMap> {
     (event: BlockchainEventMap[K]): any
 }
