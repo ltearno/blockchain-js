@@ -81,6 +81,8 @@ export class ArtWorkSummaryComponent implements AfterViewInit, OnDestroy {
     }
 
     isArtWorkEmpty() {
+        if (!this.artWork)
+            return true
         return (!this.artWork || !this.artWork.grid || Object.keys(this.artWork.grid).length == 0) && (this.state.user && this.state.user.id != this.artWork.author)
     }
 
