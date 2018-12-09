@@ -115,20 +115,40 @@ const run = async () => {
             fullNodePeerInfo: null
         }
 
-        let peerNode = new NodeNetworkClient.NodeClient(fullNode.node, peer.address, peer.port, peer.secure, () => fullNode.removePeer(peerInfo.fullNodePeerInfo.id), NETWORK_CLIENT_API)
+        let peerNode = new NodeNetworkClient.NodeClient(
+            fullNode.node,
+            peer.address,
+            peer.port,
+            peer.secure,
+            () => {
+                if (peerInfo.fullNodePeerInfo)
+                    fullNode.removePeer(peerInfo.fullNodePeerInfo.id)
 
-        try {
-            await peerNode.initialize()
+                if (peer.autoReconnect) {
+                    setTimeout(() => connect(), peer.autoReconnect > 0 ? peer.autoReconnect : 1)
+                }
+            },
+            NETWORK_CLIENT_API
+        )
 
-            peerInfo.fullNodePeerInfo = fullNode.addPeer(peerNode.remoteFacade(), `peer added through REST: ${peer.address}:${peer.port}`)
+        const connect = async () => {
+            try {
+                await peerNode.initialize()
 
-            res.send(JSON.stringify({ id: peerInfo.fullNodePeerInfo.id }))
+                peerInfo.fullNodePeerInfo = fullNode.addPeer(peerNode.remoteFacade(), `peer added through REST: ${peer.address}:${peer.port}`)
+            }
+            catch (error) {
+                console.log(`error connecting to peer ${JSON.stringify(peer)}`)
+
+                if (peer.autoReconnect) {
+                    setTimeout(() => connect(), peer.autoReconnect > 0 ? peer.autoReconnect : 1)
+                }
+            }
         }
-        catch (error) {
-            console.log(`error connecting to peer ${JSON.stringify(peer)}`)
 
-            res.send(JSON.stringify({ error: 'error' }))
-        }
+        await connect()
+
+        res.send(JSON.stringify({ id: peerInfo.fullNodePeerInfo ? peerInfo.fullNodePeerInfo.id : null }))
     })
 
     app.delete('/peers/:id', async (req, res) => {

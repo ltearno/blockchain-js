@@ -43,7 +43,6 @@ export class WebSocketConnector implements NodeApi.NodeApi {
             let message = JSON.parse(rawMessage) as Message
             switch (message.type) {
                 case 'hello':
-                    console.log(`received hello : ${message.data}`)
                     if (!message.data || message.data != MAGIC_HELLO) {
                         console.warn(`refuse socket connection from client ${message.data}`)
                         this.ws.close()

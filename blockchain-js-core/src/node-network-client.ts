@@ -35,7 +35,7 @@ export class NodeClient {
             await this.connect()
         }
         catch (err) {
-            console.log(`error on NodeClient init, will be retried later...`)
+            console.log(`error on NodeClient init...`)
         }
     }
 
@@ -46,7 +46,7 @@ export class NodeClient {
 
             if (this.ws) {
                 this.ws.close()
-                this.ws = null
+                this.finish()
             }
 
             try {
@@ -64,23 +64,36 @@ export class NodeClient {
                 })
 
                 this.ws.on('error', (err) => {
-                    console.log(`error on ws ${url}, closing : ${err}`)
+                    if (!this.opened) {
+                        this.finish()
+                    }
+                    else {
+                        console.log(`error on ws ${url}, closing : ${err}`)
+                        this.ws.close()
+                    }
                 })
 
                 this.ws.on('close', () => {
-                    this.connector && this.connector.terminate()
-                    this.connector = null
-                    this.opened = false
-                    this.ws && this.ws.close()
-                    this.ws = null
-
-                    console.log('disconnected')
-                    this.closeListener()
+                    if (this.opened)
+                        console.log(`web socket disconnected from ${url}`)
+                    this.finish()
                 })
             }
             catch (err) {
                 console.log(`error on ws : ${err}`)
             }
         })
+    }
+
+    private finish() {
+        if (!this.ws)
+            return
+
+        this.connector && this.connector.terminate()
+        this.connector = null
+        this.opened = false
+        this.ws = null
+
+        this.closeListener()
     }
 }

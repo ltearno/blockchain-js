@@ -11,6 +11,7 @@ export interface Peer {
     address: string
     port: number
     secure?: boolean
+    autoReconnect?: number
 }
 
 export interface PeerInfo {
