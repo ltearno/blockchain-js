@@ -173,9 +173,7 @@ export class State {
 
         this.smartContract = new Blockchain.SmartContract.SmartContract(this.fullNode.node, Blockchain.Block.MASTER_BRANCH, 'people', this.fullNode.miner)
         this.smartContract.addChangeListener(() => {
-            this.programState = JSON.parse(JSON.stringify(this.suppyChain.getSuppyChainState()))
-
-            console.log(`change on smart contract`, this.programState);
+            this.programState = this.suppyChain.getSuppyChainState() // JSON.parse(JSON.stringify(this.suppyChain.getSuppyChainState()))
 
             if (this.smartContract.hasContract(this.IDENTITY_REGISTRY_CONTRACT_ID)) {
                 let identityContractState = this.smartContract.getContractState(this.IDENTITY_REGISTRY_CONTRACT_ID)
