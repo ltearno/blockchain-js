@@ -9,15 +9,52 @@ import * as https from 'https'
 import * as fs from 'fs'
 import * as BlockStoreDisk from './block-store-disk'
 
+function parseArgs(parsed: any) {
+    let args = process.argv.slice(2)
+    let name = null
+    for (let arg of args) {
+        if (arg.startsWith('-')) {
+            name = arg.substr(1)
+        }
+        else {
+            let argType = typeof parsed[name]
+            switch (argType) {
+                case 'boolean':
+                    parsed[name] = arg === 'true'
+                    break
+
+                case 'number':
+                    parsed[name] = parseInt(arg)
+                    break
+
+                default:
+                    parsed[name] = arg
+                    break
+            }
+        }
+    }
+}
+
 const run = async () => {
     const NETWORK_CLIENT_API = new NetworkApiNodeImpl.NetworkApiNodeImpl()
 
+    let args = {
+        port: 9091,
+        persistent: false
+    }
+    parseArgs(args)
+    console.log(`arguments : ${JSON.stringify(args)}`)
+
     // input parameters
-    let port = (process.argv.length >= 3 && parseInt(process.argv[2])) || 9091
-    
+    let port = args.port
+
     // TODO should use disk store only if param "disk" is set
-    let blockStore = new BlockStoreDisk.DiskBlockStore()
-    await blockStore.init()
+    let blockStore = null
+
+    if (args.persistent) {
+        blockStore = new BlockStoreDisk.DiskBlockStore()
+        await blockStore.init()
+    }
 
     let fullNode = new FullNode.FullNode(null, blockStore)
 
