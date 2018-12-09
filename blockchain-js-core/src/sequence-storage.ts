@@ -6,14 +6,14 @@ import * as TestTools from './test-tools'
 
 export const SEQUENCE_TAG = 'seq-storage'
 
-export interface SequenceItem {
+export interface SequenceItem<T> {
     tag: typeof SEQUENCE_TAG
     id: string
-    items: any[]
+    items: T[]
 }
 
-export interface SequenceChangeListener {
-    (items: { blockId: string; items: SequenceItem[] }[]): any
+export interface SequenceChangeListener<T> {
+    (items: { blockId: string; items: SequenceItem<T>[] }[]): any
 }
 
 /**
@@ -24,12 +24,12 @@ export interface SequenceChangeListener {
  * 
  * One thing is sure : for a block id, there is only one possibility for the list
  */
-export class SequenceStorage {
+export class SequenceStorage<T> {
     private ownBrowser: boolean
 
     private lastKnownHead: string = null
 
-    private changeListeners: SequenceChangeListener[] = []
+    private changeListeners: SequenceChangeListener<T>[] = []
 
     constructor(
         private node: NodeApi.NodeApi,
@@ -67,7 +67,7 @@ export class SequenceStorage {
         this.updateFromNode()
     }
 
-    addItems(items: any[]) {
+    addItems(items: T[]) {
         this.miner.addData(this.branch, {
             tag: SEQUENCE_TAG,
             id: this.sequenceId,
@@ -75,11 +75,11 @@ export class SequenceStorage {
         })
     }
 
-    addEventListener(type: 'change', handler: SequenceChangeListener) {
+    addEventListener(type: 'change', handler: SequenceChangeListener<T>) {
         this.changeListeners.push(handler)
     }
 
-    removeEventListener(handler: SequenceChangeListener) {
+    removeEventListener(handler: SequenceChangeListener<T>) {
         this.changeListeners = this.changeListeners.filter(l => l != handler)
     }
 
@@ -112,7 +112,7 @@ export class SequenceStorage {
         this.changeListeners.forEach(listener => listener(sequenceItems))
     }
 
-    private appendSequencePartsFromBlock(block: Block.Block, sequenceItems: SequenceItem[]) {
+    private appendSequencePartsFromBlock(block: Block.Block, sequenceItems: SequenceItem<T>[]) {
         for (let dataItem of block.data) {
             if (typeof dataItem !== 'object')
                 continue
@@ -129,7 +129,7 @@ export class SequenceStorage {
             if (!Array.isArray(dataItem.items))
                 continue
 
-            dataItem.items.forEach(item => sequenceItems.push(item as SequenceItem))
+            dataItem.items.forEach(item => sequenceItems.push(item as SequenceItem<T>))
         }
     }
 }

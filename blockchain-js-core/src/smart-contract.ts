@@ -80,8 +80,8 @@ export class SmartContract {
     processing: string = null
     processedBlocks = 0
 
-    private contractItemList: SequenceStorage.SequenceStorage
-    private registeredChangeListener: SequenceStorage.SequenceChangeListener
+    private contractItemList: SequenceStorage.SequenceStorage<any>
+    private registeredChangeListener: SequenceStorage.SequenceChangeListener<any>
     private contractsLiveInstances = new Map<string, Map<string, LiveInstance>>()
     private listeners: { (): any }[] = []
 
@@ -181,11 +181,11 @@ export class SmartContract {
         }
     })
 
-    private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
+    private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem<any>[] }[]) {
         this.updateSequencer.pushData(sequenceItemsByBlock)
     }
 
-    private async realUpdateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem[] }[]) {
+    private async realUpdateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem<any>[] }[]) {
         let state: MachineState
 
         // start from : 'go reverse from the end until finding something in the cache'
