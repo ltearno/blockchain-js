@@ -220,8 +220,6 @@ export class SmartContract {
             startIdx = 0
         }
 
-        console.log(`update status from sequence, start ${startIdx}`)
-
         this.stateCache = state
 
         let startTime = unifiedNow()
