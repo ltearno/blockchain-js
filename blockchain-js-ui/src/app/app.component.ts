@@ -59,6 +59,20 @@ export class AppComponent {
     this._selectedBranch = branch
   }
 
+  _supplyChainBranch = null
+
+  get supplyChainBranch() {
+    return this._supplyChainBranch
+  }
+
+  set supplyChainBranch(value) {
+    if (this._supplyChainBranch == value)
+      return
+      
+    this._supplyChainBranch = value
+    this.state.smartContract.setBranch(value)
+  }
+
   private peersSockets = new Map<FullNode.PeerInfo, { ws: NetworkApi.WebSocket, isSelfInitiated: boolean, counterpartyId: string }>()
 
   private decypherCache = new Map<string, string>()

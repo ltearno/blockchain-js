@@ -195,6 +195,21 @@
   <div *ngIf='selectedTab==3'>
     <div class="container is-fluid">
       <div class="box">
+        <h2 class="subtitle">Supply Chain branch</h2>
+
+        <div class="field">
+          <label class="label">Current branch</label>
+          <div class="select">
+            <select [(ngModel)]='supplyChainBranch'>
+              <option *ngFor='let branch of state.supplyChainBranches' value='{{branch}}'>{{branch}}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br />
+    <div class="container is-fluid">
+      <div class="box">
         <h2 class='subtitle'>Privacy</h2>
         <div class="field">
           <label class='label'>My encryption key</label>
@@ -305,13 +320,6 @@
     </div>
   </div>
 </section>
-
-<div>
-  Select your branch :
-  <div *ngFor='let branch of state.supplyChainBranches'>
-    <button class='button' (click)='state.smartContract.setBranch(branch)'>{{ branch }}</button></div>
-</div>
-<!--{{state.supplyChainBranches | json }}-->
 
 <footer id='blockchain-footer' class="footer">
   <div class="container">
