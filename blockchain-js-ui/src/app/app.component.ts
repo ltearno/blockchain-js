@@ -68,7 +68,7 @@ export class AppComponent {
   set supplyChainBranch(value) {
     if (this._supplyChainBranch == value)
       return
-      
+
     this._supplyChainBranch = value
     this.state.smartContract.setBranch(value)
   }
@@ -139,6 +139,10 @@ export class AppComponent {
 
   setPseudo(pseudo: string) {
     this.state.callContract(this.state.IDENTITY_REGISTRY_CONTRACT_ID, 0, 'setPseudo', this.state.user, { pseudo })
+  }
+
+  setSummplyChainBranch(branch: string) {
+    this.supplyChainBranch = branch
   }
 
   private async ensureUser() {

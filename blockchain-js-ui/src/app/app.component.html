@@ -312,9 +312,21 @@
     <div class="container is-fluid">
       <supply-chain></supply-chain>
     </div>
+    <div class="container" style="text-align: center;">
+      Available branches :
+      <button *ngFor='let branch of state.supplyChainBranches' class='button' [class.is-primary]='branch == supplyChainBranch'
+        (click)='setSummplyChainBranch(branch)'>{{
+        branch }}</button>
+    </div>
   </div>
 
   <div *ngIf='selectedTab==6'>
+    <div class="container" style="text-align: center;">
+      Available branches :
+      <button *ngFor='let branch of state.supplyChainBranches' class='button' [class.is-primary]='branch == supplyChainBranch'
+        (click)='setSummplyChainBranch(branch)'>{{
+        branch }}</button>
+    </div>
     <div class="container is-fluid">
       <wall-of-fame></wall-of-fame>
     </div>
