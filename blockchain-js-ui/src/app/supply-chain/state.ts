@@ -8,6 +8,15 @@ export type RsaKeyPair = {
     publicKey: string;
 }
 
+export interface OnBlockchainMessage {
+    id: string
+    author: string
+    message: string
+    encrypted: boolean
+}
+
+export type SupplyChainBranchesItem = string
+
 /**
  * Application state
  */
@@ -68,8 +77,8 @@ export class State {
         }
     } = { "master": { head: null, headBlockMetadata: null } }
 
-    messageSequence: Blockchain.SequenceStorage.SequenceStorage
-    supplyChainBranchSequence: Blockchain.SequenceStorage.SequenceStorage
+    messageSequence: Blockchain.SequenceStorage.SequenceStorage<OnBlockchainMessage>
+    supplyChainBranchSequence: Blockchain.SequenceStorage.SequenceStorage<SupplyChainBranchesItem>
     supplyChainBranches: string[] = []
     smartContract: Blockchain.SmartContract.SmartContract = null
     suppyChain: SupplyChainAdapter.SupplyChainAdapter = new SupplyChainAdapter.SupplyChainAdapter()
@@ -187,7 +196,7 @@ export class State {
         this.suppyChain.setSmartContract(this.smartContract)
     }
 
-    private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: Blockchain.SequenceStorage.SequenceItem[] }[]) {
+    private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: Blockchain.SequenceStorage.SequenceItem<OnBlockchainMessage>[] }[]) {
         this.messages = []
 
         for (let idx = 0; idx < sequenceItemsByBlock.length; idx++) {
