@@ -70,11 +70,12 @@ export class NodeBrowser {
             return false
 
         try {
-            for (let data of this.browseBlockchainDepth(startBlockId)) {
+            await this.browseBlockchainDepth(startBlockId, async data => {
                 let result = handler(data)
                 if (result instanceof Promise)
                     await result
-            }
+            })
+            
 
             return true
         }
@@ -104,16 +105,20 @@ export class NodeBrowser {
         }
     }
 
-    private async storeBlock(blockId: string) {
+    private async getBlockFromNode(blockId: string) {
         let block = (await this.node.blockChainBlockData(blockId, 1))[0]
         let metadata = (await this.node.blockChainBlockMetadata(blockId, 1))[0]
 
-        this.store.set(blockId, { block, metadata })
+        return { block, metadata }
+    }
+
+    private async storeBlock(blockId: string) {
+        this.store.set(blockId, await this.getBlockFromNode(blockId))
 
         this.maybeNotifyWaitedBlocks(blockId)
     }
 
-    private *browseBlockchainDepth(startBlockId: string) {
+    private async browseBlockchainDepth(startBlockId: string, callback: (data: { block: Block.Block; metadata: Block.BlockMetadata }) => Promise<any>) {
         let visitedBlocks = new Set<string>()
 
         let toVisit = [startBlockId]
@@ -125,8 +130,8 @@ export class NodeBrowser {
                 continue
             visitedBlocks.add(blockId)
 
-            let data = this.store.get(blockId)
-            if (!data)
+            let data = await this.getBlockFromNode(blockId)
+            if (!data || !data.block || !data.metadata)
                 throw `no block data/metadata for ${blockId}, aborting browsing`
 
             if (data.block.previousBlockIds) {
@@ -134,7 +139,7 @@ export class NodeBrowser {
                     toVisit.unshift(data.block.previousBlockIds[i])
             }
 
-            yield data
+            await callback(data)
         }
     }
 }

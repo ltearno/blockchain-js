@@ -2,17 +2,55 @@ import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as BlockStore from './block-store'
 import * as BlockStoreInMemory from './block-store-inmemory'
+import * as RxJs from 'rxjs'
+import { throttleTime } from 'rxjs/operators'
 
 interface EventListenerInfo<T extends 'head' | 'block'> {
     listener: NodeApi.NodeEventListener<T>
     options: NodeApi.NodeEventListenerOptionsMap[T]
 }
 
+class Emitter<T> extends RxJs.Observable<T> {
+    private subscriber: RxJs.Subscriber<T>
+
+    constructor() {
+        super(subscriber => this.subscriber = subscriber)
+    }
+
+    emit(value: T) {
+        this.subscriber.next(value)
+    }
+
+    error(error) {
+        this.subscriber.error(error)
+    }
+
+    finish() {
+        this.subscriber.complete()
+    }
+}
+
 export class NodeImpl implements NodeApi.NodeApi {
     private headListeners: EventListenerInfo<'head'>[] = []
     private blockListeners: EventListenerInfo<'block'>[] = []
 
+    private headEvents = new Emitter<void>()
+    private lastHeadEvents = new Set<string>()
+
     constructor(private blockStore: BlockStore.BlockStore = new BlockStoreInMemory.InMemoryBlockStore()) {
+        this.headEvents.pipe(throttleTime(100)).subscribe(async _ => {
+            let blocksToNotify = this.blocksToNotify
+            this.blocksToNotify = []
+
+            for (let blockId of blocksToNotify) {
+                this.notifyEvent({
+                    type: 'block',
+                    blockId
+                })
+            }
+            
+            this.notifyHeads()
+        })
     }
 
     async blocks(callback: (blockId: string, block: Block.Block) => any) {
@@ -120,6 +158,8 @@ export class NodeImpl implements NodeApi.NodeApi {
         }
     }
 
+    private blocksToNotify: string[] = []
+
     private async realProcessBlock(blockId: string, block: Block.Block) {
         let metadata = await this.processMetaData(blockId, block)
         if (!metadata) {
@@ -132,15 +172,16 @@ export class NodeImpl implements NodeApi.NodeApi {
             return
         }
 
+        console.log(`store metadata for ${metadata.blockId}`);
+
         await this.blockStore.setBlockMetadata(metadata.blockId, metadata)
 
         await this.maybeWakeupBlocks(metadata.blockId)
-        await this.maybeUpdateHead(block, metadata)
 
-        this.notifyEvent({
-            type: 'block',
-            blockId
-        })
+        this.blocksToNotify.push(blockId)
+        this.headEvents.emit(null)
+
+        await this.maybeUpdateHead(block, metadata)
 
         return metadata
     }
@@ -236,42 +277,30 @@ export class NodeImpl implements NodeApi.NodeApi {
 
         if (!this.lastHeadEvents.has(branch)) {
             this.lastHeadEvents.add(branch)
-            await this.triggerNotifyHead()
+            this.headEvents.emit(null)
         }
     }
 
-    private lastHeadEvents = new Set<string>()
+    private async notifyHeads() {
+        let lastHeadEvents = this.lastHeadEvents
+        this.lastHeadEvents = new Set()
 
-    private notifyTimeout
+        for (let branch of lastHeadEvents) {
+            let headBlockId = await this.blockStore.getBranchHead(branch)
 
-    private async triggerNotifyHead() {
-        if (this.notifyTimeout)
-            return
+            console.log(`branch ${branch}'s new head is block ${headBlockId}`)
 
-        this.notifyTimeout = setTimeout(async () => {
-            let lastHeadEvents = this.lastHeadEvents
-            this.lastHeadEvents = new Set()
-
-            for (let branch of lastHeadEvents) {
-                let headBlockId = await this.blockStore.getBranchHead(branch)
-
-                console.log(`branch ${branch}'s new head is block ${headBlockId}`)
-
-                this.notifyEvent({
-                    type: 'head',
-                    branch,
-                    headBlockId
-                })
-            }
-
-            this.notifyTimeout = null
-
-            if (this.lastHeadEvents.size)
-                this.triggerNotifyHead()
-        }, 0)
+            this.notifyEvent({
+                type: 'head',
+                branch,
+                headBlockId
+            })
+        }
     }
 
     private notifyEvent(event: NodeApi.NodeEvent) {
+        console.log(`NOTIFY EVENT ${event.type} ${JSON.stringify(event)}`);
+
         if (event.type == 'block') {
             this.blockListeners.forEach(listener => listener.listener(event))
         }
@@ -282,6 +311,8 @@ export class NodeImpl implements NodeApi.NodeApi {
 
     private notifyHeadEventToListener(event: NodeApi.BlockchainEventMap['head'], listener: EventListenerInfo<'head'>) {
         if (!listener.options || !listener.options.branch || listener.options.branch == (event as NodeApi.BlockchainEventMap['head']).branch) {
+            console.log(`notify head listener ${event.branch} ${event.headBlockId}`)
+
             listener.listener(event as NodeApi.BlockchainEventMap['head'])
         }
     }
