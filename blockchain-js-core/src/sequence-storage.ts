@@ -43,7 +43,6 @@ export class SequenceStorage<T> {
     initialise() {
         if (!this.browser) {
             this.browser = new NodeBrowser.NodeBrowser(this.node)
-            this.browser.initialise()
         }
 
         this.node.addEventListener('head', null, event => {
@@ -54,7 +53,6 @@ export class SequenceStorage<T> {
 
     terminate() {
         if (this.ownBrowser) {
-            this.browser.terminate()
             this.ownBrowser = null
         }
 
@@ -99,7 +97,7 @@ export class SequenceStorage<T> {
         let sequenceItems = []
 
         await this.browser.browseBlocksReverse(head, blockInfo => {
-            console.log(`block: ${blockInfo.metadata.blockId}, depth=${blockInfo.metadata.blockCount}, confidence=${blockInfo.metadata.confidence}`)
+            //console.log(`block: ${blockInfo.metadata.blockId}, depth=${blockInfo.metadata.blockCount}, confidence=${blockInfo.metadata.confidence}`)
             
             let items = []
 

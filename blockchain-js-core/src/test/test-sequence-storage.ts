@@ -10,8 +10,7 @@ async function test() {
     let node = new NodeImpl.NodeImpl()
     let miner = new MinerImpl.MinerImpl(node)
     let browser = new NodeBrowser.NodeBrowser(node)
-    browser.initialise()
-
+    
     /*browser.waitForBlock('1006d20e3329a9152592d44105ffb6a166cf72e7d5626d39170b2e54a01f6463').then(() => {
         console.log(`YYYYYYYYYYYYYAAAAAAHOU !`)
     })*/

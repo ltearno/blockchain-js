@@ -20,33 +20,6 @@ export class NodeBrowser {
         private node: NodeApi.NodeApi
     ) { }
 
-    private store = new Map<string, BlockInfo>()
-    private registeredBlockEventListener: NodeApi.NodeEventListener<'block'>
-    private waitedBlocks = new Map<string, { (): void }[]>()
-
-    initialise() {
-        this.registeredBlockEventListener = e => this.storeBlock(e.blockId)
-        this.node.addEventListener('block', null, this.registeredBlockEventListener)
-    }
-
-    terminate() {
-        this.node.removeEventListener(this.registeredBlockEventListener)
-        this.node = undefined
-    }
-
-    async waitForBlock(blockId: string) {
-        let res = await this.node.blockChainBlockIds(blockId, 1)
-        return res != null && res.length > 0
-    }
-
-    private maybeNotifyWaitedBlocks(blockId: string) {
-        let waitingResolvers = this.waitedBlocks.get(blockId)
-        waitingResolvers && waitingResolvers.forEach(resolver => resolver())
-
-        // nobody will ever wait for it because we have it now !
-        this.waitedBlocks.delete(blockId)
-    }
-
     /**
      * If the handler returns a Promise, it will be waited for by the 
      * browser before continuing the browsing
@@ -96,12 +69,6 @@ export class NodeBrowser {
         let metadata = (await this.node.blockChainBlockMetadata(blockId, 1))[0]
 
         return { block, metadata }
-    }
-
-    private async storeBlock(blockId: string) {
-        this.store.set(blockId, await this.getBlockFromNode(blockId))
-
-        this.maybeNotifyWaitedBlocks(blockId)
     }
 
     private async browseBlockchainDepth(startBlockId: string, callback: (data: { block: Block.Block; metadata: Block.BlockMetadata }) => Promise<any>) {

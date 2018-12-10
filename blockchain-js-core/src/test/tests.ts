@@ -296,7 +296,7 @@ async function testBrowser() {
 
         if (nbToMine == browserInitStep) {
             console.log(`initialise browser`)
-            browser.initialise()
+            //browser.initialise()
         }
     }
 
