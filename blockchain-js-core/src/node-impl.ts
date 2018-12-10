@@ -2,34 +2,14 @@ import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as BlockStore from './block-store'
 import * as BlockStoreInMemory from './block-store-inmemory'
-import * as RxJs from 'rxjs'
 import { debounceTime } from 'rxjs/operators'
+import { Emitter } from './observable-tools'
 
 const IS_DEBUG = false
 
 interface EventListenerInfo<T extends 'head' | 'block'> {
     listener: NodeApi.NodeEventListener<T>
     options: NodeApi.NodeEventListenerOptionsMap[T]
-}
-
-class Emitter<T> extends RxJs.Observable<T> {
-    private subscriber: RxJs.Subscriber<T>
-
-    constructor() {
-        super(subscriber => this.subscriber = subscriber)
-    }
-
-    emit(value: T) {
-        this.subscriber.next(value)
-    }
-
-    error(error) {
-        this.subscriber.error(error)
-    }
-
-    finish() {
-        this.subscriber.complete()
-    }
 }
 
 export class NodeImpl implements NodeApi.NodeApi {
