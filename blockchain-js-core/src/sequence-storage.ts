@@ -91,17 +91,16 @@ export class SequenceStorage<T> {
 
     private async realUpdateFromNode() {
         let head = await this.node.blockChainHead(this.branch)
-
         if (head == this.lastKnownHead)
             return
-        this.lastKnownHead = head
 
-        await this.browser.waitForBlock(head)
+        this.lastKnownHead = head
 
         let sequenceItems = []
 
         await this.browser.browseBlocksReverse(head, blockInfo => {
-            //console.log(`block: ${blockInfo.metadata.blockId}, depth=${blockInfo.metadata.blockCount}, confidence=${blockInfo.metadata.confidence}`)
+            console.log(`block: ${blockInfo.metadata.blockId}, depth=${blockInfo.metadata.blockCount}, confidence=${blockInfo.metadata.confidence}`)
+            
             let items = []
 
             this.appendSequencePartsFromBlock(blockInfo.block, items)

@@ -21,9 +21,7 @@ export class NodeBrowser {
     ) { }
 
     private store = new Map<string, BlockInfo>()
-
     private registeredBlockEventListener: NodeApi.NodeEventListener<'block'>
-
     private waitedBlocks = new Map<string, { (): void }[]>()
 
     initialise() {
@@ -36,21 +34,9 @@ export class NodeBrowser {
         this.node = undefined
     }
 
-    waitForBlock(blockId: string): Promise<any> {
-        if (this.store.has(blockId))
-            return Promise.resolve(true)
-
-        return new Promise((resolve) => {
-            if (this.store.has(blockId)) {
-                resolve()
-                return
-            }
-
-            if (this.waitedBlocks.has(blockId))
-                this.waitedBlocks.get(blockId).push(resolve)
-            else
-                this.waitedBlocks.set(blockId, [resolve])
-        })
+    async waitForBlock(blockId: string) {
+        let res = await this.node.blockChainBlockIds(blockId, 1)
+        return res != null && res.length > 0
     }
 
     private maybeNotifyWaitedBlocks(blockId: string) {
@@ -75,7 +61,7 @@ export class NodeBrowser {
                 if (result instanceof Promise)
                     await result
             })
-            
+
 
             return true
         }
