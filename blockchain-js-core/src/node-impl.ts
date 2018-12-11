@@ -4,6 +4,7 @@ import * as BlockStore from './block-store'
 import * as BlockStoreInMemory from './block-store-inmemory'
 import { debounceTime } from 'rxjs/operators'
 import { Emitter } from './observable-tools'
+import { rateLimit } from './rateLimit'
 
 const IS_DEBUG = false
 
@@ -21,9 +22,7 @@ export class NodeImpl implements NodeApi.NodeApi {
     private blocksToNotify: string[] = []
 
     constructor(private blockStore: BlockStore.BlockStore = new BlockStoreInMemory.InMemoryBlockStore()) {
-        this.headEvents.pipe(debounceTime(5)).subscribe(_ => {
-            this.notifyAllEvents()
-        })
+        this.headEvents.pipe(rateLimit(1)).subscribe(_ => this.notifyAllEvents())
     }
 
     private async notifyAllEvents() {

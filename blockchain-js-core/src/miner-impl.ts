@@ -1,8 +1,8 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as MinerApi from './miner-api'
-import { debounceTime } from 'rxjs/operators'
 import { Emitter } from './observable-tools'
+import { rateLimit } from './rateLimit'
 
 const unifiedNow = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now()
 
@@ -12,7 +12,7 @@ export class MinerImpl implements MinerApi.MinerApi {
     private mineTrigger = new Emitter<void>()
 
     constructor(private node: NodeApi.NodeApi) {
-        this.mineTrigger.pipe(debounceTime(10)).subscribe(_ => this.mineData())
+        this.mineTrigger.pipe(rateLimit(5)).subscribe(_ => this.mineData())
     }
 
     private getToMineList(branch: string) {
