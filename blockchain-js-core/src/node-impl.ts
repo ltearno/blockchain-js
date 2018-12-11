@@ -30,11 +30,13 @@ export class NodeImpl implements NodeApi.NodeApi {
         let blocksToNotify = this.blocksToNotify
         this.blocksToNotify = []
 
-        for (let blockId of blocksToNotify) {
-            this.notifyEvent({
-                type: 'block',
-                blockId
-            })
+        if (this.blockListeners.length) {
+            for (let blockId of blocksToNotify) {
+                this.notifyEvent({
+                    type: 'block',
+                    blockId
+                })
+            }
         }
 
         let lastHeadEvents = this.lastHeadEvents

@@ -1,14 +1,19 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as MinerApi from './miner-api'
+import { debounceTime } from 'rxjs/operators'
+import { Emitter } from './observable-tools'
 
 const unifiedNow = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now()
 
 export class MinerImpl implements MinerApi.MinerApi {
     private dataToMineByBranch = new Map<string, any[]>()
-    private executing = false
 
-    constructor(private node: NodeApi.NodeApi) { }
+    private mineTrigger = new Emitter<void>()
+
+    constructor(private node: NodeApi.NodeApi) {
+        this.mineTrigger.pipe(debounceTime(10)).subscribe(_ => this.mineData())
+    }
 
     private getToMineList(branch: string) {
         if (!this.dataToMineByBranch.has(branch))
@@ -19,28 +24,7 @@ export class MinerImpl implements MinerApi.MinerApi {
     // add data to miner's mempool
     addData(branch: string, data: any): void {
         this.getToMineList(branch).push(data)
-        this.schedule()
-    }
-
-    // if already executing, mark as to redo when finish
-    // otherwise, schedule next operation
-    private schedule() {
-        if (this.executing || !this.dataToMineByBranch || !this.dataToMineByBranch.size)
-            return
-
-        this.executing = true
-
-        let startTime = unifiedNow()
-        this.mineData().then(() => {
-            let sleepTime = 20 - (unifiedNow() - startTime)
-            if (sleepTime < 1)
-                sleepTime = 1
-
-            setTimeout(() => {
-                this.executing = false
-                this.schedule()
-            }, sleepTime)
-        })
+        this.mineTrigger.emit(null)
     }
 
     /**
