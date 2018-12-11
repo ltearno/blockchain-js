@@ -70,9 +70,10 @@ class RateLimitTimeSubscriber<T> extends Subscriber<T> {
 
     debouncedNext(): void {
         this.clearDebounce();
-        this.isFirst = true;
-
+        
         if (this.hasValue) {
+            this.isFirst = true;
+            
             const { lastValue } = this;
             // This must be done *before* passing the value
             // along to the destination because it's possible for
