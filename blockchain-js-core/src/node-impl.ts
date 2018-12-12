@@ -2,7 +2,6 @@ import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as BlockStore from './block-store'
 import * as BlockStoreInMemory from './block-store-inmemory'
-import { debounceTime } from 'rxjs/operators'
 import { Emitter } from './observable-tools'
 import { rateLimit } from './rateLimit'
 

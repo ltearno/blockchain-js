@@ -4,6 +4,8 @@ import * as NodeBrowser from './node-browser'
 import * as MinerApi from './miner-api'
 import * as TestTools from './test-tools'
 
+const IS_DEBUG = true
+
 export const SEQUENCE_TAG = 'seq-storage'
 
 export interface SequenceItem<T> {
@@ -84,13 +86,24 @@ export class SequenceStorage<T> {
     private updateSequencer = new TestTools.CallSerializer(async () => this.realUpdateFromNode())
 
     private updateFromNode() {
+        console.log(`schedule`);
+
         this.updateSequencer.pushData()
     }
 
     private async realUpdateFromNode() {
+        IS_DEBUG && console.log(`update from ${this.branch}`)
+
         let head = await this.node.blockChainHead(this.branch)
         if (head == this.lastKnownHead)
             return
+
+        if (!head) {
+            console.error(`null head on branch ${this.branch} when browsing for sequence-storage`)
+            return
+        }
+
+        IS_DEBUG && console.log(`head is ${head}`)
 
         this.lastKnownHead = head
 
@@ -98,7 +111,7 @@ export class SequenceStorage<T> {
 
         await this.browser.browseBlocksReverse(head, blockInfo => {
             //console.log(`block: ${blockInfo.metadata.blockId}, depth=${blockInfo.metadata.blockCount}, confidence=${blockInfo.metadata.confidence}`)
-            
+
             let items = []
 
             this.appendSequencePartsFromBlock(blockInfo.block, items)

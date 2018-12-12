@@ -3,6 +3,9 @@ import * as MinerApi from './miner-api'
 import * as HashTools from './hash-tools'
 import * as SequenceStorage from './sequence-storage'
 import * as TestTools from './test-tools'
+import { Emitter } from './observable-tools'
+import { rateLimit } from './rateLimit'
+import { debounceTime } from 'rxjs/operators'
 
 const unifiedNow = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now()
 
@@ -85,17 +88,26 @@ export class SmartContract {
     private contractsLiveInstances = new Map<string, Map<string, LiveInstance>>()
     private listeners: { (): any }[] = []
 
+    private blockSequenceChangeEvent = new Emitter<{ blockId: string; items: SequenceStorage.SequenceItem<any>[] }[]>()
+    private listenerEvent = new Emitter<void>()
+
     constructor(
         private node: NodeApi.NodeApi,
         private branch: string,
         private namespace: string,
-        private miner: MinerApi.MinerApi) { }
+        private miner: MinerApi.MinerApi) {
+        this.blockSequenceChangeEvent.pipe(rateLimit(10)).subscribe(sequenceItemsByBlock => this.updateStatusFromSequence(sequenceItemsByBlock))
+        this.listenerEvent.pipe(rateLimit(10)).subscribe(_ => this.callListeners())
+    }
 
     initialise() {
         this.contractItemList = new SequenceStorage.SequenceStorage(this.node, this.branch, `${this.namespace}-smart-contract-v1`, this.miner)
         this.contractItemList.initialise()
 
-        this.registeredChangeListener = (sequenceItemsByBlock) => this.updateStatusFromSequence(sequenceItemsByBlock)
+        this.registeredChangeListener = (sequenceItemsByBlock) => {
+            console.log(`emit updateStatusFromSequence ${JSON.stringify(sequenceItemsByBlock)}`)
+            this.blockSequenceChangeEvent.emit(sequenceItemsByBlock)
+        }
         this.contractItemList.addEventListener('change', this.registeredChangeListener)
     }
 
@@ -167,25 +179,15 @@ export class SmartContract {
         return cache.state
     }
 
-    private updateSequencer = new TestTools.CallSerializer(async (sequenceItemsByBlock) => { await this.realUpdateStatusFromSequence(sequenceItemsByBlock) })
-
-    private hasNewThingForListeners = false
-    private listenerCallbackSequencer = new TestTools.CallSerializer(async (_) => {
-        this.hasNewThingForListeners = false
+    private callListeners() {
         for (let listener of this.listeners) {
-            if (this.hasNewThingForListeners) {
-                console.log(`skipping current listener loop`)
-                return
-            }
             listener()
         }
-    })
-
-    private updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem<any>[] }[]) {
-        this.updateSequencer.pushData(sequenceItemsByBlock)
     }
 
-    private async realUpdateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem<any>[] }[]) {
+    private async updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem<any>[] }[]) {
+        console.log(`updateStatusFromSequence ${JSON.stringify(sequenceItemsByBlock)}`)
+
         let state: MachineState
 
         // start from : 'go reverse from the end until finding something in the cache'
@@ -380,8 +382,7 @@ export class SmartContract {
             }
         }
 
-        this.hasNewThingForListeners = true
-        setTimeout(() => this.listenerCallbackSequencer.pushData(), 0)
+        this.listenerEvent.emit(null)
 
         this.processing = null
     }
