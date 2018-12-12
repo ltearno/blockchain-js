@@ -4,7 +4,7 @@ import * as NodeBrowser from './node-browser'
 import * as MinerApi from './miner-api'
 import * as TestTools from './test-tools'
 
-const IS_DEBUG = true
+const IS_DEBUG = false
 
 export const SEQUENCE_TAG = 'seq-storage'
 
@@ -86,7 +86,7 @@ export class SequenceStorage<T> {
     private updateSequencer = new TestTools.CallSerializer(async () => this.realUpdateFromNode())
 
     private updateFromNode() {
-        console.log(`schedule`);
+        IS_DEBUG && console.log(`schedule`)
 
         this.updateSequencer.pushData()
     }
