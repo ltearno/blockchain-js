@@ -2,8 +2,7 @@ import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as BlockStore from './block-store'
 import * as BlockStoreInMemory from './block-store-inmemory'
-import { Emitter } from './observable-tools'
-import { rateLimit } from './rateLimit'
+import * as MiniObservable from './mini-observable'
 
 const IS_DEBUG = false
 
@@ -16,12 +15,12 @@ export class NodeImpl implements NodeApi.NodeApi {
     private headListeners: EventListenerInfo<'head'>[] = []
     private blockListeners: EventListenerInfo<'block'>[] = []
 
-    private headEvents = new Emitter<void>()
+    private headEvents = new MiniObservable.SimpleEventEmitter<void>()
     private lastHeadEvents = new Set<string>()
     private blocksToNotify: string[] = []
 
     constructor(private blockStore: BlockStore.BlockStore = new BlockStoreInMemory.InMemoryBlockStore()) {
-        this.headEvents.pipe(rateLimit(1)).subscribe(_ => this.notifyAllEvents())
+        this.headEvents.subscribe(_ => this.notifyAllEvents())
     }
 
     private async notifyAllEvents() {

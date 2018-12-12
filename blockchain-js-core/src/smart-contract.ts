@@ -3,9 +3,9 @@ import * as MinerApi from './miner-api'
 import * as HashTools from './hash-tools'
 import * as SequenceStorage from './sequence-storage'
 import * as TestTools from './test-tools'
-import { Emitter } from './observable-tools'
-import { rateLimit } from './rateLimit'
-import { debounceTime } from 'rxjs/operators'
+import * as MiniObservable from './mini-observable'
+
+const IS_DEBUG = false
 
 const unifiedNow = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now()
 
@@ -88,16 +88,16 @@ export class SmartContract {
     private contractsLiveInstances = new Map<string, Map<string, LiveInstance>>()
     private listeners: { (): any }[] = []
 
-    private blockSequenceChangeEvent = new Emitter<{ blockId: string; items: SequenceStorage.SequenceItem<any>[] }[]>()
-    private listenerEvent = new Emitter<void>()
+    private blockSequenceChangeEvent = new MiniObservable.SimpleEventEmitter<{ blockId: string; items: SequenceStorage.SequenceItem<any>[] }[]>()
+    private listenerEvent = new MiniObservable.SimpleEventEmitter<void>()
 
     constructor(
         private node: NodeApi.NodeApi,
         private branch: string,
         private namespace: string,
         private miner: MinerApi.MinerApi) {
-        this.blockSequenceChangeEvent.pipe(rateLimit(10)).subscribe(sequenceItemsByBlock => this.updateStatusFromSequence(sequenceItemsByBlock))
-        this.listenerEvent.pipe(rateLimit(10)).subscribe(_ => this.callListeners())
+        this.blockSequenceChangeEvent.subscribe(sequenceItemsByBlock => this.updateStatusFromSequence(sequenceItemsByBlock))
+        this.listenerEvent.subscribe(_ => this.callListeners())
     }
 
     initialise() {
@@ -105,7 +105,7 @@ export class SmartContract {
         this.contractItemList.initialise()
 
         this.registeredChangeListener = (sequenceItemsByBlock) => {
-            console.log(`emit updateStatusFromSequence ${JSON.stringify(sequenceItemsByBlock)}`)
+            IS_DEBUG && console.log(`emit updateStatusFromSequence ${JSON.stringify(sequenceItemsByBlock)}`)
             this.blockSequenceChangeEvent.emit(sequenceItemsByBlock)
         }
         this.contractItemList.addEventListener('change', this.registeredChangeListener)
@@ -179,14 +179,14 @@ export class SmartContract {
         return cache.state
     }
 
-    private callListeners() {
+    private async callListeners() {
         for (let listener of this.listeners) {
             listener()
         }
     }
 
     private async updateStatusFromSequence(sequenceItemsByBlock: { blockId: string; items: SequenceStorage.SequenceItem<any>[] }[]) {
-        console.log(`updateStatusFromSequence ${JSON.stringify(sequenceItemsByBlock)}`)
+        IS_DEBUG && console.log(`updateStatusFromSequence`)
 
         let state: MachineState
 

@@ -1,18 +1,17 @@
 import * as Block from './block'
 import * as NodeApi from './node-api'
 import * as MinerApi from './miner-api'
-import { Emitter } from './observable-tools'
-import { rateLimit } from './rateLimit'
+import * as MiniObservable from './mini-observable'
 
 const unifiedNow = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now()
 
 export class MinerImpl implements MinerApi.MinerApi {
     private dataToMineByBranch = new Map<string, any[]>()
 
-    private mineTrigger = new Emitter<void>()
+    private mineTrigger = new MiniObservable.SimpleEventEmitter<void>()
 
     constructor(private node: NodeApi.NodeApi) {
-        this.mineTrigger.pipe(rateLimit(5)).subscribe(_ => this.mineData())
+        this.mineTrigger.subscribe(_ => this.mineData())
     }
 
     private getToMineList(branch: string) {
