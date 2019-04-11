@@ -208,7 +208,7 @@ metadata:
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Cluster
-  loadBalancerIP: 35.187.182.86
+  loadBalancerIP: 34.76.71.57
   ports:
   - name: https
     protocol: TCP

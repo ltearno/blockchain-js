@@ -1,5 +1,5 @@
 PROJECT := $(shell gcloud config get-value project)
-IMAGE_NAME := "eu.gcr.io/${PROJECT}/blockchain-js/certbot:arnaud"
+IMAGE_NAME := "eu.gcr.io/${PROJECT}/certbot:arnaud"
 
 image:
 	echo building ${IMAGE_NAME}
@@ -9,7 +9,9 @@ push-image: image
 	gcloud docker -- push ${IMAGE_NAME}
 
 run-image: push-image
-	kubectl apply -f application-cert-renewal.yaml
+	cat application-cert-renewal.yaml | \
+		sed "s|/blockchain-js/|/${PROJECT}/|g" | \
+		kubectl apply -f -
 
 test-image:
 	docker run -it ${IMAGE_NAME}

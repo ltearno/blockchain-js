@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: webserver
-        image: eu.gcr.io/blockchain-js/blockchain-js/certbot:arnaud@sha256:d882780a7a6b7f0d1744a06b51e2f05167319fa168a4dea879fe9c8bfe5d6b0a
+        image: eu.gcr.io/blockchain-js/certbot:arnaud
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -36,7 +36,7 @@ metadata:
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Cluster
-  loadBalancerIP: 35.187.182.86
+  loadBalancerIP: 34.76.71.57
   ports:
   - name: https
     protocol: TCP

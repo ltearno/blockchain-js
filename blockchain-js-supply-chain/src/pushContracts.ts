@@ -9,6 +9,8 @@ import {
     SequenceStorage
 } from 'blockchain-js-core'
 
+(process as any).env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0
+
 async function run() {
     const NETWORK_CLIENT_API = new NetworkApiNodeImpl.NetworkApiNodeImpl()
 
