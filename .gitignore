@@ -2,3 +2,4 @@ letsencrypt/
 **/isolate*
 **/blocks-*.data.json
 **/logs.txt
+node_modules/
