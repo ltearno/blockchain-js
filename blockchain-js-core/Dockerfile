@@ -1,4 +1,4 @@
-FROM node:8
+FROM node:10
 EXPOSE 9091
 
 ADD node_modules node_modules
