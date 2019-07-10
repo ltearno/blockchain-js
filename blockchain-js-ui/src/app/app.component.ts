@@ -261,41 +261,44 @@ export class AppComponent {
     if (this.remoteMinerWebSocket)
       return
 
-    let protocol = location.protocol.startsWith('https') ? 'wss' : 'ws'
-    let host = location.hostname
-    let port = protocol == 'wss' ? 443 : 9091
-
-    //this.remoteMinerWebSocket = NETWORK_CLIENT_IMPL.createClientWebSocket(`${protocol}://${host}:${port}/mining`)
-
-    let addData = async (branch: string, data: any): Promise<boolean> => {
-      if (!this.remoteMinerWebSocket)
-        return false
-
-      try {
-        this.remoteMinerWebSocket.send(JSON.stringify({ branch, data }))
-        return true
-      }
-      catch (error) {
-        return false
-      }
-    }
-
-    this.remoteMinerWebSocket.on('open', () => {
-      console.log(`remote miner connected`)
-      this.state.remoteMining = addData
-    })
-
-    this.remoteMinerWebSocket.on('error', (err) => {
-      console.log(`error with remote miner : ${err}`)
-      this.state.remoteMining = null
-      this.remoteMinerWebSocket.close()
-    })
-
-    this.remoteMinerWebSocket.on('close', () => {
-      console.log('remote miner disconnected')
-      this.state.remoteMining = null
-      this.remoteMinerWebSocket = null
-    })
+    return
+    /*
+        let protocol = location.protocol.startsWith('https') ? 'wss' : 'ws'
+        let host = location.hostname
+        let port = protocol == 'wss' ? 443 : 9091
+    
+        this.remoteMinerWebSocket = NETWORK_CLIENT_IMPL.createClientWebSocket(`${protocol}://${host}:${port}/mining`)
+    
+        let addData = async (branch: string, data: any): Promise<boolean> => {
+          if (!this.remoteMinerWebSocket)
+            return false
+    
+          try {
+            this.remoteMinerWebSocket.send(JSON.stringify({ branch, data }))
+            return true
+          }
+          catch (error) {
+            return false
+          }
+        }
+    
+        this.remoteMinerWebSocket.on('open', () => {
+          console.log(`remote miner connected`)
+          this.state.remoteMining = addData
+        })
+    
+        this.remoteMinerWebSocket.on('error', (err) => {
+          console.log(`error with remote miner : ${err}`)
+          this.state.remoteMining = null
+          this.remoteMinerWebSocket.close()
+        })
+    
+        this.remoteMinerWebSocket.on('close', () => {
+          console.log('remote miner disconnected')
+          this.state.remoteMining = null
+          this.remoteMinerWebSocket = null
+        })
+        */
   }
 
   private naturalRemoteWebSocket: NetworkApi.WebSocket
@@ -306,17 +309,23 @@ export class AppComponent {
 
     let protocol = location.protocol.startsWith('https') ? 'wss' : 'ws'
     let host = location.hostname
+    let basePath = ''
+    console.log(location.pathname)
+    console.log(location.pathname.lastIndexOf('/'))
+    if (location.pathname.lastIndexOf('/') > 0) {
+      basePath = location.pathname.substring(0, location.pathname.lastIndexOf('/'))
+    }
     let port = protocol == 'wss' ? 443 : 9091
 
-    this.naturalRemoteWebSocket = NETWORK_CLIENT_IMPL.createClientWebSocket(`${protocol}://${host}:${port}/events`)
+    this.naturalRemoteWebSocket = NETWORK_CLIENT_IMPL.createClientWebSocket(`${protocol}://${host}:${port}${basePath}/events`)
 
     this.naturalRemoteWebSocket.on('error', (err) => {
-      console.log(`error with natural peer : ${err}`)
+      console.error(`error with natural peer : ${err}`)
       this.naturalRemoteWebSocket.close()
     })
 
     this.naturalRemoteWebSocket.on('close', () => {
-      console.log('natural peer disconnected')
+      console.error('natural peer disconnected')
       this.naturalRemoteWebSocket = null
     })
 
