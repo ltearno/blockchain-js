@@ -265,7 +265,7 @@ export class AppComponent {
     let host = location.hostname
     let port = protocol == 'wss' ? 443 : 9091
 
-    this.remoteMinerWebSocket = NETWORK_CLIENT_IMPL.createClientWebSocket(`${protocol}://${host}:${port}/mining`)
+    //this.remoteMinerWebSocket = NETWORK_CLIENT_IMPL.createClientWebSocket(`${protocol}://${host}:${port}/mining`)
 
     let addData = async (branch: string, data: any): Promise<boolean> => {
       if (!this.remoteMinerWebSocket)
