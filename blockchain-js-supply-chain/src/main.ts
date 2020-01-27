@@ -18,12 +18,12 @@ import {
     WebsocketConnector
 } from 'blockchain-js-core'
 
-const profiler = require('v8-profiler')
 
 const PROFILE = false
 
 async function main() {
     if (PROFILE) {
+        const profiler = require('v8-profiler')
         const profileId = `${Date.now()}.profile`
         profiler.startProfiling(profileId)
         setTimeout(() => {
