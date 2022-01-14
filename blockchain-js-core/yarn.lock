@@ -1933,9 +1933,9 @@ node-abi@^2.2.0:
   dependencies:
     semver "^5.4.1"
 
-node-forge@0.7.6:
-  version "0.7.6"
-  resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-0.7.6.tgz#fdf3b418aee1f94f0ef642cd63486c77ca9724ac"
+node-forge@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-1.0.0.tgz#a025e3beeeb90d9cee37dae34d25b968ec3e6f15"
 
 node-libs-browser@^2.0.0:
   version "2.1.0"
