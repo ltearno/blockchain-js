@@ -24,7 +24,7 @@
     "@types/ws": "^3.2.0",
     "browserify": "^15.2.0",
     "typescript": "2.5.3",
-    "webpack": "3.10.0"
+    "webpack": "5.75.0"
   },
   "dependencies": {
     "body-parser": "^1.15.2",
